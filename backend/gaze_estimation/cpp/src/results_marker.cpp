@@ -55,7 +55,7 @@ void ResultsMarker::showCalibrationWindow(
     cv::circle(calibrationImage, calibrationPoints[i], 10,
                cv::Scalar(0, 255, 0), -1);
     cv::imshow("Calibration", calibrationImage);
-    cv::waitKey(1000); // Wait for 5 second
+    cv::waitKey(1000); // Wait for 1 second
   }
   cv::destroyWindow("Calibration");
 }
@@ -114,12 +114,6 @@ void ResultsMarker::mark(cv::Mat &image,
   auto faceBoundingBoxHeight = faceBoundingBox.height;
   auto scale = 0.002 * faceBoundingBoxWidth;
   cv::Point tl = faceBoundingBox.tl();
-
-  if (calibration.isCalibrated) {
-    for (const auto &point : calibration.points) {
-      cv::circle(image, point, 5, cv::Scalar(0, 255, 0), -1);
-    }
-  }
 
   if (showFaceBoundingBox) {
     cv::rectangle(image, faceInferenceResults.faceBoundingBox,
@@ -249,11 +243,22 @@ void ResultsMarker::mark(cv::Mat &image,
     // Update gaze time tracking
     updateGazeTime(faceInferenceResults.gazeVector, image.size());
 
-    // Display accumulated gaze time
+    // Display accumulated gaze time and gaze lost duration on the bottom half
+    // of the screen
     putHighlightedText(
         image, cv::format("Gaze Time: %.2f seconds", accumulatedGazeTime),
-        cv::Point(10, 30), // Top-left corner
+        cv::Point(10,
+                  image.rows -
+                      60), // Bottom-left corner, a bit higher to fit both lines
         cv::FONT_HERSHEY_PLAIN, scale * 2, cv::Scalar(0, 255, 0), 1);
+    std::chrono::duration<double> gazeLostDuration =
+        std::chrono::steady_clock::now() - gazeLostTime;
+    putHighlightedText(image,
+                       cv::format("Gaze Lost Duration: %.2f seconds",
+                                  gazeLostDuration.count()),
+                       cv::Point(10, image.rows - 30), // Bottom-left corner
+                       cv::FONT_HERSHEY_PLAIN, scale * 2, cv::Scalar(0, 0, 255),
+                       1);
   }
 
   if (showEyeState) {
