@@ -118,7 +118,7 @@ int main(int argc, char *argv[]) {
 
     // Calibrate screen
     std::vector<cv::Point2f> calibrationPoints;
-    cv::Size imageSize(2560, 1600); // Assuming the size of your video frame
+    cv::Size imageSize(1920, 1080); // Assuming the size of your video frame
     resultsMarker.showCalibrationWindow(calibrationPoints, imageSize);
     resultsMarker.calibrateScreen(calibrationPoints);
 
