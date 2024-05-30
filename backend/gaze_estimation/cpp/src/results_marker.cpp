@@ -101,7 +101,7 @@ void ResultsMarker::updateGazeTime(const cv::Point3f &gazeVector,
     isGazingAtScreen = false;
     std::chrono::duration<double> gazeLostDuration = now - gazeLostTime;
     if (gazeLostDuration.count() >
-        60) { // Reset timer if gaze lost for more than 60 seconds
+        10) { // Reset timer if gaze lost for more than 60 seconds
       accumulatedGazeTime = 0;
     }
   }
