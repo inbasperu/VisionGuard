@@ -7,7 +7,7 @@
 #include <gflags/gflags.h>
 
 #define DEFINE_INPUT_FLAGS \
-DEFINE_string(i, "", input_message); \
+DEFINE_string(i, "0", input_message); \
 DEFINE_bool(loop, false, loop_message);
 
 #define DEFINE_OUTPUT_FLAGS \

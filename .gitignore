@@ -33,6 +33,7 @@
 
 #builds 
 build/*
+backend/build/*
 
 #Mac 
 .DS_store

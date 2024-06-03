@@ -48,6 +48,16 @@
 
 using namespace gaze_estimation;
 
+// Function to set default values
+void SetDefaultValues() {
+    FLAGS_i = "0";
+    FLAGS_m = "/Users/inbasekaranperumal/Developer/OpenSource/GSoC/code/VisionGuard/models/intel/gaze-estimation-adas-0002/FP32/gaze-estimation-adas-0002.xml";
+    FLAGS_m_fd = "/Users/inbasekaranperumal/Developer/OpenSource/GSoC/code/VisionGuard/models/intel/face-detection-retail-0004/FP32/face-detection-retail-0004.xml";
+    FLAGS_m_hp = "/Users/inbasekaranperumal/Developer/OpenSource/GSoC/code/VisionGuard/models/intel/head-pose-estimation-adas-0001/FP32/head-pose-estimation-adas-0001.xml";
+    FLAGS_m_lm = "/Users/inbasekaranperumal/Developer/OpenSource/GSoC/code/VisionGuard/models/intel/facial-landmarks-35-adas-0002/FP32/facial-landmarks-35-adas-0002.xml";
+    FLAGS_m_es = "/Users/inbasekaranperumal/Developer/OpenSource/GSoC/code/VisionGuard/models/public/open-closed-eye-0001/FP32/open-closed-eye-0001.xml";
+}
+
 bool ParseAndCheckCommandLine(int argc, char *argv[]) {
   // Parsing and validating input arguments
   gflags::ParseCommandLineNonHelpFlags(&argc, &argv, true);
@@ -56,6 +66,9 @@ bool ParseAndCheckCommandLine(int argc, char *argv[]) {
     showAvailableDevices();
     return false;
   }
+
+  // Set default values
+  SetDefaultValues();
 
   if (FLAGS_i.empty())
     throw std::logic_error("Parameter -i is not set");

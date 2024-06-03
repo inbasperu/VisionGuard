@@ -13,7 +13,7 @@ if(NOT GENERATOR_IS_MULTI_CONFIG_VAR AND NOT DEFINED CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel ...")
 endif()
 
-project(Demos)
+project(VisionGuard)
 
 option(ENABLE_PYTHON "Whether to build extension modules for Python demos" OFF)
 option(MULTICHANNEL_DEMO_USE_TBB "Use TBB-based threading in multichannel demos" OFF)
@@ -138,7 +138,12 @@ macro(add_demo)
     endif()
 endmacro()
 
+# TODO: Think of some better way
+set(OpenCV_DIR /Users/inbasekaranperumal/Developer/OpenSource/build_opencv)
 find_package(OpenCV REQUIRED COMPONENTS core highgui videoio imgproc imgcodecs)
+
+# TODO: Think of some better way
+set(OpenVINO_DIR /Users/inbasekaranperumal/Developer/Programs/OpenVINO-install-dir/runtime/cmake)
 find_package(OpenVINO REQUIRED COMPONENTS Runtime)
 
 add_subdirectory(thirdparty/gflags)
