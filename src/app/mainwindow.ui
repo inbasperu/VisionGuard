@@ -1,0 +1,370 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>960</width>
+    <height>540</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Camera</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout_3">
+    <item row="0" column="0" rowspan="2">
+     <widget class="QStackedWidget" name="stackedWidget">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>1</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="palette">
+       <palette>
+        <active>
+         <colorrole role="Base">
+          <brush brushstyle="SolidPattern">
+           <color alpha="255">
+            <red>255</red>
+            <green>255</green>
+            <blue>255</blue>
+           </color>
+          </brush>
+         </colorrole>
+         <colorrole role="Window">
+          <brush brushstyle="SolidPattern">
+           <color alpha="255">
+            <red>145</red>
+            <green>145</green>
+            <blue>145</blue>
+           </color>
+          </brush>
+         </colorrole>
+        </active>
+        <inactive>
+         <colorrole role="Base">
+          <brush brushstyle="SolidPattern">
+           <color alpha="255">
+            <red>255</red>
+            <green>255</green>
+            <blue>255</blue>
+           </color>
+          </brush>
+         </colorrole>
+         <colorrole role="Window">
+          <brush brushstyle="SolidPattern">
+           <color alpha="255">
+            <red>145</red>
+            <green>145</green>
+            <blue>145</blue>
+           </color>
+          </brush>
+         </colorrole>
+        </inactive>
+        <disabled>
+         <colorrole role="Base">
+          <brush brushstyle="SolidPattern">
+           <color alpha="255">
+            <red>145</red>
+            <green>145</green>
+            <blue>145</blue>
+           </color>
+          </brush>
+         </colorrole>
+         <colorrole role="Window">
+          <brush brushstyle="SolidPattern">
+           <color alpha="255">
+            <red>145</red>
+            <green>145</green>
+            <blue>145</blue>
+           </color>
+          </brush>
+         </colorrole>
+        </disabled>
+       </palette>
+      </property>
+      <property name="currentIndex">
+       <number>1</number>
+      </property>
+      <widget class="QWidget" name="viewfinderPage">
+       <layout class="QGridLayout" name="gridLayout_5"/>
+      </widget>
+      <widget class="QWidget" name="previewPage">
+       <layout class="QGridLayout" name="gridLayout_4">
+        <item row="0" column="0">
+         <widget class="QLabel" name="lastImagePreviewLabel">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::Box</enum>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QTabWidget" name="captureWidget">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="tabCallibration">
+       <attribute name="title">
+        <string>Gaze Estimation</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="3" column="0">
+         <spacer name="verticalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>161</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="0" column="0">
+         <widget class="QPushButton" name="Calibrate">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>13</pointsize>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Calibrate/Start</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="0">
+         <widget class="QLabel" name="gazeLostDuration">
+          <property name="text">
+           <string>Gaze Lost Duration:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="0">
+         <widget class="QLabel" name="GazeTime">
+          <property name="font">
+           <font>
+            <pointsize>26</pointsize>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="layoutDirection">
+           <enum>Qt::LeftToRight</enum>
+          </property>
+          <property name="text">
+           <string>MM:SS</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="accumulatedGazeTime">
+          <property name="text">
+           <string>Accumulated Gaze Time:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="0">
+         <widget class="QLabel" name="GazeLostTime">
+          <property name="font">
+           <font>
+            <pointsize>26</pointsize>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>MM:SS</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tabStats">
+       <attribute name="title">
+        <string>Stats</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="3" column="0">
+         <spacer name="verticalSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>76</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="5" column="0">
+         <widget class="QPushButton" name="metaDataButton">
+          <property name="text">
+           <string>Resource Utilization</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QPushButton" name="recordButton">
+          <property name="text">
+           <string>Daily</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QPushButton" name="pauseButton">
+          <property name="text">
+           <string>Weekly</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QPushButton" name="muteButton">
+          <property name="text">
+           <string>Power Utilization</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QPushButton" name="stopButton">
+          <property name="text">
+           <string>Monthly</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>960</width>
+     <height>37</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionSettings"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <widget class="QMenu" name="menuToggles">
+    <property name="title">
+     <string>Toggles</string>
+    </property>
+    <addaction name="actionShow_Landmarks"/>
+    <addaction name="actionShow_Head_Pose_Axes"/>
+    <addaction name="actionShow_Gaze"/>
+    <addaction name="actionShow_Face_Bounding_Box"/>
+    <addaction name="actionShow_Eye_State"/>
+    <addaction name="actionShow_All"/>
+    <addaction name="actionShow_None"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuToggles"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionExit">
+   <property name="text">
+    <string>Close</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>Change Settings</string>
+   </property>
+  </action>
+  <action name="actionShow_Landmarks">
+   <property name="text">
+    <string>Show Landmarks</string>
+   </property>
+  </action>
+  <action name="actionShow_Head_Pose_Axes">
+   <property name="text">
+    <string>Show Head Pose Axes</string>
+   </property>
+  </action>
+  <action name="actionShow_Gaze">
+   <property name="text">
+    <string>Show Gaze</string>
+   </property>
+  </action>
+  <action name="actionShow_Face_Bounding_Box">
+   <property name="text">
+    <string>Show Face Bounding Box</string>
+   </property>
+  </action>
+  <action name="actionShow_Eye_State">
+   <property name="text">
+    <string>Show Eye State</string>
+   </property>
+  </action>
+  <action name="actionShow_All">
+   <property name="text">
+    <string>Show All</string>
+   </property>
+  </action>
+  <action name="actionShow_None">
+   <property name="text">
+    <string>Show None</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+ <slots>
+  <slot>record()</slot>
+  <slot>pause()</slot>
+  <slot>stop()</slot>
+  <slot>enablePreview(bool)</slot>
+  <slot>configureCaptureSettings()</slot>
+  <slot>takeImage()</slot>
+  <slot>startCamera()</slot>
+  <slot>toggleLock()</slot>
+  <slot>setMuted(bool)</slot>
+  <slot>stopCamera()</slot>
+  <slot>setExposureCompensation(int)</slot>
+ </slots>
+</ui>
