@@ -25,6 +25,31 @@ ResultsMarker::ResultsMarker(bool showFaceBoundingBox, bool showHeadPoseAxes,
       showGaze(showGaze), showEyeState(showEyeState),
       lastCheckTime(std::chrono::steady_clock::now()),
       gazeLostTime(std::chrono::steady_clock::now()) {}
+// Getters
+bool ResultsMarker::getFaceBoundingBoxToggle() { return showFaceBoundingBox; }
+bool ResultsMarker::getHeadPoseAxesToggle() { return showHeadPoseAxes; }
+bool ResultsMarker::getLandmarksToggle() { return showLandmarks; };
+bool ResultsMarker::getGazeToggle() { return showGaze; };
+bool ResultsMarker::getEyeStateToggle() { return showEyeState; }
+
+bool ResultsMarker::getCalibrationStatus() {
+  return this->calibration.isCalibrated;
+}
+
+// Setters
+void ResultsMarker::setFaceBoundingBoxToggle(bool showFaceBoundingBox) {
+  this->showFaceBoundingBox = showFaceBoundingBox;
+}
+void ResultsMarker::setHeadPoseAxesToggle(bool showHeadPoseAxes) {
+  this->showHeadPoseAxes = showHeadPoseAxes;
+}
+void ResultsMarker::setLandmarksToggle(bool showLandmarks) {
+  this->showLandmarks = showLandmarks;
+}
+void ResultsMarker::setGazeToggle(bool showGaze) { this->showGaze = showGaze; }
+void ResultsMarker::setEyeStateToggle(bool showEyeState) {
+  this->showEyeState = showEyeState;
+}
 
 void ResultsMarker::calibrateScreen(
     const std::vector<cv::Point2f> &calibrationPoints) {
@@ -281,31 +306,33 @@ void ResultsMarker::mark(cv::Mat &image,
 void ResultsMarker::toggle(int key) {
   switch (std::toupper(key)) {
   case 'L':
-    showLandmarks = !showLandmarks;
+    setLandmarksToggle(!getLandmarksToggle());
     break;
   case 'O':
-    showHeadPoseAxes = !showHeadPoseAxes;
+    setHeadPoseAxesToggle(!getHeadPoseAxesToggle());
     break;
   case 'G':
-    showGaze = !showGaze;
+    setGazeToggle(!getGazeToggle());
     break;
   case 'B':
-    showFaceBoundingBox = !showFaceBoundingBox;
+    setFaceBoundingBoxToggle(!getFaceBoundingBoxToggle());
     break;
   case 'A':
-    showFaceBoundingBox = true;
-    showHeadPoseAxes = true;
-    showLandmarks = true;
-    showGaze = true;
+    setFaceBoundingBoxToggle(true);
+    setHeadPoseAxesToggle(true);
+    setLandmarksToggle(true);
+    setGazeToggle(true);
+    setEyeStateToggle(true);
     break;
   case 'N':
-    showFaceBoundingBox = false;
-    showHeadPoseAxes = false;
-    showLandmarks = false;
-    showGaze = false;
+    setFaceBoundingBoxToggle(false);
+    setHeadPoseAxesToggle(false);
+    setLandmarksToggle(false);
+    setGazeToggle(false);
+    setEyeStateToggle(false);
     break;
   case 'E':
-    showEyeState = !showEyeState;
+    setEyeStateToggle(!getEyeStateToggle());
     break;
   }
 }

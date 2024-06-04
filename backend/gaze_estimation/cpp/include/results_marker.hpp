@@ -30,6 +30,22 @@ public:
   void calibrateScreen(const std::vector<cv::Point2f> &calibrationPoints);
   void updateGazeTime(const cv::Point3f &gazeVector, const cv::Size &imageSize);
 
+  // Getters
+  bool getFaceBoundingBoxToggle();
+  bool getHeadPoseAxesToggle();
+  bool getLandmarksToggle();
+  bool getGazeToggle();
+  bool getEyeStateToggle();
+
+  bool getCalibrationStatus();
+
+  // Setters
+  void setFaceBoundingBoxToggle(bool showFaceBoundingBox);
+  void setHeadPoseAxesToggle(bool showHeadPoseAxes);
+  void setLandmarksToggle(bool showLandmarks);
+  void setGazeToggle(bool showGaze);
+  void setEyeStateToggle(bool showEyeState);
+
 private:
   bool showFaceBoundingBox;
   bool showHeadPoseAxes;
