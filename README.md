@@ -7,13 +7,13 @@ export OpenCV_DIR=/Users/inbasekaranperumal/Developer/OpenSource/build_opencv
 ```
 
 ```bash
-cmake -DCMAKE_BUILD_TYPE=Release /Users/inbasekaranperumal/Developer/OpenSource/GSoC/code/VisionGuard/backend
+cmake -DCMAKE_BUILD_TYPE=Release /Users/inbasekaranperumal/Developer/OpenSource/GSoC/code/VisionGuard
 
 cmake --build .
 ```
 
 ```bash
-./build/arm64/Release/gaze_estimation_demo -d CPU -i 0  \
+./build/arm64/Release/gaze_estimation -d CPU -i 0  \
 -m ./models/intel/gaze-estimation-adas-0002/FP32/gaze-estimation-adas-0002.xml \
 -m_fd ./models/intel/face-detection-retail-0004/FP32/face-detection-retail-0004.xml \
 -m_hp ./models/intel/head-pose-estimation-adas-0001/FP32/head-pose-estimation-adas-0001.xml \
