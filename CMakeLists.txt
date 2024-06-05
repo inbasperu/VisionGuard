@@ -4,7 +4,6 @@ cmake_minimum_required(VERSION 3.16)
 project(VisionGuard VERSION 1.0.0 LANGUAGES CXX)
 set(CMAKE_CXX_COMPILER /usr/bin/clang++)
 
-
 # C++ standard settings
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -61,7 +60,15 @@ endif()
 # Set the Qt installation path
 set(CMAKE_PREFIX_PATH "/Users/inbasekaranperumal/Qt/6.7.1/macos")
 
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
+# Include directories for OpenCV and OpenVINO
+set(OpenCV_DIR /Users/inbasekaranperumal/Developer/OpenSource/build_opencv)
+find_package(OpenCV REQUIRED COMPONENTS core highgui videoio imgproc imgcodecs)
+
+set(OpenVINO_DIR /Users/inbasekaranperumal/Developer/Programs/OpenVINO-install-dir/runtime/cmake)
+find_package(OpenVINO REQUIRED COMPONENTS Runtime)
+
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Multimedia MultimediaWidgets Gui)
+
 qt_standard_project_setup()
 
 qt_add_executable(helloworld
@@ -70,18 +77,13 @@ qt_add_executable(helloworld
     src/app/mainwindow.ui
 )
 
-target_link_libraries(helloworld PRIVATE Qt6::Widgets)
+target_include_directories(helloworld PRIVATE ${OpenCV_INCLUDE_DIRS})
+target_link_libraries(helloworld PRIVATE Qt6::Widgets ${OpenCV_LIBS} openvino::runtime Qt6::Core Qt6::Gui Qt6::Multimedia Qt6::MultimediaWidgets)
 
 set_target_properties(helloworld PROPERTIES
     WIN32_EXECUTABLE ON
     MACOSX_BUNDLE ON
 )
-
-# Include directories for OpenCV and OpenVINO
-set(OpenCV_DIR /Users/inbasekaranperumal/Developer/OpenSource/build_opencv)
-find_package(OpenCV REQUIRED COMPONENTS core highgui videoio imgproc imgcodecs)
-set(OpenVINO_DIR /Users/inbasekaranperumal/Developer/Programs/OpenVINO-install-dir/runtime/cmake)
-find_package(OpenVINO REQUIRED COMPONENTS Runtime)
 
 # Add subdirectories
 add_subdirectory(src/gaze_estimation_backend/thirdparty/gflags)

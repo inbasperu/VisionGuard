@@ -103,6 +103,12 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="maximumSize">
+           <size>
+            <width>1920</width>
+            <height>1080</height>
+           </size>
+          </property>
           <property name="frameShape">
            <enum>QFrame::Box</enum>
           </property>
