@@ -47,7 +47,9 @@ void MainWindow::updateFrame() {
 
   // Resize the frame to 700x428
   cv::Mat resizedFrame;
-  cv::resize(frame, resizedFrame, cv::Size(700, 428));
+  // cv::resize(frame, resizedFrame, cv::Size(700, 428));
+  double scaleFactor = 0.5;
+  cv::resize(frame, resizedFrame, cv::Size(), scaleFactor, scaleFactor);
 
   // Convert the resized frame to QImage
   cv::cvtColor(resizedFrame, resizedFrame,
