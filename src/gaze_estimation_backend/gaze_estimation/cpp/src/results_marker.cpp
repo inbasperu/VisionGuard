@@ -22,19 +22,13 @@ ResultsMarker::ResultsMarker(bool showFaceBoundingBox, bool showHeadPoseAxes,
                              bool showEyeState)
     : showFaceBoundingBox(showFaceBoundingBox),
       showHeadPoseAxes(showHeadPoseAxes), showLandmarks(showLandmarks),
-      showGaze(showGaze), showEyeState(showEyeState),
-      lastCheckTime(std::chrono::steady_clock::now()),
-      gazeLostTime(std::chrono::steady_clock::now()) {}
+      showGaze(showGaze), showEyeState(showEyeState) {}
 // Getters
 bool ResultsMarker::getFaceBoundingBoxToggle() { return showFaceBoundingBox; }
 bool ResultsMarker::getHeadPoseAxesToggle() { return showHeadPoseAxes; }
 bool ResultsMarker::getLandmarksToggle() { return showLandmarks; };
 bool ResultsMarker::getGazeToggle() { return showGaze; };
 bool ResultsMarker::getEyeStateToggle() { return showEyeState; }
-
-bool ResultsMarker::getCalibrationStatus() {
-  return this->calibration.isCalibrated;
-}
 
 // Setters
 void ResultsMarker::setFaceBoundingBoxToggle(bool showFaceBoundingBox) {
@@ -49,87 +43,6 @@ void ResultsMarker::setLandmarksToggle(bool showLandmarks) {
 void ResultsMarker::setGazeToggle(bool showGaze) { this->showGaze = showGaze; }
 void ResultsMarker::setEyeStateToggle(bool showEyeState) {
   this->showEyeState = showEyeState;
-}
-
-void ResultsMarker::calibrateScreen(
-    const std::vector<cv::Point2f> &calibrationPoints) {
-  calibration.points = calibrationPoints;
-  calibration.isCalibrated = true;
-}
-
-void ResultsMarker::showCalibrationWindow(
-    std::vector<cv::Point2f> &calibrationPoints, const cv::Size &imageSize) {
-  const int numPoints = 5;
-  cv::Mat calibrationImage = cv::Mat::zeros(imageSize, CV_8UC3);
-  calibrationPoints.clear();
-
-  // Define calibration points (corners and center)
-  calibrationPoints.push_back(
-      cv::Point2f(0.1 * imageSize.width, 0.1 * imageSize.height)); // Top-left
-  calibrationPoints.push_back(
-      cv::Point2f(0.9 * imageSize.width, 0.1 * imageSize.height)); // Top-right
-  calibrationPoints.push_back(
-      cv::Point2f(0.5 * imageSize.width, 0.5 * imageSize.height)); // Center
-  calibrationPoints.push_back(cv::Point2f(
-      0.1 * imageSize.width, 0.9 * imageSize.height)); // Bottom-left
-  calibrationPoints.push_back(cv::Point2f(
-      0.9 * imageSize.width, 0.9 * imageSize.height)); // Bottom-right
-
-  for (int i = 0; i < numPoints; ++i) {
-    calibrationImage = cv::Mat::zeros(imageSize, CV_8UC3);
-    cv::circle(calibrationImage, calibrationPoints[i], 10,
-               cv::Scalar(0, 255, 0), -1);
-    cv::imshow("Calibration", calibrationImage);
-    cv::waitKey(1000); // Wait for 1 second
-  }
-  cv::destroyWindow("Calibration");
-}
-
-bool isPointInsidePolygon(const std::vector<cv::Point2f> &polygon,
-                          const cv::Point2f &point) {
-  int i, j, nvert = polygon.size();
-  bool c = false;
-  for (i = 0, j = nvert - 1; i < nvert; j = i++) {
-    if (((polygon[i].y >= point.y) != (polygon[j].y >= point.y)) &&
-        (point.x <= (polygon[j].x - polygon[i].x) * (point.y - polygon[i].y) /
-                            (polygon[j].y - polygon[i].y) +
-                        polygon[i].x)) {
-      c = !c;
-    }
-  }
-  return c;
-}
-
-void ResultsMarker::updateGazeTime(const cv::Point3f &gazeVector,
-                                   const cv::Size &imageSize) {
-  if (!calibration.isCalibrated)
-    return;
-
-  auto now = std::chrono::steady_clock::now();
-
-  cv::Point2f gazePoint(
-      imageSize.width / 2 + gazeVector.x * imageSize.width / 2,
-      imageSize.height / 2 - gazeVector.y * imageSize.height /
-                                 2); // Convert gaze vector to 2D point
-
-  if (isPointInsidePolygon(calibration.points, gazePoint)) {
-    if (!isGazingAtScreen) {
-      isGazingAtScreen = true;
-      lastCheckTime = now;
-    } else {
-      std::chrono::duration<double> elapsed = now - lastCheckTime;
-      accumulatedGazeTime += elapsed.count();
-      lastCheckTime = now;
-    }
-    gazeLostTime = now; // Reset gaze lost timer
-  } else {
-    isGazingAtScreen = false;
-    std::chrono::duration<double> gazeLostDuration = now - gazeLostTime;
-    if (gazeLostDuration.count() >
-        10) { // Reset timer if gaze lost for more than 60 seconds
-      accumulatedGazeTime = 0;
-    }
-  }
 }
 
 void ResultsMarker::mark(cv::Mat &image,
@@ -264,26 +177,6 @@ void ResultsMarker::mark(cv::Mat &image,
                                      12. * faceBoundingBoxWidth / 100.)),
           cv::FONT_HERSHEY_PLAIN, scale * 2, cv::Scalar(200, 10, 10), 1);
     }
-
-    // Update gaze time tracking
-    updateGazeTime(faceInferenceResults.gazeVector, image.size());
-
-    // Display accumulated gaze time and gaze lost duration on the bottom half
-    // of the screen
-    putHighlightedText(
-        image, cv::format("Gaze Time: %.2f seconds", accumulatedGazeTime),
-        cv::Point(10,
-                  image.rows -
-                      60), // Bottom-left corner, a bit higher to fit both lines
-        cv::FONT_HERSHEY_PLAIN, scale * 2, cv::Scalar(0, 255, 0), 1);
-    std::chrono::duration<double> gazeLostDuration =
-        std::chrono::steady_clock::now() - gazeLostTime;
-    putHighlightedText(image,
-                       cv::format("Gaze Lost Duration: %.2f seconds",
-                                  gazeLostDuration.count()),
-                       cv::Point(10, image.rows - 30), // Bottom-left corner
-                       cv::FONT_HERSHEY_PLAIN, scale * 2, cv::Scalar(0, 0, 255),
-                       1);
   }
 
   if (showEyeState) {

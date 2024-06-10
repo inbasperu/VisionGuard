@@ -1,62 +1,11 @@
-// Copyright (C) 2018-2024 Intel Corporation
-// SPDX-License-Identifier: Apache-2.0
-//
-
-/**
- * \brief The entry point for the gaze_estimation_demo application
- * \file gaze_estimation_demo/main.cpp
- * \example gaze_estimation_demo/main.cpp
- */
-#include <algorithm>
-#include <fstream>
-#include <functional>
-#include <iostream>
-#include <iterator>
-#include <map>
-#include <memory>
-#include <random>
-#include <sstream>
-#include <string>
-#include <utility>
-#include <vector>
-
-#include <opencv2/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-
-#include "openvino/openvino.hpp"
-
+#include "utils/default_flags.hpp"
+#include "vision_guard.hpp"
+#include "vision_guard_demo.hpp"
 #include <gflags/gflags.h>
-#include <monitors/presenter.h>
-#include <utils/args_helper.hpp>
-#include <utils/images_capture.h>
-#include <utils/ocv_common.hpp>
-#include <utils/performance_metrics.hpp>
-#include <utils/slog.hpp>
-
-#include "base_estimator.hpp"
-#include "eye_state_estimator.hpp"
-#include "face_detector.hpp"
-#include "face_inference_results.hpp"
-#include "gaze_estimator.hpp"
-#include "head_pose_estimator.hpp"
-#include "landmarks_estimator.hpp"
-#include "results_marker.hpp"
-#include "utils.hpp"
-
-#include "gaze_estimation_demo.hpp"
-
-using namespace gaze_estimation;
-
-// Function to set default values
-void SetDefaultValues() {
-    FLAGS_i = "0";
-    FLAGS_m = "/Users/inbasekaranperumal/Developer/OpenSource/GSoC/code/VisionGuard/models/intel/gaze-estimation-adas-0002/FP32/gaze-estimation-adas-0002.xml";
-    FLAGS_m_fd = "/Users/inbasekaranperumal/Developer/OpenSource/GSoC/code/VisionGuard/models/intel/face-detection-retail-0004/FP32/face-detection-retail-0004.xml";
-    FLAGS_m_hp = "/Users/inbasekaranperumal/Developer/OpenSource/GSoC/code/VisionGuard/models/intel/head-pose-estimation-adas-0001/FP32/head-pose-estimation-adas-0001.xml";
-    FLAGS_m_lm = "/Users/inbasekaranperumal/Developer/OpenSource/GSoC/code/VisionGuard/models/intel/facial-landmarks-35-adas-0002/FP32/facial-landmarks-35-adas-0002.xml";
-    FLAGS_m_es = "/Users/inbasekaranperumal/Developer/OpenSource/GSoC/code/VisionGuard/models/public/open-closed-eye-0001/FP32/open-closed-eye-0001.xml";
-}
+#include <iostream>
+#include <opencv2/opencv.hpp>
+#include <openvino/openvino.hpp>
+#include <vector>
 
 bool ParseAndCheckCommandLine(int argc, char *argv[]) {
   // Parsing and validating input arguments
@@ -66,9 +15,6 @@ bool ParseAndCheckCommandLine(int argc, char *argv[]) {
     showAvailableDevices();
     return false;
   }
-
-  // Set default values
-  SetDefaultValues();
 
   if (FLAGS_i.empty())
     throw std::logic_error("Parameter -i is not set");
@@ -87,37 +33,19 @@ bool ParseAndCheckCommandLine(int argc, char *argv[]) {
 }
 
 int main(int argc, char *argv[]) {
+  if (!ParseAndCheckCommandLine(argc, argv)) {
+    return 1;
+  }
+
   try {
     PerformanceMetrics metrics;
-
-    // Parsing and validating of input arguments
-    if (!ParseAndCheckCommandLine(argc, argv)) {
-      return 0;
-    }
-
-    // Load OpenVINO runtime
-    slog::info << ov::get_openvino_version() << slog::endl;
-    ov::Core core;
-
-    // Set up face detector and estimators
-    FaceDetector faceDetector(core, FLAGS_m_fd, FLAGS_d_fd, FLAGS_t,
-                              FLAGS_fd_reshape);
-    HeadPoseEstimator headPoseEstimator(core, FLAGS_m_hp, FLAGS_d_hp);
-    LandmarksEstimator landmarksEstimator(core, FLAGS_m_lm, FLAGS_d_lm);
-    EyeStateEstimator eyeStateEstimator(core, FLAGS_m_es, FLAGS_d_es);
-    GazeEstimator gazeEstimator(core, FLAGS_m, FLAGS_d);
-
-    // Put pointers to all estimators in an array so that they could be
-    // processed uniformly in a loop
-    BaseEstimator *estimators[] = {&headPoseEstimator, &landmarksEstimator,
-                                   &eyeStateEstimator, &gazeEstimator};
-    // Each element of the vector contains inference results on one face
-    std::vector<FaceInferenceResults> inferenceResults;
+    VisionGuard visionGuard(FLAGS_m, FLAGS_m_fd, FLAGS_m_hp, FLAGS_m_lm,
+                            FLAGS_m_es, FLAGS_d);
     bool flipImage = false;
-    ResultsMarker resultsMarker(false, false, false, true, true);
     int delay = 1;
     std::string windowName = "Gaze estimation demo";
 
+    // Open the default camera
     std::unique_ptr<ImagesCapture> cap = openImagesCapture(
         FLAGS_i, FLAGS_loop, read_type::efficient, 0,
         std::numeric_limits<size_t>::max(), stringToSize(FLAGS_res));
@@ -130,45 +58,27 @@ int main(int argc, char *argv[]) {
     Presenter presenter(FLAGS_u, frame.rows - graphSize.height - 10, graphSize);
 
     // Calibrate screen
-    std::vector<cv::Point2f> calibrationPoints;
-    cv::Size imageSize(1920, 1080); // Assuming the size of your video frame
-    resultsMarker.showCalibrationWindow(calibrationPoints, imageSize);
-    resultsMarker.calibrateScreen(calibrationPoints);
+    cv::Size imageSize(1920, 1080);
+    visionGuard.showCalibrationWindow(imageSize);
 
     do {
       if (flipImage) {
         cv::flip(frame, frame, 1);
       }
-      // Infer results
-      auto inferenceResults = faceDetector.detect(frame);
-      for (auto &inferenceResult : inferenceResults) {
-        for (auto estimator : estimators) {
-          estimator->estimate(frame, inferenceResult);
-        }
-      }
 
-      // Display the results
-      for (auto const &inferenceResult : inferenceResults) {
-        resultsMarker.mark(frame, inferenceResult);
-      }
+      visionGuard.processFrame(frame);
 
       presenter.drawGraphs(frame);
       metrics.update(startTime, frame, {10, 22}, cv::FONT_HERSHEY_COMPLEX,
                      0.65);
-
-      if (FLAGS_r) {
-        for (auto &inferenceResult : inferenceResults) {
-          slog::debug << inferenceResult << slog::endl;
-        }
-      }
-
       videoWriter.write(frame);
+
       if (!FLAGS_no_show) {
         cv::imshow(windowName, frame);
 
         // Controls the information being displayed while demo runs
         int key = cv::waitKey(delay);
-        resultsMarker.toggle(key);
+        visionGuard.toggle(key);
 
         // Press 'Esc' to quit, 'f' to flip the video horizontally
         if (key == 27)
@@ -178,7 +88,7 @@ int main(int argc, char *argv[]) {
         else
           presenter.handleKey(key);
       }
-      startTime = std::chrono::steady_clock::now();
+
       frame = cap->read();
     } while (frame.data);
 

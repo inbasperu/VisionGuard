@@ -121,12 +121,6 @@ void MainWindow::on_actionShow_None_triggered()
 }
 
 
-void MainWindow::on_Calibrate_clicked()
-{
-
-}
-
-
 void MainWindow::showGazeTime()
 {
 

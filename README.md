@@ -7,6 +7,7 @@ The VisionGuard Backend leverages the OpenVINO model zoo to estimate a user's ga
 ### Face Detection Model
 
 This model identifies the locations of faces within an image. You can choose from the following networks:
+
 - [`face-detection-retail-0005`](https://docs.openvino.ai/2024/omz_models_model_face_detection_retail_0005.html)
 - [`face-detection-retail-0004`](https://docs.openvino.ai/2024/omz_models_model_face_detection_retail_0004.html)
 - [`face-detection-adas-0001`](https://docs.openvino.ai/2024/omz_models_model_face_detection_adas_0001.html)
@@ -14,22 +15,26 @@ This model identifies the locations of faces within an image. You can choose fro
 ### Head Pose Estimation Model
 
 This model estimates the head pose in [Tait-Bryan angles](https://en.wikipedia.org/wiki/Euler_angles#Tait–Bryan_angles). It outputs yaw, pitch, and roll angles in degrees, which serve as inputs for the gaze estimation model. The following network can be used:
+
 - [`head-pose-estimation-adas-0001`](https://docs.openvino.ai/2024/omz_models_model_head_pose_estimation_adas_0001.html)
 
 ### Facial Landmark Detection Model
 
 This model estimates the coordinates of facial landmarks for detected faces. Keypoints at the corners of the eyes are used to locate the eye regions required for the gaze estimation model. You can choose from:
+
 - [`facial-landmarks-35-adas-0002`](https://docs.openvino.ai/2024/omz_models_model_facial_landmarks_35_adas_0002.html)
 - [`facial-landmarks-98-detection-0001`](https://docs.openvino.ai/2022.3/omz_models_model_facial_landmarks_98_detection_0001.html)
 
 ### Eye State Estimation Model
 
 This model determines the open or closed state of the eyes in detected faces. The following model can be used:
+
 - [`open-closed-eye-0001`](https://docs.openvino.ai/2022.3/omz_models_model_open_closed_eye_0001.html)
 
 ### Gaze Estimation Model
 
 This model takes three inputs: square crops of the left and right eye images, and three head pose angles (yaw, pitch, and roll). It outputs a 3-D vector representing the direction of a person’s gaze in a Cartesian coordinate system. The following network is used:
+
 - [`gaze-estimation-adas-0002`](https://docs.openvino.ai/2024/omz_models_model_gaze_estimation_adas_0002.html)
 
 ### Pipeline Diagram
@@ -109,15 +114,15 @@ For example, to do inference on a CPU, run the following command:
 The demo allows you to control what information is displayed in run-time.
 The following keys are supported:
 
-* G - to toggle displaying gaze vector
-* B - to toggle displaying face detector bounding boxes
-* O - to toggle displaying head pose information
-* L - to toggle displaying facial landmarks
-* E - to toggle displaying eyes state
-* A - to switch on displaying all inference results
-* N - to switch off displaying all inference results
-* F - to flip frames horizontally
-* Esc - to quit the demo
+- G - to toggle displaying gaze vector
+- B - to toggle displaying face detector bounding boxes
+- O - to toggle displaying head pose information
+- L - to toggle displaying facial landmarks
+- E - to toggle displaying eyes state
+- A - to switch on displaying all inference results
+- N - to switch off displaying all inference results
+- F - to flip frames horizontally
+- Esc - to quit the demo
 
 ## Directory Structure
 
