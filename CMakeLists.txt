@@ -70,22 +70,25 @@ find_package(Qt6 REQUIRED COMPONENTS Core Widgets Multimedia MultimediaWidgets G
 
 qt_standard_project_setup()
 
-qt_add_executable(helloworld
-    src/app/main.cpp
-    src/app/mainwindow.cpp
-    src/app/mainwindow.ui
-)
-
-target_include_directories(helloworld PRIVATE ${OpenCV_INCLUDE_DIRS})
-target_link_libraries(helloworld PRIVATE Qt6::Widgets ${OpenCV_LIBS} openvino::runtime Qt6::Core Qt6::Gui Qt6::Multimedia Qt6::MultimediaWidgets)
-
-set_target_properties(helloworld PROPERTIES
-    WIN32_EXECUTABLE ON
-    MACOSX_BUNDLE ON
-)
-
 # Add subdirectories
 add_subdirectory(src/gaze_estimation_backend/thirdparty/gflags)
 add_subdirectory(src/gaze_estimation_backend/common/cpp)
 add_subdirectory(src/gaze_estimation_backend/multi_channel_common/cpp)
 add_subdirectory(src/gaze_estimation_backend/gaze_estimation/cpp)
+
+qt_add_executable(VisionGuardApp
+    src/app/main.cpp
+    src/app/mainwindow.cpp
+    src/app/mainwindow.ui
+)
+
+target_include_directories(VisionGuardApp PRIVATE ${OpenCV_INCLUDE_DIRS} "${CMAKE_CURRENT_SOURCE_DIR}/src/gaze_estimation_backend/gaze_estimation/cpp/include")
+
+target_link_libraries(VisionGuardApp PRIVATE Qt6::Widgets ${OpenCV_LIBS} openvino::runtime Qt6::Core Qt6::Gui Qt6::Multimedia Qt6::MultimediaWidgets gaze_estimation ${OpenCV_LIBRARIES} openvino::runtime monitors utils gflags)
+
+set_target_properties(VisionGuardApp PROPERTIES
+    WIN32_EXECUTABLE ON
+    MACOSX_BUNDLE ON
+)
+
+

@@ -163,7 +163,8 @@ The following keys are supported:
         │       │   ├── ie_wrapper.hpp
         │       │   ├── landmarks_estimator.hpp
         │       │   ├── results_marker.hpp
-        │       │   └── utils.hpp
+        │       │   ├── utils.hpp
+        │       │   └── vision_guard.hpp
         │       ├── main.cpp
         │       ├── models.lst
         │       └── src
@@ -175,7 +176,8 @@ The following keys are supported:
         │           ├── ie_wrapper.cpp
         │           ├── landmarks_estimator.cpp
         │           ├── results_marker.cpp
-        │           └── utils.cpp
+        │           ├── utils.cpp
+        │           └── vision_guard.cpp
         ├── multi_channel_common
         └── thirdparty
             └── gflags

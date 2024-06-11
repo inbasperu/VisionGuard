@@ -22,17 +22,42 @@ VisionGuard::VisionGuard(const std::string &gaze_model,
   slog::info << getAvailableDevices() << slog::endl;
 }
 
-void VisionGuard::toggle(int key){
-  resultsMarker.toggle(key);
-}
+void VisionGuard::toggle(int key) { resultsMarker.toggle(key); }
 std::vector<std::string> VisionGuard::getAvailableDevices() {
   return core.get_available_devices();
 }
+
+ bool VisionGuard::isDeviceAvailable(const std::string& device) {
+        std::vector<std::string> availableDevices = getAvailableDevices();
+        return std::find(availableDevices.begin(), availableDevices.end(), device) != availableDevices.end();
+    }
 
 void VisionGuard::calibrateScreen(
     const std::vector<cv::Point2f> &calibrationPoints) {
   calibration.points = calibrationPoints;
   calibration.isCalibrated = true;
+}
+
+void VisionGuard::defaultCalibration(const cv::Size &imageSize){
+  this->calibrateScreen(this->getDefaultCalibrationPoints(imageSize));
+}
+
+std::vector<cv::Point2f>
+VisionGuard::getDefaultCalibrationPoints(const cv::Size &imageSize,
+                                         const int numPoints) {
+  std::vector<cv::Point2f> calibrationPoints;
+  // Define calibration points (corners and center)
+  calibrationPoints.push_back(
+      cv::Point2f(0.1 * imageSize.width, 0.1 * imageSize.height)); // Top-left
+  calibrationPoints.push_back(
+      cv::Point2f(0.9 * imageSize.width, 0.1 * imageSize.height)); // Top-right
+  calibrationPoints.push_back(
+      cv::Point2f(0.5 * imageSize.width, 0.5 * imageSize.height)); // Center
+  calibrationPoints.push_back(cv::Point2f(
+      0.1 * imageSize.width, 0.9 * imageSize.height)); // Bottom-left
+  calibrationPoints.push_back(cv::Point2f(
+      0.9 * imageSize.width, 0.9 * imageSize.height)); // Bottom-right
+  return calibrationPoints;
 }
 
 void VisionGuard::showCalibrationWindow(const cv::Size &imageSize) {

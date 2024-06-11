@@ -6,8 +6,11 @@ file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp)
 source_group("src" FILES ${SOURCES})
 source_group("include" FILES ${HEADERS})
 
-# Create executable file from sources
-add_executable(gaze_estimation ${SOURCES} ${HEADERS})
+# # Create executable file from sources
+# add_executable(gaze_estimation ${SOURCES} ${HEADERS})
+
+# Create library target
+add_library(gaze_estimation STATIC ${SOURCES} ${HEADERS})
 
 # Set properties for Windows
 if(WIN32)
@@ -15,7 +18,7 @@ if(WIN32)
 endif()
 
 # Include directories
-target_include_directories(gaze_estimation PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_include_directories(gaze_estimation PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 # Link libraries
 target_link_libraries(gaze_estimation PRIVATE ${OpenCV_LIBRARIES} openvino::runtime monitors utils gflags)

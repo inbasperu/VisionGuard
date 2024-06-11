@@ -1,133 +1,137 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <QKeyEvent>
+#include <QMessageBox>
 #include <QTime>
-#include <QTimer>
+#include <algorithm>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), ui(new Ui::MainWindow) {
+    : QMainWindow(parent), ui(new Ui::MainWindow), currentDevice("CPU"),
+      currentPrecision("FP32") {
   ui->setupUi(this);
-  // visionGuard = new VisionGuard();
-  timer = new QTimer(this);
 
-  connect(ui->Calibrate, &QPushButton::clicked, this,
-          &MainWindow::on_Calibrate_clicked);
-  // connect(ui->startButton, &QPushButton::clicked, this,
-  // &MainWindow::on_startButton_clicked);
+  visionGuard = new VisionGuard(
+      getModelPath(GAZE_MODEL_NAME, currentPrecision),
+      getModelPath(FACE_MODEL_NAME, currentPrecision),
+      getModelPath(HEAD_POSE_MODEL_NAME, currentPrecision),
+      getModelPath(LANDMARKS_MODEL_NAME, currentPrecision),
+      getModelPath(EYE_STATE_MODEL_NAME, currentPrecision), currentDevice);
+  visionGuard->defaultCalibration(this->imageSize);
+  slog::debug << "VisionGuard backend initialized successfully" << slog::endl;
+
+  cap = openImagesCapture("0", false, read_type::efficient, 0,
+                          std::numeric_limits<size_t>::max(),
+                          stringToSize("1280x720"));
+  slog::debug << "Capture device initialized successfully" << slog::endl;
+  timer = new QTimer(this);
   connect(timer, &QTimer::timeout, this, &MainWindow::updateFrame);
+  timer->start(30);
 }
 
 MainWindow::~MainWindow() {
   delete ui;
-  // delete visionGuard;
+  delete visionGuard;
+}
+
+std::string MainWindow::getModelPath(const std::string &modelName,
+                                     const std::string &precision) {
+  std::string modelPath{BASE_PATH + "/" + modelName + "/" + precision + "/" +
+                        modelName + MODEL_EXTENSION};
+  slog::debug << "Reading " << modelName << " from " << modelPath << " with "
+              << precision << " precision" << slog::endl;
+  return modelPath;
 }
 
 void MainWindow::on_Calibrate_clicked() {
-  // visionGuard->calibrate();
-  if (!cap.isOpened()) {
-    cap.open(0); // Open default camera
-  }
-  timer->start(33); // 30 FPS
-}
-
-void MainWindow::on_startButton_clicked() {
-  if (!cap.isOpened()) {
-    cap.open(0); // Open default camera
-  }
-  timer->start(33); // 30 FPS
+  visionGuard->defaultCalibration(this->imageSize);
 }
 
 void MainWindow::updateFrame() {
-  cv::Mat frame;
-  cap >> frame; // Capture a new frame from the camera
+  cv::Mat frame = cap->read();
 
   if (frame.empty())
     return;
 
-  // visionGuard->processFrame(frame);
+  visionGuard->processFrame(frame);
 
-  // Resize the frame to 700x428
-  cv::Mat resizedFrame;
-  // cv::resize(frame, resizedFrame, cv::Size(700, 428));
-  double scaleFactor = 0.5;
-  cv::resize(frame, resizedFrame, cv::Size(), scaleFactor, scaleFactor);
-
-  // Convert the resized frame to QImage
-  cv::cvtColor(resizedFrame, resizedFrame,
-               cv::COLOR_BGR2RGB); // Convert BGR to RGB
-  QImage img =
-      QImage((const unsigned char *)(resizedFrame.data), resizedFrame.cols,
-             resizedFrame.rows, QImage::Format_RGB888);
+  cv::cvtColor(frame, frame, cv::COLOR_BGR2RGB);
+  QImage img((const unsigned char *)(frame.data), frame.cols, frame.rows,
+             QImage::Format_RGB888);
   ui->lastImagePreviewLabel->setPixmap(QPixmap::fromImage(img));
 
-  QTime time{QTime::currentTime()};
-  QString time_text{time.toString("mm : ss")};
-  ui->GazeTime->setText(time_text);
-  ui->GazeLostTime->setText("00 : 00");
+  QTime gazeTime(0, 0);
+  gazeTime =
+      gazeTime.addSecs(static_cast<int>(visionGuard->getAccumulatedGazeTime()));
+  ui->GazeTime->setText(gazeTime.toString("mm:ss"));
 
-  // ui->GazeTime->setText(QString::number(visionGuard->getGazeTime()));
-  // ui->GazeLostTime->setText(QString::number(visionGuard->getGazeAwayTime()));
+  QTime gazeLostTime(0, 0);
+  gazeLostTime = gazeLostTime.addSecs(
+      static_cast<int>(visionGuard->getGazeLostDuration()));
+  ui->GazeLostTime->setText(gazeLostTime.toString("mm:ss"));
+
+  int key = cv::waitKey(delay);
+  visionGuard->toggle(key);
+
+  if (key == 27)
+    close(); // Press 'Esc' to quit
 }
 
-void MainWindow::on_actionExit_triggered()
-{
+void MainWindow::on_actionExit_triggered() { close(); }
 
+void MainWindow::switchDevice(const std::string &device) {
+  if (visionGuard->isDeviceAvailable(device)) {
+    currentDevice = device;
+    delete visionGuard;
+    visionGuard = new VisionGuard(
+        getModelPath(GAZE_MODEL_NAME, currentPrecision),
+        getModelPath(FACE_MODEL_NAME, currentPrecision),
+        getModelPath(HEAD_POSE_MODEL_NAME, currentPrecision),
+        getModelPath(LANDMARKS_MODEL_NAME, currentPrecision),
+        getModelPath(EYE_STATE_MODEL_NAME, currentPrecision), currentDevice);
+  } else {
+    QMessageBox::warning(
+        this, "Warning",
+        QString::fromStdString(device + " device is not available."));
+  }
 }
 
-void MainWindow::on_actionSettings_triggered()
-{
+void MainWindow::on_actionCPU_triggered() { switchDevice(CPU_DEVICE); }
+void MainWindow::on_actionGPU_triggered() { switchDevice(GPU_DEVICE); }
+void MainWindow::on_actionNPU_triggered() { switchDevice(NPU_DEVICE); }
 
+void MainWindow::loadModels(const std::string &precision) {
+  currentPrecision = precision;
+  delete visionGuard;
+  visionGuard = new VisionGuard(
+      getModelPath(GAZE_MODEL_NAME, currentPrecision),
+      getModelPath(FACE_MODEL_NAME, currentPrecision),
+      getModelPath(HEAD_POSE_MODEL_NAME, currentPrecision),
+      getModelPath(LANDMARKS_MODEL_NAME, currentPrecision),
+      getModelPath(EYE_STATE_MODEL_NAME, currentPrecision), currentDevice);
 }
 
+void MainWindow::on_actionINT8_triggered() { loadModels(INT8_PRECISION); }
+void MainWindow::on_actionFP16_triggered() { loadModels(FP16_PRECISION); }
+void MainWindow::on_actionFP32_triggered() { loadModels(FP32_PRECISION); }
 
-void MainWindow::on_actionShow_Landmarks_triggered()
-{
-
+void MainWindow::on_actionShow_Landmarks_triggered() {
+  visionGuard->toggle(TOGGLE_LANDMARKS);
 }
-
-
-void MainWindow::on_actionShow_Head_Pose_Axes_triggered()
-{
-
+void MainWindow::on_actionShow_Head_Pose_Axes_triggered() {
+  visionGuard->toggle(TOGGLE_HEAD_POSE_AXES);
 }
-
-
-void MainWindow::on_actionShow_Gaze_triggered()
-{
-
+void MainWindow::on_actionShow_Gaze_triggered() {
+  visionGuard->toggle(TOGGLE_GAZE);
 }
-
-
-void MainWindow::on_actionShow_Face_Bounding_Box_triggered()
-{
-
+void MainWindow::on_actionShow_Face_Bounding_Box_triggered() {
+  visionGuard->toggle(TOGGLE_FACE_BOUNDING_BOX);
 }
-
-
-void MainWindow::on_actionShow_Eye_State_triggered()
-{
-
+void MainWindow::on_actionShow_Eye_State_triggered() {
+  visionGuard->toggle(TOGGLE_EYE_STATE);
 }
-
-
-void MainWindow::on_actionShow_All_triggered()
-{
-
+void MainWindow::on_actionShow_All_triggered() {
+  visionGuard->toggle(TOGGLE_ALL);
 }
-
-
-void MainWindow::on_actionShow_None_triggered()
-{
-
-}
-
-
-void MainWindow::showGazeTime()
-{
-
-}
-
-
-void MainWindow::showGazeLostTime()
-{
-
+void MainWindow::on_actionShow_None_triggered() {
+  visionGuard->toggle(TOGGLE_NONE);
 }

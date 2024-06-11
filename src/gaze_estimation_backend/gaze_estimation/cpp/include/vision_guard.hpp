@@ -38,7 +38,6 @@
 #include "results_marker.hpp"
 #include "utils.hpp"
 
-
 struct ScreenCalibration {
   std::vector<cv::Point2f> points; // Calibration points on the screen
   bool isCalibrated = false;
@@ -54,16 +53,19 @@ public:
   std::vector<std::string> getAvailableDevices();
   void processFrame(cv::Mat &frame);
   void showCalibrationWindow(const cv::Size &imageSize);
+  void defaultCalibration(const cv::Size &imageSize);
   void calibrateScreen(const std::vector<cv::Point2f> &calibrationPoints);
   double getAccumulatedGazeTime() const;
   double getGazeLostDuration() const;
   void toggle(int key);
+  bool isDeviceAvailable(const std::string& device);
 
 private:
   void updateGazeTime(const cv::Point3f &gazeVector, const cv::Size &imageSize);
   bool isPointInsidePolygon(const std::vector<cv::Point2f> &polygon,
                             const cv::Point2f &point) const;
-
+  std::vector<cv::Point2f> getDefaultCalibrationPoints(const cv::Size &imageSize,
+                                                const int numPoints = 5);
   ScreenCalibration calibration;
   std::chrono::steady_clock::time_point lastCheckTime;
   std::chrono::steady_clock::time_point gazeLostTime;
