@@ -20,6 +20,9 @@ public:
   MainWindow(QWidget *parent = nullptr);
   ~MainWindow();
 
+protected:
+  void keyPressEvent(QKeyEvent *event) override;
+
 private slots:
   void on_Calibrate_clicked();
   void on_actionExit_triggered();

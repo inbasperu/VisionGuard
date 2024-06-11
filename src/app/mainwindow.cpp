@@ -72,10 +72,17 @@ void MainWindow::updateFrame() {
 
   int key = cv::waitKey(delay);
   visionGuard->toggle(key);
-
-  if (key == 27)
-    close(); // Press 'Esc' to quit
+  
 }
+
+void MainWindow::keyPressEvent(QKeyEvent *event) {
+    if (event->key() == Qt::Key_Escape) {
+        close();
+    } else {
+        visionGuard->toggle(event->key());
+    }
+}
+
 void MainWindow::checkGazeTime() {
   if (visionGuard->checkGazeTimeExceeded()) {
     int reply = QMessageBox::question(
