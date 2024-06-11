@@ -68,11 +68,7 @@ void MainWindow::updateFrame() {
   QTime gazeLostTime(0, 0);
   gazeLostTime = gazeLostTime.addSecs(
       static_cast<int>(visionGuard->getGazeLostDuration()));
-  ui->GazeLostTime->setText(gazeLostTime.toString("mm:ss"));
-
-  int key = cv::waitKey(delay);
-  visionGuard->toggle(key);
-  
+  ui->GazeLostTime->setText(gazeLostTime.toString("mm:ss"));  
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event) {
