@@ -47,9 +47,10 @@ private:
   void loadModels(const std::string &precision);
   std::string getModelPath(const std::string &modelName,
                            const std::string &precision);
+  std::unique_ptr<VisionGuard> initializeVisionGuard(const std::string &precision, const std::string &device);
 
   Ui::MainWindow *ui;
-  VisionGuard *visionGuard;
+  std::unique_ptr<VisionGuard> visionGuard;
   QTimer *timer;
   std::unique_ptr<ImagesCapture> cap;
   std::string currentDevice;

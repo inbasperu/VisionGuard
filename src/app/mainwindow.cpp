@@ -10,13 +10,7 @@ MainWindow::MainWindow(QWidget *parent)
       currentPrecision("FP32") {
   ui->setupUi(this);
 
-  visionGuard = new VisionGuard(
-      getModelPath(GAZE_MODEL_NAME, currentPrecision),
-      getModelPath(FACE_MODEL_NAME, currentPrecision),
-      getModelPath(HEAD_POSE_MODEL_NAME, currentPrecision),
-      getModelPath(LANDMARKS_MODEL_NAME, currentPrecision),
-      getModelPath(EYE_STATE_MODEL_NAME, currentPrecision), currentDevice);
-  visionGuard->defaultCalibration(this->imageSize);
+  visionGuard = initializeVisionGuard(currentPrecision, currentDevice);
   slog::debug << "VisionGuard backend initialized successfully" << slog::endl;
 
   cap = openImagesCapture("0", false, read_type::efficient, 0,
@@ -31,7 +25,8 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow() {
   delete ui;
-  delete visionGuard;
+  delete timer;
+  visionGuard.reset();
 }
 
 std::string MainWindow::getModelPath(const std::string &modelName,
@@ -41,6 +36,19 @@ std::string MainWindow::getModelPath(const std::string &modelName,
   slog::debug << "Reading " << modelName << " from " << modelPath << " with "
               << precision << " precision" << slog::endl;
   return modelPath;
+}
+
+std::unique_ptr<VisionGuard>
+MainWindow::initializeVisionGuard(const std::string &precision,
+                                  const std::string &device) {
+  auto guard = std::make_unique<VisionGuard>(
+      getModelPath(GAZE_MODEL_NAME, precision),
+      getModelPath(FACE_MODEL_NAME, precision),
+      getModelPath(HEAD_POSE_MODEL_NAME, precision),
+      getModelPath(LANDMARKS_MODEL_NAME, precision),
+      getModelPath(EYE_STATE_MODEL_NAME, precision), device);
+  guard->defaultCalibration(this->imageSize);
+  return guard;
 }
 
 void MainWindow::on_Calibrate_clicked() {
@@ -68,15 +76,15 @@ void MainWindow::updateFrame() {
   QTime gazeLostTime(0, 0);
   gazeLostTime = gazeLostTime.addSecs(
       static_cast<int>(visionGuard->getGazeLostDuration()));
-  ui->GazeLostTime->setText(gazeLostTime.toString("mm:ss"));  
+  ui->GazeLostTime->setText(gazeLostTime.toString("mm:ss"));
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event) {
-    if (event->key() == Qt::Key_Escape) {
-        close();
-    } else {
-        visionGuard->toggle(event->key());
-    }
+  if (event->key() == Qt::Key_Escape) {
+    close();
+  } else {
+    visionGuard->toggle(event->key());
+  }
 }
 
 void MainWindow::checkGazeTime() {
@@ -97,14 +105,8 @@ void MainWindow::on_actionExit_triggered() { close(); }
 void MainWindow::switchDevice(const std::string &device) {
   if (visionGuard->isDeviceAvailable(device)) {
     currentDevice = device;
-    delete visionGuard;
-    visionGuard = new VisionGuard(
-        getModelPath(GAZE_MODEL_NAME, currentPrecision),
-        getModelPath(FACE_MODEL_NAME, currentPrecision),
-        getModelPath(HEAD_POSE_MODEL_NAME, currentPrecision),
-        getModelPath(LANDMARKS_MODEL_NAME, currentPrecision),
-        getModelPath(EYE_STATE_MODEL_NAME, currentPrecision), currentDevice);
-    visionGuard->defaultCalibration(this->imageSize);
+    visionGuard.reset();
+    visionGuard = initializeVisionGuard(currentPrecision, currentDevice);
   } else {
     QMessageBox::warning(
         this, "Warning",
@@ -118,14 +120,8 @@ void MainWindow::on_actionNPU_triggered() { switchDevice(NPU_DEVICE); }
 
 void MainWindow::loadModels(const std::string &precision) {
   currentPrecision = precision;
-  delete visionGuard;
-  visionGuard = new VisionGuard(
-      getModelPath(GAZE_MODEL_NAME, currentPrecision),
-      getModelPath(FACE_MODEL_NAME, currentPrecision),
-      getModelPath(HEAD_POSE_MODEL_NAME, currentPrecision),
-      getModelPath(LANDMARKS_MODEL_NAME, currentPrecision),
-      getModelPath(EYE_STATE_MODEL_NAME, currentPrecision), currentDevice);
-  visionGuard->defaultCalibration(this->imageSize);
+  visionGuard.reset();
+  visionGuard = initializeVisionGuard(currentPrecision, currentDevice);
 }
 
 void MainWindow::on_actionINT8_triggered() { loadModels(INT8_PRECISION); }
