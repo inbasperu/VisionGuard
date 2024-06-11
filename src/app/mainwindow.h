@@ -36,6 +36,7 @@ private slots:
   void on_actionShow_Eye_State_triggered();
   void on_actionShow_All_triggered();
   void on_actionShow_None_triggered();
+  void checkGazeTime();
 
 private:
   void updateFrame();

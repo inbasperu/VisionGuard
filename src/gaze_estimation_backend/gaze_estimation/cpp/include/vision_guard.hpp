@@ -58,19 +58,23 @@ public:
   double getAccumulatedGazeTime() const;
   double getGazeLostDuration() const;
   void toggle(int key);
-  bool isDeviceAvailable(const std::string& device);
+  bool isDeviceAvailable(const std::string &device);
+  bool checkGazeTimeExceeded() const;
+  void resetGazeTime();
 
 private:
   void updateGazeTime(const cv::Point3f &gazeVector, const cv::Size &imageSize);
   bool isPointInsidePolygon(const std::vector<cv::Point2f> &polygon,
                             const cv::Point2f &point) const;
-  std::vector<cv::Point2f> getDefaultCalibrationPoints(const cv::Size &imageSize,
-                                                const int numPoints = 5);
+  std::vector<cv::Point2f>
+  getDefaultCalibrationPoints(const cv::Size &imageSize,
+                              const int numPoints = 5);
   ScreenCalibration calibration;
   std::chrono::steady_clock::time_point lastCheckTime;
   std::chrono::steady_clock::time_point gazeLostTime;
   double accumulatedGazeTime = 0; // In seconds
   bool isGazingAtScreen = false;
+  const double ACCUMULATED_GAZE_TIME_THRESHOLD = 20;
 
   ov::Core core;
   gaze_estimation::FaceDetector faceDetector;

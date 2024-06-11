@@ -25,6 +25,7 @@ MainWindow::MainWindow(QWidget *parent)
   slog::debug << "Capture device initialized successfully" << slog::endl;
   timer = new QTimer(this);
   connect(timer, &QTimer::timeout, this, &MainWindow::updateFrame);
+  connect(timer, &QTimer::timeout, this, &MainWindow::checkGazeTime);
   timer->start(30);
 }
 
@@ -75,6 +76,18 @@ void MainWindow::updateFrame() {
   if (key == 27)
     close(); // Press 'Esc' to quit
 }
+void MainWindow::checkGazeTime() {
+  if (visionGuard->checkGazeTimeExceeded()) {
+    int reply = QMessageBox::question(
+        this, "20-20-20 Rule Alert",
+        "You have been looking at the screen for more than 20 minutes. Please "
+        "look at an object 20 feet away for 20 seconds.",
+        QMessageBox::Ok | QMessageBox::Cancel);
+    if (reply == QMessageBox::Ok) {
+      visionGuard->resetGazeTime();
+    }
+  }
+}
 
 void MainWindow::on_actionExit_triggered() { close(); }
 
@@ -88,6 +101,7 @@ void MainWindow::switchDevice(const std::string &device) {
         getModelPath(HEAD_POSE_MODEL_NAME, currentPrecision),
         getModelPath(LANDMARKS_MODEL_NAME, currentPrecision),
         getModelPath(EYE_STATE_MODEL_NAME, currentPrecision), currentDevice);
+    visionGuard->defaultCalibration(this->imageSize);
   } else {
     QMessageBox::warning(
         this, "Warning",
@@ -108,6 +122,7 @@ void MainWindow::loadModels(const std::string &precision) {
       getModelPath(HEAD_POSE_MODEL_NAME, currentPrecision),
       getModelPath(LANDMARKS_MODEL_NAME, currentPrecision),
       getModelPath(EYE_STATE_MODEL_NAME, currentPrecision), currentDevice);
+  visionGuard->defaultCalibration(this->imageSize);
 }
 
 void MainWindow::on_actionINT8_triggered() { loadModels(INT8_PRECISION); }

@@ -27,10 +27,11 @@ std::vector<std::string> VisionGuard::getAvailableDevices() {
   return core.get_available_devices();
 }
 
- bool VisionGuard::isDeviceAvailable(const std::string& device) {
-        std::vector<std::string> availableDevices = getAvailableDevices();
-        return std::find(availableDevices.begin(), availableDevices.end(), device) != availableDevices.end();
-    }
+bool VisionGuard::isDeviceAvailable(const std::string &device) {
+  std::vector<std::string> availableDevices = getAvailableDevices();
+  return std::find(availableDevices.begin(), availableDevices.end(), device) !=
+         availableDevices.end();
+}
 
 void VisionGuard::calibrateScreen(
     const std::vector<cv::Point2f> &calibrationPoints) {
@@ -38,7 +39,7 @@ void VisionGuard::calibrateScreen(
   calibration.isCalibrated = true;
 }
 
-void VisionGuard::defaultCalibration(const cv::Size &imageSize){
+void VisionGuard::defaultCalibration(const cv::Size &imageSize) {
   this->calibrateScreen(this->getDefaultCalibrationPoints(imageSize));
 }
 
@@ -172,3 +173,8 @@ double VisionGuard::getGazeLostDuration() const {
                                        gazeLostTime)
       .count();
 }
+
+bool VisionGuard::checkGazeTimeExceeded() const {
+  return accumulatedGazeTime >= ACCUMULATED_GAZE_TIME_THRESHOLD;
+}
+void VisionGuard::resetGazeTime() { accumulatedGazeTime = 0; }
