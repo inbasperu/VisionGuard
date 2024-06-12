@@ -5,12 +5,13 @@ VisionGuard is a desktop application designed to help prevent eye strain from ex
 ## VisionGuard Deliverables
 
 ### Back Development
+
 - [x] Implement Gaze Detection Model
 - [x] Calibrate the Gaze Vector Range
 - [x] Estimate Eye Gaze Time
-- [ ] Alert User for Breaks through Notifications (20-20-20)
-- [ ] Integrate the GUI
-- [ ] Utilize NPU and GPU
+- [x] Alert User for Breaks through Notifications (20-20-20)
+- [x] Integrate the GUI
+- [x] Utilize NPU and GPU
 - [ ] Perform Optimizations
 - [ ] Customizable Settings (Interval and Duration)
 - [ ] Screen Time Reports
@@ -21,10 +22,11 @@ VisionGuard is a desktop application designed to help prevent eye strain from ex
 - [ ] Handle Multi-Users
 
 ### GUI Development
+
 - [x] Real-time User Gaze Vector Display
 - [x] Gaze Calibration Window
 - [x] Ongoing Screen Time Widget
-- [ ] Notification Alert Message Box
+- [x] Notification Alert Message Box
 - [ ] Customizable Settings Sliders (Interval and Duration)
 - [ ] Adaptive UI
 - [ ] Screen Time Reports
@@ -36,12 +38,14 @@ VisionGuard is a desktop application designed to help prevent eye strain from ex
 - [ ] Handle Multi-Users
 
 ### Benchmarking
+
 - [ ] CPU vs. GPU vs. NPU
   - [ ] Power Consumption
   - [ ] Resource Utilization
   - [ ] Performance Metrics
 
 ### Documentation
+
 - [ ] Setup and Development Process
 - [ ] Gaze Detection and Calibration Steps
 - [ ] New Features and Optimizations
@@ -49,20 +53,26 @@ VisionGuard is a desktop application designed to help prevent eye strain from ex
 - [ ] Benchmarking Results
 
 ### User Testing
+
 - [ ] Initial User Testing and Feedback Collection
 - [ ] Iterative Improvements Based on User Feedback
 - [ ] Final User Testing and Validation
 
 ## Project Status
+
 This project is under development as a part of GSoC 2024 under OpenVINO. For more details, visit the [GSoC Project Page](https://summerofcode.withgoogle.com/programs/2024/projects/QUbIeRAM).
 
 ## Links
+
 - [Gaze Estimation Demo](https://docs.openvino.ai/2024/omz_demos_gaze_estimation_demo_cpp.html)
 - [VisionGuard Project Gantt Chart](https://docs.google.com/spreadsheets/d/1CfnZK7eUM7_uEG4tkpvwrrlmc7pPPsqp847bD5i0BZQ/edit?usp=sharing)
 
 ## Contributors
+
+- **Contributor:** [Inbasekaran](https://github.com/inbasperu)
 - **Mentors:** [ZhuoWu](https://github.com/zhuo-yoyowz), [Dmitriy Pastushenkov](https://github.com/DimaPastushenkov), [Ria Cheruvu](https://github.com/riacheruvu)
 - **Organization:** [OpenVINO Toolkit](https://github.com/openvinotoolkit)
 
 ## License
+
 This project is licensed under the Apache 2.0 License - see the LICENSE file for details.
