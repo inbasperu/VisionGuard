@@ -128,8 +128,8 @@ void VisionGuard::updateGazeTime(const cv::Point3f &gazeVector,
   } else {
     isGazingAtScreen = false;
     std::chrono::duration<double> gazeLostDuration = now - gazeLostTime;
-    // Reset timer if gaze lost for more than 10 seconds
-    if (gazeLostDuration.count() > 10) {
+    // Reset timer if gaze lost for more than gazeLostThreshold
+    if (gazeLostDuration.count() > gazeLostThreshold) {
       accumulatedGazeTime = 0;
     }
   }
@@ -175,6 +175,15 @@ double VisionGuard::getGazeLostDuration() const {
 }
 
 bool VisionGuard::checkGazeTimeExceeded() const {
-  return accumulatedGazeTime >= ACCUMULATED_GAZE_TIME_THRESHOLD;
+  return accumulatedGazeTime >= accumulated_gaze_time_threshold;
 }
 void VisionGuard::resetGazeTime() { accumulatedGazeTime = 0; }
+
+void VisionGuard::setAccumulatedGazeTimeThreshold(
+    const double accumulated_gaze_time_threshold) {
+  this->accumulated_gaze_time_threshold = accumulated_gaze_time_threshold;
+}
+
+void VisionGuard::setGazeLostThreshold(const double gazeLostThreshold) {
+  this->gazeLostThreshold = gazeLostThreshold;
+}

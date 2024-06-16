@@ -21,6 +21,16 @@ MainWindow::MainWindow(QWidget *parent)
   connect(timer, &QTimer::timeout, this, &MainWindow::updateFrame);
   connect(timer, &QTimer::timeout, this, &MainWindow::checkGazeTime);
   timer->start(30);
+
+  // Connect sliders and spin boxes to their respective slots
+  connect(ui->breakDurationSpinBox, SIGNAL(valueChanged(int)), this,
+          SLOT(on_breakDurationSpinBox_valueChanged(int)));
+  connect(ui->breakDurationHorizontalSlider, SIGNAL(valueChanged(int)), this,
+          SLOT(on_breakDurationHorizontalSlider_valueChanged(int)));
+  connect(ui->breakIntervalSpinBox, SIGNAL(valueChanged(int)), this,
+          SLOT(on_breakIntervalSpinBox_valueChanged(int)));
+  connect(ui->breakIntervalHorizontalSlider, SIGNAL(valueChanged(int)), this,
+          SLOT(on_breakIntervalHorizontalSlider_valueChanged(int)));
 }
 
 MainWindow::~MainWindow() {
@@ -148,4 +158,26 @@ void MainWindow::on_actionShow_All_triggered() {
 }
 void MainWindow::on_actionShow_None_triggered() {
   visionGuard->toggle(TOGGLE_NONE);
+}
+
+void MainWindow::on_breakDurationSpinBox_valueChanged(int arg1) {
+  visionGuard->setAccumulatedGazeTimeThreshold(static_cast<double>(arg1));
+  ui->breakDurationHorizontalSlider->setValue(
+      arg1); // Synchronize slider with spin box
+}
+
+void MainWindow::on_breakDurationHorizontalSlider_valueChanged(int value) {
+  visionGuard->setAccumulatedGazeTimeThreshold(static_cast<double>(value));
+  ui->breakDurationSpinBox->setValue(value); // Synchronize spin box with slider
+}
+
+void MainWindow::on_breakIntervalSpinBox_valueChanged(int arg1) {
+  visionGuard->setGazeLostThreshold(static_cast<double>(arg1));
+  ui->breakIntervalHorizontalSlider->setValue(
+      arg1); // Synchronize slider with spin box
+}
+
+void MainWindow::on_breakIntervalHorizontalSlider_valueChanged(int value) {
+  visionGuard->setGazeLostThreshold(static_cast<double>(value));
+  ui->breakIntervalSpinBox->setValue(value); // Synchronize spin box with slider
 }

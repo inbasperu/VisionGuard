@@ -41,7 +41,15 @@ private slots:
   void on_actionShow_None_triggered();
   void checkGazeTime();
 
-private:
+  void on_breakDurationSpinBox_valueChanged(int arg1);
+
+  void on_breakDurationHorizontalSlider_valueChanged(int value);
+
+  void on_breakIntervalSpinBox_valueChanged(int arg1);
+
+  void on_breakIntervalHorizontalSlider_valueChanged(int value);
+
+  private:
   void updateFrame();
   void switchDevice(const std::string &device);
   void loadModels(const std::string &precision);

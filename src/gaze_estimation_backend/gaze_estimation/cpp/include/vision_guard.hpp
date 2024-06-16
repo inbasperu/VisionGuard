@@ -61,6 +61,9 @@ public:
   bool isDeviceAvailable(const std::string &device);
   bool checkGazeTimeExceeded() const;
   void resetGazeTime();
+  void
+  setAccumulatedGazeTimeThreshold(const double accumulated_gaze_time_threshold);
+  void setGazeLostThreshold(const double gazeLostThreshold);
 
 private:
   void updateGazeTime(const cv::Point3f &gazeVector, const cv::Size &imageSize);
@@ -74,7 +77,8 @@ private:
   std::chrono::steady_clock::time_point gazeLostTime;
   double accumulatedGazeTime = 0; // In seconds
   bool isGazingAtScreen = false;
-  const double ACCUMULATED_GAZE_TIME_THRESHOLD = 20;
+  double accumulated_gaze_time_threshold = 20;
+  double gazeLostThreshold = 10;
 
   ov::Core core;
   gaze_estimation::FaceDetector faceDetector;
