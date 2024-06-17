@@ -7,6 +7,7 @@
 #include <QtCharts/QBarSeries>
 #include <QtCharts/QBarSet>
 #include <QtCharts/QChartView>
+#include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
 #include <algorithm>
 
@@ -202,10 +203,17 @@ void MainWindow::displayChart(const std::map<std::string, double> &stats,
   QBarSet *set = new QBarSet("Gaze Time");
 
   std::vector<std::string> categories;
+  double totalGazeTime = 0;
+  int count = 0;
+
   for (const auto &[key, value] : stats) {
     *set << value / 60; // Convert seconds to minutes
     categories.push_back(key);
+    totalGazeTime += value / 60; // Sum gaze times in minutes
+    count++;
   }
+
+  double averageGazeTime = totalGazeTime / count;
 
   QBarSeries *series = new QBarSeries();
   series->append(set);
@@ -236,8 +244,24 @@ void MainWindow::displayChart(const std::map<std::string, double> &stats,
   chart->addAxis(axisY, Qt::AlignLeft);
   series->attachAxis(axisY);
 
+  // Add average line
+  QLineSeries *averageLine = new QLineSeries();
+  averageLine->append(0, averageGazeTime);
+  averageLine->append(categories.size() - 1, averageGazeTime);
+  QColor darkGreen(0, 128, 0); // Darker green color
+  averageLine->setColor(darkGreen);
+  averageLine->setPen(QPen(darkGreen, 2, Qt::DashLine));
+  averageLine->setName("Average Gaze Time");
+  chart->addSeries(averageLine);
+  averageLine->attachAxis(axisX);
+  averageLine->attachAxis(axisY);
+
   QChartView *chartView = new QChartView(chart);
   chartView->setRenderHint(QPainter::Antialiasing);
+
+  // Enable legend and set font for clarity
+  chart->legend()->setVisible(true);
+  chart->legend()->setFont(QFont("Arial", 10));
 
   // Create a message box to display the chart
   QDialog dialog(this);
