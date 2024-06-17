@@ -67,6 +67,8 @@ public:
   void
   setAccumulatedGazeTimeThreshold(const double accumulated_gaze_time_threshold);
   void setGazeLostThreshold(const double gazeLostThreshold);
+  std::map<std::string, double> getDailyStats();
+  std::map<std::string, double> getWeeklyStats();
 
 private:
   void updateGazeTime(const cv::Point3f &gazeVector, const cv::Size &imageSize);

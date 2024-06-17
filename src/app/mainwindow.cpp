@@ -3,6 +3,11 @@
 #include <QKeyEvent>
 #include <QMessageBox>
 #include <QTime>
+#include <QtCharts/QBarCategoryAxis>
+#include <QtCharts/QBarSeries>
+#include <QtCharts/QBarSet>
+#include <QtCharts/QChartView>
+#include <QtCharts/QValueAxis>
 #include <algorithm>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -182,14 +187,71 @@ void MainWindow::on_breakIntervalHorizontalSlider_valueChanged(int value) {
   ui->breakIntervalSpinBox->setValue(value); // Synchronize spin box with slider
 }
 
-void MainWindow::on_dailyStatButton_clicked()
-{
-
+void MainWindow::on_dailyStatButton_clicked() {
+  auto dailyStats = visionGuard->getDailyStats();
+  displayChart(dailyStats, "Daily Gaze Time Stats");
 }
 
-
-void MainWindow::on_weeklyStatButton_clicked()
-{
-
+void MainWindow::on_weeklyStatButton_clicked() {
+  auto weeklyStats = visionGuard->getWeeklyStats();
+  displayChart(weeklyStats, "Weekly Gaze Time Stats");
 }
 
+void MainWindow::displayChart(const std::map<std::string, double> &stats,
+                              const QString &title) {
+  QBarSet *set = new QBarSet("Gaze Time");
+
+  std::vector<std::string> categories;
+  for (const auto &[key, value] : stats) {
+    *set << value / 60; // Convert seconds to minutes
+    categories.push_back(key);
+  }
+
+  QBarSeries *series = new QBarSeries();
+  series->append(set);
+
+  QChart *chart = new QChart();
+  chart->addSeries(series);
+  chart->setTitle(title);
+  chart->setAnimationOptions(QChart::SeriesAnimations);
+
+  QStringList qCategories;
+  for (const auto &category : categories) {
+    qCategories << QString::fromStdString(category);
+  }
+
+  QBarCategoryAxis *axisX = new QBarCategoryAxis();
+  axisX->append(qCategories);
+  chart->addAxis(axisX, Qt::AlignBottom);
+  series->attachAxis(axisX);
+
+  double maxGazeTime = 0;
+  for (int i = 0; i < set->count(); ++i) {
+    maxGazeTime = std::max(maxGazeTime, set->at(i));
+  }
+
+  QValueAxis *axisY = new QValueAxis();
+  axisY->setRange(0, maxGazeTime + 10);
+  axisY->setTitleText("Gaze Time (minutes)");
+  chart->addAxis(axisY, Qt::AlignLeft);
+  series->attachAxis(axisY);
+
+  QChartView *chartView = new QChartView(chart);
+  chartView->setRenderHint(QPainter::Antialiasing);
+
+  // Create a message box to display the chart
+  QDialog dialog(this);
+  dialog.setWindowTitle(title);
+  dialog.resize(800, 600); // Set a standard readable size for the dialog
+
+  QVBoxLayout *layout = new QVBoxLayout(&dialog);
+  QLabel *label = new QLabel("Gaze Time Statistics", &dialog);
+  QPushButton *okButton = new QPushButton("OK", &dialog);
+  connect(okButton, &QPushButton::clicked, &dialog, &QDialog::accept);
+
+  layout->addWidget(label);
+  layout->addWidget(chartView);
+  layout->addWidget(okButton);
+
+  dialog.exec();
+}

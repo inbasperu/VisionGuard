@@ -4,6 +4,11 @@
 #include "vision_guard.hpp"
 #include <QMainWindow>
 #include <QTimer>
+#include <QtCharts/QBarCategoryAxis>
+#include <QtCharts/QBarSeries>
+#include <QtCharts/QBarSet>
+#include <QtCharts/QChartView>
+#include <QtCharts/QValueAxis>
 #include <opencv2/opencv.hpp>
 #include <string>
 
@@ -53,13 +58,17 @@ private slots:
 
   void on_weeklyStatButton_clicked();
 
-  private:
+private:
   void updateFrame();
   void switchDevice(const std::string &device);
   void loadModels(const std::string &precision);
   std::string getModelPath(const std::string &modelName,
                            const std::string &precision);
-  std::unique_ptr<VisionGuard> initializeVisionGuard(const std::string &precision, const std::string &device);
+  std::unique_ptr<VisionGuard>
+  initializeVisionGuard(const std::string &precision,
+                        const std::string &device);
+  void displayChart(const std::map<std::string, double> &stats,
+                    const QString &title);
 
   Ui::MainWindow *ui;
   std::unique_ptr<VisionGuard> visionGuard;

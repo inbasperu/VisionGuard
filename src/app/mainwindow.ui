@@ -303,15 +303,8 @@
         <string>Stats</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_2">
-        <item row="5" column="0">
-         <widget class="QPushButton" name="powerUtilizationButton">
-          <property name="text">
-           <string>Power Utilization</string>
-          </property>
-          <property name="checkable">
-           <bool>true</bool>
-          </property>
-         </widget>
+        <item row="2" column="0">
+         <widget class="QWidget" name="widget" native="true"/>
         </item>
         <item row="3" column="0">
          <spacer name="verticalSpacer">
@@ -326,20 +319,10 @@
           </property>
          </spacer>
         </item>
-        <item row="6" column="0">
-         <widget class="QPushButton" name="resourceUtilizationButton">
+        <item row="4" column="0">
+         <widget class="QPushButton" name="performanceMetric">
           <property name="text">
-           <string>Resource Utilization</string>
-          </property>
-          <property name="checkable">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QPushButton" name="weeklyStatButton">
-          <property name="text">
-           <string>Weekly</string>
+           <string>Performance Metric</string>
           </property>
          </widget>
         </item>
@@ -350,10 +333,30 @@
           </property>
          </widget>
         </item>
-        <item row="4" column="0">
-         <widget class="QPushButton" name="performanceMetric">
+        <item row="6" column="0">
+         <widget class="QPushButton" name="resourceUtilizationButton">
           <property name="text">
-           <string>Performance Metric</string>
+           <string>Resource Utilization</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QPushButton" name="powerUtilizationButton">
+          <property name="text">
+           <string>Power Utilization</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QPushButton" name="weeklyStatButton">
+          <property name="text">
+           <string>Weekly</string>
           </property>
          </widget>
         </item>

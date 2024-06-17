@@ -348,6 +348,89 @@ void VisionGuard::unlockFile(std::fstream &file) {
 #endif
 }
 
+std::map<std::string, double> VisionGuard::getDailyStats() {
+  nlohmann::json data;
+  std::map<std::string, double> dailyStats;
+
+  try {
+    std::ifstream inFile(dataFilePath);
+    if (inFile.is_open()) {
+      inFile >> data;
+      inFile.close();
+    } else {
+      slog::err << "Unable to open file for reading: " << dataFilePath
+                << slog::endl;
+      throw std::runtime_error("File open error");
+    }
+  } catch (const std::exception &e) {
+    slog::err << "Error reading data file: " << e.what() << slog::endl;
+    throw;
+  }
+
+  auto now = std::chrono::system_clock::now();
+  auto time = std::chrono::system_clock::to_time_t(now);
+  std::tm *now_tm = std::localtime(&time);
+  char buffer[11];
+  std::strftime(buffer, sizeof(buffer), "%Y-%m-%d", now_tm);
+  std::string today(buffer);
+
+  // Initialize 24 bins for each hour
+  for (int i = 0; i < 24; ++i) {
+    char hourBin[6];
+    std::snprintf(hourBin, sizeof(hourBin), "%02d", i);
+    dailyStats[hourBin] = 0;
+  }
+
+  for (auto &[key, value] : data.items()) {
+    if (key.substr(0, 10) == today) {
+      std::string hourBin = key.substr(11, 2);
+      dailyStats[hourBin] += value["gaze_time"].get<double>();
+    }
+  }
+
+  return dailyStats;
+}
+
+std::map<std::string, double> VisionGuard::getWeeklyStats() {
+  nlohmann::json data;
+  std::map<std::string, double> weeklyStats;
+
+  try {
+    std::ifstream inFile(dataFilePath);
+    if (inFile.is_open()) {
+      inFile >> data;
+      inFile.close();
+    } else {
+      slog::err << "Unable to open file for reading: " << dataFilePath
+                << slog::endl;
+      throw std::runtime_error("File open error");
+    }
+  } catch (const std::exception &e) {
+    slog::err << "Error reading data file: " << e.what() << slog::endl;
+    throw;
+  }
+
+  auto now = std::chrono::system_clock::now();
+  auto oneWeekAgo = now - std::chrono::hours(24 * 7);
+
+  for (auto &[key, value] : data.items()) {
+    std::istringstream ss(key);
+    std::tm tm = {};
+    ss >> std::get_time(&tm, "%Y-%m-%d %H:%M:%S");
+    if (ss.fail()) {
+      slog::err << "Failed to parse timestamp: " << key << slog::endl;
+      continue;
+    }
+    auto timestamp = std::chrono::system_clock::from_time_t(std::mktime(&tm));
+    if (timestamp >= oneWeekAgo) {
+      std::string date = key.substr(2, 8);
+      weeklyStats[date] += value["gaze_time"].get<double>();
+    }
+  }
+
+  return weeklyStats;
+}
+
 std::string VisionGuard::getHourlyTimestamp() const {
   auto now = std::chrono::system_clock::now();
   auto time = std::chrono::system_clock::to_time_t(now);

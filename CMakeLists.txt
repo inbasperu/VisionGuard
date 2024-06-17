@@ -66,7 +66,7 @@ find_package(OpenCV REQUIRED COMPONENTS core highgui videoio imgproc imgcodecs)
 set(OpenVINO_DIR /Users/inbasekaranperumal/Developer/Programs/OpenVINO-install-dir/runtime/cmake)
 find_package(OpenVINO REQUIRED COMPONENTS Runtime)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets Multimedia MultimediaWidgets Gui)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Multimedia MultimediaWidgets Gui Charts)
 
 qt_standard_project_setup()
 
@@ -84,7 +84,7 @@ qt_add_executable(VisionGuardApp
 
 target_include_directories(VisionGuardApp PRIVATE ${OpenCV_INCLUDE_DIRS} "${CMAKE_CURRENT_SOURCE_DIR}/src/gaze_estimation_backend/gaze_estimation/cpp/include")
 
-target_link_libraries(VisionGuardApp PRIVATE Qt6::Widgets ${OpenCV_LIBS} openvino::runtime Qt6::Core Qt6::Gui Qt6::Multimedia Qt6::MultimediaWidgets gaze_estimation ${OpenCV_LIBRARIES} openvino::runtime monitors utils gflags)
+target_link_libraries(VisionGuardApp PRIVATE Qt6::Widgets Qt6::Charts ${OpenCV_LIBS} openvino::runtime Qt6::Core Qt6::Gui Qt6::Multimedia Qt6::MultimediaWidgets gaze_estimation ${OpenCV_LIBRARIES} openvino::runtime monitors utils gflags)
 
 set_target_properties(VisionGuardApp PROPERTIES
     WIN32_EXECUTABLE ON
