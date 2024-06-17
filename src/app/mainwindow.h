@@ -49,6 +49,10 @@ private slots:
 
   void on_breakIntervalHorizontalSlider_valueChanged(int value);
 
+  void on_dailyStatButton_clicked();
+
+  void on_weeklyStatButton_clicked();
+
   private:
   void updateFrame();
   void switchDevice(const std::string &device);

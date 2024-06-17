@@ -127,7 +127,7 @@
        <bool>true</bool>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tabCallibration">
        <attribute name="title">
@@ -369,7 +369,7 @@
      <x>0</x>
      <y>0</y>
      <width>817</width>
-     <height>24</height>
+     <height>37</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

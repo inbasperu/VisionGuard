@@ -2,13 +2,23 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <utils/slog.hpp>
 
+#ifdef _WIN32
+#include <Windows.h>
+#else
+#include <fcntl.h>
+#include <sys/file.h>
+#include <unistd.h>
+#endif
+
 VisionGuard::VisionGuard(const std::string &gaze_model,
                          const std::string &face_model,
                          const std::string &head_pose_model,
                          const std::string &landmarks_model,
                          const std::string &eye_state_model,
                          const std::string &device)
-    : faceDetector(core, face_model, device, 0.5, false),
+    : lastCheckTime(std::chrono::steady_clock::now()),
+      gazeLostTime(std::chrono::steady_clock::now()),
+      faceDetector(core, face_model, device, 0.5, false),
       headPoseEstimator(core, head_pose_model, device),
       landmarksEstimator(core, landmarks_model, device),
       eyeStateEstimator(core, eye_state_model, device),
@@ -22,6 +32,12 @@ VisionGuard::VisionGuard(const std::string &gaze_model,
   slog::info << getAvailableDevices() << slog::endl;
 }
 
+VisionGuard::~VisionGuard() {
+  slog::debug << "Destroying VisionGuard Object" << slog::endl;
+  // Log gaze data and clean old data before destroying the object
+  logGazeData();
+  cleanOldData();
+}
 void VisionGuard::toggle(int key) { resultsMarker.toggle(key); }
 std::vector<std::string> VisionGuard::getAvailableDevices() {
   return core.get_available_devices();
@@ -124,13 +140,19 @@ void VisionGuard::updateGazeTime(const cv::Point3f &gazeVector,
       accumulatedGazeTime += elapsed.count();
       lastCheckTime = now;
     }
-    gazeLostTime = now; // Reset gaze lost timer
+    // Reset gaze lost timer
+    gazeLostTime = now;
   } else {
     isGazingAtScreen = false;
-    std::chrono::duration<double> gazeLostDuration = now - gazeLostTime;
-    // Reset timer if gaze lost for more than gazeLostThreshold
-    if (gazeLostDuration.count() > gazeLostThreshold) {
-      accumulatedGazeTime = 0;
+    double gazeLostDuration = getGazeLostDuration();
+    double accumulatedGazeTime = getAccumulatedGazeTime();
+    // Reset timer if gaze lost for more than gazeLostThreshold and accumulated
+    // gaze time is not 0
+    if (gazeLostDuration > gazeLostThreshold && accumulatedGazeTime != 0) {
+      slog::debug << "Gaze lost duration: " << gazeLostDuration
+                  << " Gaze lost threshold: " << gazeLostThreshold
+                  << slog::endl;
+      resetGazeTime();
     }
   }
 }
@@ -177,7 +199,12 @@ double VisionGuard::getGazeLostDuration() const {
 bool VisionGuard::checkGazeTimeExceeded() const {
   return accumulatedGazeTime >= accumulated_gaze_time_threshold;
 }
-void VisionGuard::resetGazeTime() { accumulatedGazeTime = 0; }
+void VisionGuard::resetGazeTime() {
+
+  // Log gaze data before resetting the timer
+  logGazeData();
+  accumulatedGazeTime = 0;
+}
 
 void VisionGuard::setAccumulatedGazeTimeThreshold(
     const double accumulated_gaze_time_threshold) {
@@ -186,4 +213,152 @@ void VisionGuard::setAccumulatedGazeTimeThreshold(
 
 void VisionGuard::setGazeLostThreshold(const double gazeLostThreshold) {
   this->gazeLostThreshold = gazeLostThreshold;
+}
+
+void VisionGuard::logGazeData() {
+
+  double gazeDuration = getAccumulatedGazeTime();
+
+  nlohmann::json data;
+
+  try {
+    std::ifstream inFile(dataFilePath);
+    if (inFile.is_open()) {
+      inFile >> data;
+      inFile.close();
+    } else {
+      slog::err << "Unable to open file for reading: " << dataFilePath
+                << slog::endl;
+      throw std::runtime_error("File open error");
+    }
+  } catch (const std::exception &e) {
+    slog::err << "Error reading data file: " << e.what() << slog::endl;
+    throw;
+  }
+  updateHourlyData(data, "gaze_time", gazeDuration);
+
+  try {
+    saveJsonData(data, dataFilePath);
+  } catch (const std::exception &e) {
+    slog::err << "Error saving data file: " << e.what() << slog::endl;
+    throw;
+  }
+  slog::debug << "Hourly logs successfully updated: " << dataFilePath
+              << slog::endl;
+}
+
+void VisionGuard::cleanOldData() {
+  auto now = std::chrono::system_clock::now();
+  auto oneWeekAgo = now - std::chrono::hours(24 * 7);
+
+  nlohmann::json data;
+
+  try {
+    std::ifstream inFile(dataFilePath);
+    if (inFile.is_open()) {
+      inFile >> data;
+      inFile.close();
+    } else {
+      slog::err << "Unable to open file for reading: " << dataFilePath
+                << slog::endl;
+      throw std::runtime_error("File open error");
+    }
+  } catch (const std::exception &e) {
+    slog::err << "Error reading data file: " << e.what() << slog::endl;
+    throw;
+  }
+
+  for (auto it = data.begin(); it != data.end();) {
+    std::istringstream ss(it.key());
+    std::tm tm = {};
+    ss >> std::get_time(&tm, "%Y-%m-%d %H:%M:%S");
+    if (ss.fail()) {
+      slog::err << "Failed to parse timestamp: " << it.key() << slog::endl;
+      ++it;
+      continue;
+    }
+    auto timestamp = std::chrono::system_clock::from_time_t(std::mktime(&tm));
+    if (timestamp < oneWeekAgo) {
+      // Use std::put_time to format the time
+      slog::debug << "Erasing timestamp: "
+                  << std::put_time(&tm, "%Y-%m-%d %H:%M:%S") << slog::endl;
+      it = data.erase(it);
+    } else {
+      ++it;
+    }
+  }
+
+  try {
+    saveJsonData(data, dataFilePath);
+  } catch (const std::exception &e) {
+    slog::err << "Error saving data file: " << e.what() << slog::endl;
+    throw;
+  }
+
+  slog::debug << "Successfully removed old data from: " << dataFilePath
+              << slog::endl;
+}
+
+std::string VisionGuard::getHourlyTimestamp() const {
+  auto now = std::chrono::system_clock::now();
+  auto time = std::chrono::system_clock::to_time_t(now);
+  std::tm *now_tm = std::localtime(&time);
+
+  char buffer[20];
+  std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:00:00", now_tm);
+  return std::string(buffer);
+}
+
+void VisionGuard::updateHourlyData(nlohmann::json &data, const std::string &key,
+                                   double value) {
+  std::string hour = getHourlyTimestamp();
+
+  if (data.contains(hour)) {
+    data[hour][key] = data[hour][key].get<double>() + value;
+  } else {
+    data[hour][key] = value;
+  }
+}
+
+void VisionGuard::saveJsonData(const nlohmann::json &data,
+                               const std::string &filePath) {
+  std::ofstream outFile(filePath, std::ios::trunc);
+  if (!outFile.is_open()) {
+    slog::err << "Unable to open file for writing: " << filePath << slog::endl;
+    throw std::runtime_error("File open error");
+  }
+
+  outFile << data.dump(4);
+  outFile.close();
+}
+
+void VisionGuard::lockFile(std::fstream &file) {
+#ifdef _WIN32
+  HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(file));
+  OVERLAPPED ov = {0};
+  if (LockFileEx(hFile, LOCKFILE_EXCLUSIVE_LOCK, 0, MAXDWORD, MAXDWORD, &ov) ==
+      0) {
+    throw std::runtime_error("Failed to lock file");
+  }
+#else
+  int fd = fileno(reinterpret_cast<FILE *>(file.rdbuf()));
+  if (flock(fd, LOCK_EX) != 0) {
+    throw std::runtime_error("Failed to lock file");
+  }
+#endif
+}
+
+void VisionGuard::unlockFile(std::fstream &file) {
+#ifdef _WIN32
+  HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(file));
+  OVERLAPPED ov = {0};
+  if (UnlockFileEx(hFile, 0, MAXDWORD, MAXDWORD, &ov) == 0) {
+    throw std::runtime_error("Failed to unlock file");
+  }
+#else
+  int fd = fileno(reinterpret_cast<FILE *>(file.rdbuf()));
+  if (flock(fd, LOCK_UN) != 0) {
+    throw std::runtime_error("Failed to unlock file");
+  }
+#endif
 }

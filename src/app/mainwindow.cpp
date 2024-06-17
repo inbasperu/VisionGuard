@@ -181,3 +181,15 @@ void MainWindow::on_breakIntervalHorizontalSlider_valueChanged(int value) {
   visionGuard->setGazeLostThreshold(static_cast<double>(value));
   ui->breakIntervalSpinBox->setValue(value); // Synchronize spin box with slider
 }
+
+void MainWindow::on_dailyStatButton_clicked()
+{
+
+}
+
+
+void MainWindow::on_weeklyStatButton_clicked()
+{
+
+}
+

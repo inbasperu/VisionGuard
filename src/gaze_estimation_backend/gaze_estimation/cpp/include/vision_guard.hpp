@@ -14,6 +14,8 @@
 #include <utility>
 #include <vector>
 
+#include <nlohmann/json.hpp>
+
 #include <opencv2/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -49,6 +51,7 @@ public:
               const std::string &head_pose_model,
               const std::string &landmarks_model,
               const std::string &eye_state_model, const std::string &device);
+  ~VisionGuard();
 
   std::vector<std::string> getAvailableDevices();
   void processFrame(cv::Mat &frame);
@@ -79,6 +82,19 @@ private:
   bool isGazingAtScreen = false;
   double accumulated_gaze_time_threshold = 20;
   double gazeLostThreshold = 10;
+
+  void logGazeData();
+  void cleanOldData();
+
+  void updateHourlyData(nlohmann::json &data, const std::string &key,
+                        double value);
+  void saveJsonData(const nlohmann::json &data, const std::string &filePath);
+  std::string getHourlyTimestamp() const;
+
+  void lockFile(std::fstream &file);
+  void unlockFile(std::fstream &file);
+
+  std::string dataFilePath = "screen_time_stats.json";
 
   ov::Core core;
   gaze_estimation::FaceDetector faceDetector;
