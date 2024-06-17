@@ -216,16 +216,24 @@ void VisionGuard::setGazeLostThreshold(const double gazeLostThreshold) {
 }
 
 void VisionGuard::logGazeData() {
-
   double gazeDuration = getAccumulatedGazeTime();
-
   nlohmann::json data;
 
   try {
-    std::ifstream inFile(dataFilePath);
-    if (inFile.is_open()) {
-      inFile >> data;
-      inFile.close();
+    std::fstream file(dataFilePath,
+                      std::ios::in | std::ios::out | std::ios::binary);
+    lockFile(file);
+
+    if (file.is_open()) {
+      file.seekg(0, std::ios::end);
+      size_t size = file.tellg();
+      if (size > 0) {
+        file.seekg(0, std::ios::beg);
+        file >> data;
+      } else {
+        data = nlohmann::json::object();
+      }
+      file.close();
     } else {
       slog::err << "Unable to open file for reading: " << dataFilePath
                 << slog::endl;
@@ -235,6 +243,7 @@ void VisionGuard::logGazeData() {
     slog::err << "Error reading data file: " << e.what() << slog::endl;
     throw;
   }
+
   updateHourlyData(data, "gaze_time", gazeDuration);
 
   try {
@@ -250,14 +259,23 @@ void VisionGuard::logGazeData() {
 void VisionGuard::cleanOldData() {
   auto now = std::chrono::system_clock::now();
   auto oneWeekAgo = now - std::chrono::hours(24 * 7);
-
   nlohmann::json data;
 
   try {
-    std::ifstream inFile(dataFilePath);
-    if (inFile.is_open()) {
-      inFile >> data;
-      inFile.close();
+    std::fstream file(dataFilePath,
+                      std::ios::in | std::ios::out | std::ios::binary);
+    lockFile(file);
+
+    if (file.is_open()) {
+      file.seekg(0, std::ios::end);
+      size_t size = file.tellg();
+      if (size > 0) {
+        file.seekg(0, std::ios::beg);
+        file >> data;
+      } else {
+        data = nlohmann::json::object();
+      }
+      file.close();
     } else {
       slog::err << "Unable to open file for reading: " << dataFilePath
                 << slog::endl;
@@ -299,6 +317,37 @@ void VisionGuard::cleanOldData() {
               << slog::endl;
 }
 
+void VisionGuard::lockFile(std::fstream &file) {
+#ifdef _WIN32
+  HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(file));
+  OVERLAPPED ov = {0};
+  if (LockFileEx(hFile, LOCKFILE_EXCLUSIVE_LOCK, 0, MAXDWORD, MAXDWORD, &ov) ==
+      0) {
+    throw std::runtime_error("Failed to lock file");
+  }
+#else
+  int fd = fileno(reinterpret_cast<FILE *>(file.rdbuf()));
+  if (flock(fd, LOCK_EX) != 0) {
+    throw std::runtime_error("Failed to lock file");
+  }
+#endif
+}
+
+void VisionGuard::unlockFile(std::fstream &file) {
+#ifdef _WIN32
+  HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(file));
+  OVERLAPPED ov = {0};
+  if (UnlockFileEx(hFile, 0, MAXDWORD, MAXDWORD, &ov) == 0) {
+    throw std::runtime_error("Failed to unlock file");
+  }
+#else
+  int fd = fileno(reinterpret_cast<FILE *>(file.rdbuf()));
+  if (flock(fd, LOCK_UN) != 0) {
+    throw std::runtime_error("Failed to unlock file");
+  }
+#endif
+}
+
 std::string VisionGuard::getHourlyTimestamp() const {
   auto now = std::chrono::system_clock::now();
   auto time = std::chrono::system_clock::to_time_t(now);
@@ -330,35 +379,4 @@ void VisionGuard::saveJsonData(const nlohmann::json &data,
 
   outFile << data.dump(4);
   outFile.close();
-}
-
-void VisionGuard::lockFile(std::fstream &file) {
-#ifdef _WIN32
-  HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(file));
-  OVERLAPPED ov = {0};
-  if (LockFileEx(hFile, LOCKFILE_EXCLUSIVE_LOCK, 0, MAXDWORD, MAXDWORD, &ov) ==
-      0) {
-    throw std::runtime_error("Failed to lock file");
-  }
-#else
-  int fd = fileno(reinterpret_cast<FILE *>(file.rdbuf()));
-  if (flock(fd, LOCK_EX) != 0) {
-    throw std::runtime_error("Failed to lock file");
-  }
-#endif
-}
-
-void VisionGuard::unlockFile(std::fstream &file) {
-#ifdef _WIN32
-  HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(file));
-  OVERLAPPED ov = {0};
-  if (UnlockFileEx(hFile, 0, MAXDWORD, MAXDWORD, &ov) == 0) {
-    throw std::runtime_error("Failed to unlock file");
-  }
-#else
-  int fd = fileno(reinterpret_cast<FILE *>(file.rdbuf()));
-  if (flock(fd, LOCK_UN) != 0) {
-    throw std::runtime_error("Failed to unlock file");
-  }
-#endif
 }
