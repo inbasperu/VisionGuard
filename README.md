@@ -17,8 +17,8 @@ VisionGuard is a desktop application designed to help prevent eye strain from ex
   - [x] Daily
   - [x] Weekly
 - [ ] Perform Reports
-  - [ ] Daily
-  - [ ] Weekly
+  - [ ] Latency
+  - [ ] FPS
 - [ ] Perform Optimizations
 - [ ] Handle Multi-Monitor Setup
 - [ ] Handle Multi-Users
@@ -34,8 +34,8 @@ VisionGuard is a desktop application designed to help prevent eye strain from ex
   - [x] Daily
   - [x] Weekly
 - [ ] Perform Reports
-  - [ ] Daily
-  - [ ] Weekly
+  - [ ] Latency
+  - [ ] FPS
 - [ ] Adaptive UI
 - [ ] Dark and Light Theme Support
 - [ ] Handle Multi-Monitor Setup
