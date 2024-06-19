@@ -12,12 +12,14 @@ VisionGuard is a desktop application designed to help prevent eye strain from ex
 - [x] Alert User for Breaks through Notifications (20-20-20)
 - [x] Integrate the GUI
 - [x] Utilize NPU and GPU
-- [ ] Perform Optimizations
-- [ ] Customizable Settings (Interval and Duration)
-- [ ] Screen Time Reports
+- [x] Customizable Settings (Interval and Duration)
+- [x] Screen Time Reports
+  - [x] Daily
+  - [x] Weekly
+- [ ] Perform Reports
   - [ ] Daily
   - [ ] Weekly
-  - [ ] Monthly
+- [ ] Perform Optimizations
 - [ ] Handle Multi-Monitor Setup
 - [ ] Handle Multi-Users
 
@@ -27,12 +29,14 @@ VisionGuard is a desktop application designed to help prevent eye strain from ex
 - [x] Gaze Calibration Window
 - [x] Ongoing Screen Time Widget
 - [x] Notification Alert Message Box
-- [ ] Customizable Settings Sliders (Interval and Duration)
-- [ ] Adaptive UI
-- [ ] Screen Time Reports
+- [x] Customizable Settings (Interval and Duration)
+- [x] Screen Time Reports
+  - [x] Daily
+  - [x] Weekly
+- [ ] Perform Reports
   - [ ] Daily
   - [ ] Weekly
-  - [ ] Monthly
+- [ ] Adaptive UI
 - [ ] Dark and Light Theme Support
 - [ ] Handle Multi-Monitor Setup
 - [ ] Handle Multi-Users
