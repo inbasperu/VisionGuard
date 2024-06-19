@@ -2,7 +2,7 @@
 
 ## VisionGuard Backend
 
-The VisionGuard Backend leverages the OpenVINO model zoo to estimate a user's gaze and calculate the accumulated screen gaze time. The following networks are integral to the backend:
+The VisionGuard Backend utilizes the OpenVINO model zoo to estimate a user's gaze and calculate the accumulated screen gaze time. The following networks are integral to the backend:
 
 ### Face Detection Model
 
@@ -63,11 +63,32 @@ style A fill:#C1E1FF,stroke:#333,stroke-width:2px
 style H fill:#C1E1FF,stroke:#333,stroke-width:2px
 ```
 
-## Demo
+## Key Features
+
+- **Customizable Settings**: Users can set custom gaze time intervals and break durations.
+- **Notifications**: Alerts users for breaks through notifications.
+- **Multi-Device Compatibility**: Can run on different kinds of devices as per user needs: CPU, GPU, NPU.
+- **Screen Time Reports**: Provides daily and weekly reports, displaying the total screen time and the average screen time of the user.
+- **Data Management**: Automatically clears data older than a week, ensuring data processing is local and securing user consent for data collection.
+
+## Running the Demo Backend
+
+To run the demo backend, use the following command:
+
+```sh
+./gaze_estimation\
+  -d CPU \
+  -i <path_to_video>/input_video.mp4 \
+  -m <path_to_model>/gaze-estimation-adas-0002.xml \
+  -m_fd <path_to_model>/face-detection-retail-0004.xml \
+  -m_hp <path_to_model>/head-pose-estimation-adas-0001.xml \
+  -m_lm <path_to_model>/facial-landmarks-35-adas-0002.xml \
+  -m_es <path_to_model>/open-closed-eye-0001.xml
+```
 
 Running the application with the `-h` option yields the following usage message:
 
-```bash
+```sh
 gaze_estimation_demo [OPTION]
 Options:
 
@@ -94,108 +115,7 @@ Options:
     -u                       Optional. List of monitors to show initially.
 ```
 
-Running the application with an empty list of options yields an error message.
-
 For example, to do inference on a CPU, run the following command:
-
-```sh
-./gaze_estimation_demo \
-  -d CPU \
-  -i <path_to_video>/input_video.mp4 \
-  -m <path_to_model>/gaze-estimation-adas-0002.xml \
-  -m_fd <path_to_model>/face-detection-retail-0004.xml \
-  -m_hp <path_to_model>/head-pose-estimation-adas-0001.xml \
-  -m_lm <path_to_model>/facial-landmarks-35-adas-0002.xml \
-  -m_es <path_to_model>/open-closed-eye-0001.xml
-```
-
-### Run-Time Control Keys
-
-The demo allows you to control what information is displayed in run-time.
-The following keys are supported:
-
-- G - to toggle displaying gaze vector
-- B - to toggle displaying face detector bounding boxes
-- O - to toggle displaying head pose information
-- L - to toggle displaying facial landmarks
-- E - to toggle displaying eyes state
-- A - to switch on displaying all inference results
-- N - to switch off displaying all inference results
-- F - to flip frames horizontally
-- Esc - to quit the demo
-
-## Directory Structure
-
-``` bash
-.
-├── CMakeLists.txt
-├── README.md
-├── models
-│   ├── intel
-│   │   ├── face-detection-adas-0001
-│   │   ├── face-detection-retail-0004
-│   │   ├── face-detection-retail-0005
-│   │   ├── facial-landmarks-35-adas-0002
-│   │   ├── facial-landmarks-98-detection-0001
-│   │   ├── gaze-estimation-adas-0002
-│   │   └── head-pose-estimation-adas-0001
-│   └── public
-│       └── open-closed-eye-0001
-└── src
-    ├── app
-    │   ├── main.cpp
-    │   ├── mainwindow.cpp
-    │   ├── mainwindow.h
-    │   └── mainwindow.ui
-    └── gaze_estimation_backend
-        ├── gaze_estimation
-        │   └── cpp
-        │       ├── CMakeLists.txt
-        │       ├── README.md
-        │       ├── gaze_estimation_demo.hpp
-        │       ├── include
-        │       │   ├── base_estimator.hpp
-        │       │   ├── eye_state_estimator.hpp
-        │       │   ├── face_detector.hpp
-        │       │   ├── face_inference_results.hpp
-        │       │   ├── gaze_estimator.hpp
-        │       │   ├── head_pose_estimator.hpp
-        │       │   ├── ie_wrapper.hpp
-        │       │   ├── landmarks_estimator.hpp
-        │       │   ├── results_marker.hpp
-        │       │   ├── utils.hpp
-        │       │   └── vision_guard.hpp
-        │       ├── main.cpp
-        │       ├── models.lst
-        │       └── src
-        │           ├── eye_state_estimator.cpp
-        │           ├── face_detector.cpp
-        │           ├── face_inference_results.cpp
-        │           ├── gaze_estimator.cpp
-        │           ├── head_pose_estimator.cpp
-        │           ├── ie_wrapper.cpp
-        │           ├── landmarks_estimator.cpp
-        │           ├── results_marker.cpp
-        │           ├── utils.cpp
-        │           └── vision_guard.cpp
-        ├── multi_channel_common
-        └── thirdparty
-            └── gflags
-```
-
-```bash
-export OpenVINO_DIR=/Users/inbasekaranperumal/Developer/Programs/OpenVINO-install-dir/runtime/cmake
-```
-
-```bash
-export OpenCV_DIR=/Users/inbasekaranperumal/Developer/OpenSource/build_opencv
-```
-
-```bash
-cmake -DCMAKE_BUILD_TYPE=Release /Users/inbasekaranperumal/Developer/OpenSource/GSoC/code/VisionGuard
-
-cmake --build .
-```
 
 ```bash
 ./build/arm64/Release/gaze_estimation -d CPU -i 0  \
@@ -204,4 +124,95 @@ cmake --build .
 -m_hp ./models/intel/head-pose-estimation-adas-0001/FP32/head-pose-estimation-adas-0001.xml \
 -m_lm ./models/intel/facial-landmarks-35-adas-0002/FP32/facial-landmarks-35-adas-0002.xml \
 -m_es ./models/public/open-closed-eye-0001/FP32/open-closed-eye-0001.xml
+```
+
+### Run-Time Control Keys
+
+The demo allows you to control what information is displayed during run-time. The following keys are supported:
+
+- G - Toggle displaying gaze vector
+- B - Toggle displaying face detector bounding boxes
+
+
+- O - Toggle displaying head pose information
+- L - Toggle displaying facial landmarks
+- E - Toggle displaying eyes state
+- A - Switch on displaying all inference results
+- N - Switch off displaying all inference results
+- F - Flip frames horizontally
+- Esc - Quit the demo
+
+## Directory Structure
+
+```bash
+.
+├── CMakeLists.txt
+├── README.md
+├── models
+│   ├── intel
+│   │   ├── face-detection-adas-0001
+│   │   ├── face-detection-retail-0004
+│   │   ├── face-detection-retail-0005
+│   │   ├── facial-landmarks-35-adas-0002
+│   │   ├── facial-landmarks-98-detection-0001
+│   │   ├── gaze-estimation-adas-0002
+│   │   └── head-pose-estimation-adas-0001
+│   └── public
+│       └── open-closed-eye-0001
+└── src
+    ├── app
+    │   ├── main.cpp
+    │   ├── mainwindow.cpp
+    │   ├── mainwindow.h
+    │   └── mainwindow.ui
+    └── gaze_estimation_backend
+        ├── gaze_estimation
+        │   └── cpp
+        │       ├── CMakeLists.txt
+        │       ├── README.md
+        │       ├── gaze_estimation_demo.hpp
+        │       ├── include
+        │       │   ├── base_estimator.hpp
+        │       │   ├── eye_state_estimator.hpp
+        │       │   ├── face_detector.hpp
+        │       │   ├── face_inference_results.hpp
+        │       │   ├── gaze_estimator.hpp
+        │       │   ├── head_pose_estimator.hpp
+        │       │   ├── ie_wrapper.hpp
+        │       │   ├── landmarks_estimator.hpp
+        │       │   ├── results_marker.hpp
+        │       │   ├── utils.hpp
+        │       │   └── vision_guard.hpp
+        │       ├── main.cpp
+        │       ├── models.lst
+        │       └── src
+        │           ├── eye_state_estimator.cpp
+        │           ├── face_detector.cpp
+        │           ├── face_inference_results.cpp
+        │           ├── gaze_estimator.cpp
+        │           ├── head_pose_estimator.cpp
+        │           ├── ie_wrapper.cpp
+        │           ├── landmarks_estimator.cpp
+        │           ├── results_marker.cpp
+        │           ├── utils.cpp
+        │           └── vision_guard.cpp
+        ├── multi_channel_common
+        └── thirdparty
+            └── gflags
+```
+
+## Building VisionGuard
+
+Set the OpenVINO and OpenCV directories:
+
+```bash
+export OpenVINO_DIR=/path/to/OpenVINO-install-dir/runtime/cmake
+export OpenCV_DIR=/path/to/build_opencv
+```
+
+Build the project:
+
+```bash
+cmake -DCMAKE_BUILD_TYPE=Release /path/to/VisionGuard
+cmake --build .
 ```
