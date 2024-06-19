@@ -57,13 +57,13 @@ if(ARM AND NOT CMAKE_CROSSCOMPILING)
 endif()
 
 # Set the Qt installation path
-set(CMAKE_PREFIX_PATH "/Users/inbasekaranperumal/Qt/6.7.1/macos")
+set(CMAKE_PREFIX_PATH "C:\\Qt\\6.7.1\\msvc2019_64")
 
 # Include directories for OpenCV and OpenVINO
-set(OpenCV_DIR /Users/inbasekaranperumal/Developer/OpenSource/build_opencv)
+set(OpenCV_DIR "C:\\Program Files\\opencv\\build")
 find_package(OpenCV REQUIRED COMPONENTS core highgui videoio imgproc imgcodecs)
 
-set(OpenVINO_DIR /Users/inbasekaranperumal/Developer/Programs/OpenVINO-install-dir/runtime/cmake)
+set(OpenVINO_DIR "C:\\Program Files (x86)\\Intel\\openvino_2024.2.0\\runtime\\cmake")
 find_package(OpenVINO REQUIRED COMPONENTS Runtime)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Multimedia MultimediaWidgets Gui Charts)
@@ -84,11 +84,16 @@ qt_add_executable(VisionGuardApp
 
 target_include_directories(VisionGuardApp PRIVATE ${OpenCV_INCLUDE_DIRS} "${CMAKE_CURRENT_SOURCE_DIR}/src/gaze_estimation_backend/gaze_estimation/cpp/include")
 
-target_link_libraries(VisionGuardApp PRIVATE Qt6::Widgets Qt6::Charts ${OpenCV_LIBS} openvino::runtime Qt6::Core Qt6::Gui Qt6::Multimedia Qt6::MultimediaWidgets gaze_estimation ${OpenCV_LIBRARIES} openvino::runtime monitors utils gflags)
+target_link_libraries(VisionGuardApp PRIVATE Qt6::Core Qt6::Widgets Qt6::Multimedia Qt6::MultimediaWidgets Qt6::Gui Qt6::Charts ${OpenCV_LIBS} openvino::runtime gaze_estimation ${OpenCV_LIBRARIES} openvino::runtime monitors utils gflags)
 
 set_target_properties(VisionGuardApp PROPERTIES
     WIN32_EXECUTABLE ON
     MACOSX_BUNDLE ON
 )
 
-
+if(WIN32)
+    add_custom_command(TARGET VisionGuardApp POST_BUILD
+        COMMAND "C:\\Qt\\6.7.1\\msvc2019_64\\bin\\windeployqt.exe" --debug $<TARGET_FILE:VisionGuardApp>
+        COMMENT "Deploying Qt dependencies for VisionGuardApp"
+    )
+endif()

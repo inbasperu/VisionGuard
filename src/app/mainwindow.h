@@ -64,6 +64,7 @@ private:
   void loadModels(const std::string &precision);
   std::string getModelPath(const std::string &modelName,
                            const std::string &precision);
+  std::string getExecutablePath();
   std::unique_ptr<VisionGuard>
   initializeVisionGuard(const std::string &precision,
                         const std::string &device);
@@ -81,8 +82,8 @@ private:
   cv::Size imageSize = cv::Size(1920, 1080);
 
   // Model base paths
-  const std::string BASE_PATH = "/Users/inbasekaranperumal/Developer/"
-                                "OpenSource/GSoC/code/VisionGuard/models/intel";
+  // const std::string BASE_PATH = "../models";
+  const std::string MODELS_DIR = "../models";
   const std::string GAZE_MODEL_NAME = "gaze-estimation-adas-0002";
   const std::string FACE_MODEL_NAME = "face-detection-retail-0004";
   const std::string HEAD_POSE_MODEL_NAME = "head-pose-estimation-adas-0001";

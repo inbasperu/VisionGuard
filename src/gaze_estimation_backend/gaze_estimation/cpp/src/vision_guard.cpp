@@ -222,7 +222,6 @@ void VisionGuard::logGazeData() {
   try {
     std::fstream file(dataFilePath,
                       std::ios::in | std::ios::out | std::ios::binary);
-    lockFile(file);
 
     if (file.is_open()) {
       file.seekg(0, std::ios::end);
@@ -264,7 +263,6 @@ void VisionGuard::cleanOldData() {
   try {
     std::fstream file(dataFilePath,
                       std::ios::in | std::ios::out | std::ios::binary);
-    lockFile(file);
 
     if (file.is_open()) {
       file.seekg(0, std::ios::end);
@@ -317,36 +315,6 @@ void VisionGuard::cleanOldData() {
               << slog::endl;
 }
 
-void VisionGuard::lockFile(std::fstream &file) {
-#ifdef _WIN32
-  HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(file));
-  OVERLAPPED ov = {0};
-  if (LockFileEx(hFile, LOCKFILE_EXCLUSIVE_LOCK, 0, MAXDWORD, MAXDWORD, &ov) ==
-      0) {
-    throw std::runtime_error("Failed to lock file");
-  }
-#else
-  int fd = fileno(reinterpret_cast<FILE *>(file.rdbuf()));
-  if (flock(fd, LOCK_EX) != 0) {
-    throw std::runtime_error("Failed to lock file");
-  }
-#endif
-}
-
-void VisionGuard::unlockFile(std::fstream &file) {
-#ifdef _WIN32
-  HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(file));
-  OVERLAPPED ov = {0};
-  if (UnlockFileEx(hFile, 0, MAXDWORD, MAXDWORD, &ov) == 0) {
-    throw std::runtime_error("Failed to unlock file");
-  }
-#else
-  int fd = fileno(reinterpret_cast<FILE *>(file.rdbuf()));
-  if (flock(fd, LOCK_UN) != 0) {
-    throw std::runtime_error("Failed to unlock file");
-  }
-#endif
-}
 
 std::map<std::string, double> VisionGuard::getDailyStats() {
   nlohmann::json data;

@@ -10,6 +10,8 @@
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
 #include <algorithm>
+#include <filesystem>
+#include <windows.h>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), currentDevice("CPU"),
@@ -45,24 +47,43 @@ MainWindow::~MainWindow() {
   visionGuard.reset();
 }
 
-std::string MainWindow::getModelPath(const std::string &modelName,
-                                     const std::string &precision) {
-  std::string modelPath{BASE_PATH + "/" + modelName + "/" + precision + "/" +
-                        modelName + MODEL_EXTENSION};
-  slog::debug << "Reading " << modelName << " from " << modelPath << " with "
-              << precision << " precision" << slog::endl;
-  return modelPath;
+std::string MainWindow::getModelPath(const std::string &modelName, const std::string &precision) {
+    std::string modelPath = getExecutablePath() + "/" + MODELS_DIR + "/" + modelName + "/" + precision + "/" + modelName + MODEL_EXTENSION;
+
+    // Check if the model file exists
+    if (!std::filesystem::exists(modelPath)) {
+        slog::err << "Model file not found: " << modelPath << slog::endl;
+        throw std::runtime_error("Model file not found: " + modelPath);
+    }
+    
+    slog::debug << "Found " << modelName << " at " << modelPath << " with " << precision << " precision" << slog::endl;
+    return modelPath;
+}
+
+std::string MainWindow::getExecutablePath() {
+    char buffer[MAX_PATH];
+    GetModuleFileNameA(nullptr, buffer, MAX_PATH);
+    std::string::size_type pos = std::string(buffer).find_last_of("\\/");
+    return std::string(buffer).substr(0, pos);
 }
 
 std::unique_ptr<VisionGuard>
 MainWindow::initializeVisionGuard(const std::string &precision,
                                   const std::string &device) {
+  // auto guard = std::make_unique<VisionGuard>(
+  //     getModelPath(GAZE_MODEL_NAME, precision),
+  //     getModelPath(FACE_MODEL_NAME, precision),
+  //     getModelPath(HEAD_POSE_MODEL_NAME, precision),
+  //     getModelPath(LANDMARKS_MODEL_NAME, precision),
+  //     getModelPath(EYE_STATE_MODEL_NAME, precision), device);
   auto guard = std::make_unique<VisionGuard>(
-      getModelPath(GAZE_MODEL_NAME, precision),
-      getModelPath(FACE_MODEL_NAME, precision),
-      getModelPath(HEAD_POSE_MODEL_NAME, precision),
-      getModelPath(LANDMARKS_MODEL_NAME, precision),
-      getModelPath(EYE_STATE_MODEL_NAME, precision), device);
+        "C:\\Users\\Inba\\Documents\\GSoC\\VisionGuard\\build\\Desktop_Qt_6_7_1_MSVC2019_64bit-Debug\\intel64\\Debug\\..\\models\\gaze-estimation-adas-0002\\FP32\\gaze-estimation-adas-0002.xml",
+        "C:\\Users\\Inba\\Documents\\GSoC\\VisionGuard\\build\\Desktop_Qt_6_7_1_MSVC2019_64bit-Debug\\intel64\\Debug\\..\\models\\face-detection-retail-0004\\FP32\\face-detection-retail-0004.xml",
+        "C:\\Users\\Inba\\Documents\\GSoC\\VisionGuard\\build\\Desktop_Qt_6_7_1_MSVC2019_64bit-Debug\\intel64\\Debug\\..\\models\\head-pose-estimation-adas-0001\\FP32\\head-pose-estimation-adas-0001.xml",
+        "C:\\Users\\Inba\\Documents\\GSoC\\VisionGuard\\build\\Desktop_Qt_6_7_1_MSVC2019_64bit-Debug\\intel64\\Debug\\..\\models\\facial-landmarks-35-adas-0002\\FP32\\facial-landmarks-35-adas-0002.xml",
+        "C:\\Users\\Inba\\Documents\\GSoC\\VisionGuard\\build\\Desktop_Qt_6_7_1_MSVC2019_64bit-Debug\\intel64\\Debug\\..\\models\\open-closed-eye-0001\\FP32\\open-closed-eye-0001.xml",
+        device
+    );
   guard->defaultCalibration(this->imageSize);
   return guard;
 }
