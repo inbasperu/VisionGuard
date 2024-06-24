@@ -77,11 +77,11 @@ MainWindow::initializeVisionGuard(const std::string &precision,
   //     getModelPath(LANDMARKS_MODEL_NAME, precision),
   //     getModelPath(EYE_STATE_MODEL_NAME, precision), device);
   auto guard = std::make_unique<VisionGuard>(
-        "C:\\Users\\Inba\\Documents\\GSoC\\VisionGuard\\build\\Desktop_Qt_6_7_1_MSVC2019_64bit-Debug\\intel64\\Debug\\..\\models\\gaze-estimation-adas-0002\\FP32\\gaze-estimation-adas-0002.xml",
-        "C:\\Users\\Inba\\Documents\\GSoC\\VisionGuard\\build\\Desktop_Qt_6_7_1_MSVC2019_64bit-Debug\\intel64\\Debug\\..\\models\\face-detection-retail-0004\\FP32\\face-detection-retail-0004.xml",
-        "C:\\Users\\Inba\\Documents\\GSoC\\VisionGuard\\build\\Desktop_Qt_6_7_1_MSVC2019_64bit-Debug\\intel64\\Debug\\..\\models\\head-pose-estimation-adas-0001\\FP32\\head-pose-estimation-adas-0001.xml",
-        "C:\\Users\\Inba\\Documents\\GSoC\\VisionGuard\\build\\Desktop_Qt_6_7_1_MSVC2019_64bit-Debug\\intel64\\Debug\\..\\models\\facial-landmarks-35-adas-0002\\FP32\\facial-landmarks-35-adas-0002.xml",
-        "C:\\Users\\Inba\\Documents\\GSoC\\VisionGuard\\build\\Desktop_Qt_6_7_1_MSVC2019_64bit-Debug\\intel64\\Debug\\..\\models\\open-closed-eye-0001\\FP32\\open-closed-eye-0001.xml",
+        "C:\\Users\\Inba\\Documents\\GSoC\\open_model_zoo\\omz_models\\intel\\gaze-estimation-adas-0002\\FP32\\gaze-estimation-adas-0002.xml",
+        "C:\\Users\\Inba\\Documents\\GSoC\\open_model_zoo\\omz_models\\intel\\face-detection-retail-0004\\FP32\\face-detection-retail-0004.xml",
+        "C:\\Users\\Inba\\Documents\\GSoC\\open_model_zoo\\omz_models\\intel\\head-pose-estimation-adas-0001\\FP32\\head-pose-estimation-adas-0001.xml",
+        "C:\\Users\\Inba\\Documents\\GSoC\\open_model_zoo\\omz_models\\intel\\facial-landmarks-35-adas-0002\\FP32\\facial-landmarks-35-adas-0002.xml",
+        "C:\\Users\\Inba\\Documents\\GSoC\\open_model_zoo\\omz_models\\public\\open-closed-eye-0001\\FP32\\open-closed-eye-0001.xml",
         device
     );
   guard->defaultCalibration(this->imageSize);

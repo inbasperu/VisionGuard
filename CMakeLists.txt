@@ -63,7 +63,7 @@ set(CMAKE_PREFIX_PATH "C:\\Qt\\6.7.1\\msvc2019_64")
 set(OpenCV_DIR "C:\\Program Files\\opencv\\build")
 find_package(OpenCV REQUIRED COMPONENTS core highgui videoio imgproc imgcodecs)
 
-set(OpenVINO_DIR "C:\\Program Files (x86)\\Intel\\openvino_2024.2.0\\runtime\\cmake")
+set(OpenVINO_DIR "C:\\Program Files (x86)\\Intel\\OpenVINO\\runtime\\cmake")
 find_package(OpenVINO REQUIRED COMPONENTS Runtime)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Multimedia MultimediaWidgets Gui Charts)
@@ -90,10 +90,3 @@ set_target_properties(VisionGuardApp PROPERTIES
     WIN32_EXECUTABLE ON
     MACOSX_BUNDLE ON
 )
-
-if(WIN32)
-    add_custom_command(TARGET VisionGuardApp POST_BUILD
-        COMMAND "C:\\Qt\\6.7.1\\msvc2019_64\\bin\\windeployqt.exe" --debug $<TARGET_FILE:VisionGuardApp>
-        COMMENT "Deploying Qt dependencies for VisionGuardApp"
-    )
-endif()
