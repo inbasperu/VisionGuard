@@ -83,7 +83,7 @@ private:
 
   // Model base paths
   // const std::string BASE_PATH = "../models";
-  const std::string MODELS_DIR = "../models";
+  const std::string MODELS_DIR = "../omz_models";
   const std::string GAZE_MODEL_NAME = "gaze-estimation-adas-0002";
   const std::string FACE_MODEL_NAME = "face-detection-retail-0004";
   const std::string HEAD_POSE_MODEL_NAME = "head-pose-estimation-adas-0001";

@@ -70,20 +70,20 @@ std::string MainWindow::getExecutablePath() {
 std::unique_ptr<VisionGuard>
 MainWindow::initializeVisionGuard(const std::string &precision,
                                   const std::string &device) {
-  // auto guard = std::make_unique<VisionGuard>(
-  //     getModelPath(GAZE_MODEL_NAME, precision),
-  //     getModelPath(FACE_MODEL_NAME, precision),
-  //     getModelPath(HEAD_POSE_MODEL_NAME, precision),
-  //     getModelPath(LANDMARKS_MODEL_NAME, precision),
-  //     getModelPath(EYE_STATE_MODEL_NAME, precision), device);
   auto guard = std::make_unique<VisionGuard>(
-        "C:\\Users\\Inba\\Documents\\GSoC\\open_model_zoo\\omz_models\\intel\\gaze-estimation-adas-0002\\FP32\\gaze-estimation-adas-0002.xml",
-        "C:\\Users\\Inba\\Documents\\GSoC\\open_model_zoo\\omz_models\\intel\\face-detection-retail-0004\\FP32\\face-detection-retail-0004.xml",
-        "C:\\Users\\Inba\\Documents\\GSoC\\open_model_zoo\\omz_models\\intel\\head-pose-estimation-adas-0001\\FP32\\head-pose-estimation-adas-0001.xml",
-        "C:\\Users\\Inba\\Documents\\GSoC\\open_model_zoo\\omz_models\\intel\\facial-landmarks-35-adas-0002\\FP32\\facial-landmarks-35-adas-0002.xml",
-        "C:\\Users\\Inba\\Documents\\GSoC\\open_model_zoo\\omz_models\\public\\open-closed-eye-0001\\FP32\\open-closed-eye-0001.xml",
-        device
-    );
+      getModelPath(GAZE_MODEL_NAME, precision),
+      getModelPath(FACE_MODEL_NAME, precision),
+      getModelPath(HEAD_POSE_MODEL_NAME, precision),
+      getModelPath(LANDMARKS_MODEL_NAME, precision),
+      getModelPath(EYE_STATE_MODEL_NAME, precision), device);
+  // auto guard = std::make_unique<VisionGuard>(
+  //       "C:\\Users\\Inba\\Documents\\GSoC\\open_model_zoo\\omz_models\\intel\\gaze-estimation-adas-0002\\FP32\\gaze-estimation-adas-0002.xml",
+  //       "C:\\Users\\Inba\\Documents\\GSoC\\open_model_zoo\\omz_models\\intel\\face-detection-retail-0004\\FP32\\face-detection-retail-0004.xml",
+  //       "C:\\Users\\Inba\\Documents\\GSoC\\open_model_zoo\\omz_models\\intel\\head-pose-estimation-adas-0001\\FP32\\head-pose-estimation-adas-0001.xml",
+  //       "C:\\Users\\Inba\\Documents\\GSoC\\open_model_zoo\\omz_models\\intel\\facial-landmarks-35-adas-0002\\FP32\\facial-landmarks-35-adas-0002.xml",
+  //       "C:\\Users\\Inba\\Documents\\GSoC\\open_model_zoo\\omz_models\\public\\open-closed-eye-0001\\FP32\\open-closed-eye-0001.xml",
+  //       device
+  //   );
   guard->defaultCalibration(this->imageSize);
   return guard;
 }
