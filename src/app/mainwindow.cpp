@@ -37,6 +37,12 @@ MainWindow::MainWindow(QWidget *parent)
   connect(timer, &QTimer::timeout, this, &MainWindow::checkGazeTime);
   timer->start(30);
 
+  // Populate the device menu with available devices
+  populateDeviceMenu();
+
+  // Populate the camera menu with available camera devices
+  populateCameraMenu();
+
   // Connect sliders and spin boxes to their respective slots
   connect(ui->breakDurationSpinBox, SIGNAL(valueChanged(int)), this,
           SLOT(on_breakDurationSpinBox_valueChanged(int)));
@@ -170,6 +176,72 @@ void MainWindow::checkGazeTime() {
 
 void MainWindow::on_actionExit_triggered() { close(); }
 
+void MainWindow::populateCameraMenu() {
+  // Clear existing items
+  ui->menuCamera->clear();
+
+  // Enumerate available camera devices
+  std::vector<int> availableCameras;
+  for (int i = 0; i < 5; ++i) { // Check first 10 camera indices
+    try {
+      cv::VideoCapture cap(i);
+      if (cap.isOpened()) {
+        availableCameras.push_back(i);
+        cap.release();
+        slog::info << "Found camera at index " << i << slog::endl;
+      } else {
+        slog::warn << "Camera at index " << i << " failed to open."
+                   << slog::endl;
+      }
+    } catch (const cv::Exception &e) {
+      continue;
+    } catch (const std::exception &e) {
+      slog::err << "Standard exception while checking camera at index " << i
+                << ": " << e.what() << slog::endl;
+    } catch (...) {
+      slog::err << "Unknown exception while checking camera at index " << i
+                << slog::endl;
+    }
+  }
+
+  // Create actions for each camera device
+  for (int cameraIndex : availableCameras) {
+    QString cameraName = QString("Camera %1").arg(cameraIndex);
+    QAction *cameraAction = new QAction(cameraName, this);
+    connect(cameraAction, &QAction::triggered, this,
+            [this, cameraIndex]() { switchCamera(cameraIndex); });
+    ui->menuCamera->addAction(cameraAction);
+  }
+}
+
+void MainWindow::switchCamera(int cameraIndex) {
+  // TODO
+  // // Add your logic to switch to the selected camera
+  // // Example: reinitialize the VisionGuard with the new camera index
+  // visionGuard->setCameraIndex(cameraIndex);
+  // // Reinitialize VisionGuard with the new camera
+  // visionGuard.reset();
+  // visionGuard = initializeVisionGuard(currentPrecision, currentDevice);
+  // // Restart the capture or other necessary operations
+}
+
+void MainWindow::populateDeviceMenu() {
+  // Clear existing items
+  ui->menuDevices->clear();
+
+  // Get the available devices from VisionGuard
+  std::vector<std::string> availableDevices =
+      visionGuard->getAvailableDevices();
+
+  // Create actions for each device
+  for (const auto &device : availableDevices) {
+    QAction *deviceAction = new QAction(QString::fromStdString(device), this);
+    connect(deviceAction, &QAction::triggered, this,
+            [this, device]() { switchDevice(device); });
+    ui->menuDevices->addAction(deviceAction);
+  }
+}
+
 void MainWindow::switchDevice(const std::string &device) {
   if (visionGuard->isDeviceAvailable(device)) {
     currentDevice = device;
@@ -182,10 +254,6 @@ void MainWindow::switchDevice(const std::string &device) {
   }
 }
 
-void MainWindow::on_actionCPU_triggered() { switchDevice(CPU_DEVICE); }
-void MainWindow::on_actionGPU_triggered() { switchDevice(GPU_DEVICE); }
-void MainWindow::on_actionNPU_triggered() { switchDevice(NPU_DEVICE); }
-
 void MainWindow::loadModels(const std::string &precision) {
   currentPrecision = precision;
   visionGuard.reset();
@@ -195,6 +263,10 @@ void MainWindow::loadModels(const std::string &precision) {
 void MainWindow::on_actionINT8_triggered() { loadModels(INT8_PRECISION); }
 void MainWindow::on_actionFP16_triggered() { loadModels(FP16_PRECISION); }
 void MainWindow::on_actionFP32_triggered() { loadModels(FP32_PRECISION); }
+
+void MainWindow::on_resourceUtilizationButton_clicked() {
+  visionGuard->toggle(TOGGLE_RESOURCE_GRAPH);
+}
 
 void MainWindow::on_actionShow_Landmarks_triggered() {
   visionGuard->toggle(TOGGLE_LANDMARKS);

@@ -31,9 +31,6 @@ protected:
 private slots:
   void on_Calibrate_clicked();
   void on_actionExit_triggered();
-  void on_actionCPU_triggered();
-  void on_actionGPU_triggered();
-  void on_actionNPU_triggered();
   void on_actionINT8_triggered();
   void on_actionFP16_triggered();
   void on_actionFP32_triggered();
@@ -58,6 +55,8 @@ private slots:
 
   void on_weeklyStatButton_clicked();
 
+  void on_resourceUtilizationButton_clicked();
+
 private:
   void updateFrame();
   void switchDevice(const std::string &device);
@@ -70,6 +69,11 @@ private:
                         const std::string &device);
   void displayChart(const std::map<std::string, double> &stats,
                     const QString &title);
+
+  void populateDeviceMenu();
+
+  void switchCamera(int cameraIndex);
+  void populateCameraMenu();
 
   Ui::MainWindow *ui;
   std::unique_ptr<VisionGuard> visionGuard;
@@ -91,11 +95,6 @@ private:
   const std::string EYE_STATE_MODEL_NAME = "open-closed-eye-0001";
   const std::string MODEL_EXTENSION = ".xml";
 
-  // Device names
-  const std::string CPU_DEVICE = "CPU";
-  const std::string GPU_DEVICE = "GPU";
-  const std::string NPU_DEVICE = "NPU";
-
   // Precision levels
   const std::string FP32_PRECISION = "FP32";
   const std::string FP16_PRECISION = "FP16";
@@ -109,6 +108,7 @@ private:
   const char TOGGLE_EYE_STATE = 'E';
   const char TOGGLE_ALL = 'A';
   const char TOGGLE_NONE = 'N';
+  const char TOGGLE_RESOURCE_GRAPH = 'H';
 };
 
 #endif // MAINWINDOW_H

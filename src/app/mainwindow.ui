@@ -303,10 +303,24 @@
         <string>Stats</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_2">
-        <item row="2" column="0">
-         <widget class="QWidget" name="widget" native="true"/>
-        </item>
         <item row="3" column="0">
+         <widget class="QPushButton" name="resourceUtilizationButton">
+          <property name="text">
+           <string>Resource Utilization</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QPushButton" name="weeklyStatButton">
+          <property name="text">
+           <string>Weekly</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
          <spacer name="verticalSpacer">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
@@ -319,44 +333,10 @@
           </property>
          </spacer>
         </item>
-        <item row="4" column="0">
-         <widget class="QPushButton" name="performanceMetric">
-          <property name="text">
-           <string>Performance Metric</string>
-          </property>
-         </widget>
-        </item>
         <item row="0" column="0">
          <widget class="QPushButton" name="dailyStatButton">
           <property name="text">
            <string>Daily</string>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="0">
-         <widget class="QPushButton" name="resourceUtilizationButton">
-          <property name="text">
-           <string>Resource Utilization</string>
-          </property>
-          <property name="checkable">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="0">
-         <widget class="QPushButton" name="powerUtilizationButton">
-          <property name="text">
-           <string>Power Utilization</string>
-          </property>
-          <property name="checkable">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QPushButton" name="weeklyStatButton">
-          <property name="text">
-           <string>Weekly</string>
           </property>
          </widget>
         </item>
@@ -398,10 +378,6 @@
     <property name="title">
      <string>Devices</string>
     </property>
-    <addaction name="actionAuto"/>
-    <addaction name="actionCPU"/>
-    <addaction name="actionGPU"/>
-    <addaction name="actionNPU"/>
    </widget>
    <widget class="QMenu" name="menuModel">
     <property name="title">
@@ -465,26 +441,6 @@
   <action name="actionShow_None">
    <property name="text">
     <string>Show None</string>
-   </property>
-  </action>
-  <action name="actionAuto">
-   <property name="text">
-    <string>Auto</string>
-   </property>
-  </action>
-  <action name="actionCPU">
-   <property name="text">
-    <string>CPU</string>
-   </property>
-  </action>
-  <action name="actionGPU">
-   <property name="text">
-    <string>GPU</string>
-   </property>
-  </action>
-  <action name="actionNPU">
-   <property name="text">
-    <string>NPU</string>
    </property>
   </action>
   <action name="actionINT8">
