@@ -24,6 +24,7 @@
 
 #include <gflags/gflags.h>
 #include <monitors/presenter.h>
+#include <nlohmann/json.hpp>
 #include <utils/args_helper.hpp>
 #include <utils/images_capture.h>
 #include <utils/ocv_common.hpp>
@@ -90,12 +91,11 @@ private:
 
   void updateHourlyData(nlohmann::json &data, const std::string &key,
                         double value);
-  void saveJsonData(const nlohmann::json &data, const std::string &filePath);
   std::string getHourlyTimestamp() const;
 
-  void lockFile(std::fstream &file);
-  void unlockFile(std::fstream &file);
-
+  nlohmann::json readDataFile();
+  void saveJsonData(const nlohmann::json &data, const std::string &filePath);
+  void createEmptyDataFile();
   std::string dataFilePath = "screen_time_stats.json";
 
   ov::Core core;

@@ -214,34 +214,67 @@ void VisionGuard::setAccumulatedGazeTimeThreshold(
 void VisionGuard::setGazeLostThreshold(const double gazeLostThreshold) {
   this->gazeLostThreshold = gazeLostThreshold;
 }
+void VisionGuard::saveJsonData(const nlohmann::json &data,
+                               const std::string &filePath) {
+  try {
+    std::ofstream outFile(filePath);
+    if (outFile.is_open()) {
+      outFile << data.dump(4); // Write JSON object to file with indentation
+      outFile.close();
+      slog::debug << "Data file saved successfully: " << filePath << slog::endl;
+    } else {
+      slog::err << "Unable to open file for writing: " << filePath
+                << slog::endl;
+      throw std::runtime_error("File open error while saving data file");
+    }
+  } catch (const std::exception &e) {
+    slog::err << "Error saving data file: " << e.what() << slog::endl;
+    throw;
+  }
+}
 
-void VisionGuard::logGazeData() {
-  double gazeDuration = getAccumulatedGazeTime();
+void VisionGuard::createEmptyDataFile() {
+  nlohmann::json emptyData = nlohmann::json::object();
+  saveJsonData(emptyData, dataFilePath);
+  slog::debug << "Created new data file with empty JSON object: "
+              << dataFilePath << slog::endl;
+}
+
+nlohmann::json VisionGuard::readDataFile() {
   nlohmann::json data;
 
   try {
-    std::fstream file(dataFilePath,
-                      std::ios::in | std::ios::out | std::ios::binary);
-
-    if (file.is_open()) {
-      file.seekg(0, std::ios::end);
-      size_t size = file.tellg();
-      if (size > 0) {
-        file.seekg(0, std::ios::beg);
-        file >> data;
-      } else {
+    std::ifstream inFile(dataFilePath);
+    if (inFile.is_open()) {
+      if (inFile.peek() == std::ifstream::traits_type::eof()) {
+        // File is empty, create empty JSON object
+        inFile.close();
+        createEmptyDataFile();
         data = nlohmann::json::object();
+      } else {
+        inFile >> data;
+        inFile.close();
+        slog::debug << "Data file read successfully: " << dataFilePath
+                    << slog::endl;
       }
-      file.close();
     } else {
       slog::err << "Unable to open file for reading: " << dataFilePath
                 << slog::endl;
-      throw std::runtime_error("File open error");
+      // Create an empty file if it does not exist
+      createEmptyDataFile();
+      data = nlohmann::json::object();
     }
   } catch (const std::exception &e) {
     slog::err << "Error reading data file: " << e.what() << slog::endl;
     throw;
   }
+
+  return data;
+}
+
+void VisionGuard::logGazeData() {
+  double gazeDuration = getAccumulatedGazeTime();
+  nlohmann::json data = readDataFile();
 
   updateHourlyData(data, "gaze_time", gazeDuration);
 
@@ -258,31 +291,7 @@ void VisionGuard::logGazeData() {
 void VisionGuard::cleanOldData() {
   auto now = std::chrono::system_clock::now();
   auto oneWeekAgo = now - std::chrono::hours(24 * 7);
-  nlohmann::json data;
-
-  try {
-    std::fstream file(dataFilePath,
-                      std::ios::in | std::ios::out | std::ios::binary);
-
-    if (file.is_open()) {
-      file.seekg(0, std::ios::end);
-      size_t size = file.tellg();
-      if (size > 0) {
-        file.seekg(0, std::ios::beg);
-        file >> data;
-      } else {
-        data = nlohmann::json::object();
-      }
-      file.close();
-    } else {
-      slog::err << "Unable to open file for reading: " << dataFilePath
-                << slog::endl;
-      throw std::runtime_error("File open error");
-    }
-  } catch (const std::exception &e) {
-    slog::err << "Error reading data file: " << e.what() << slog::endl;
-    throw;
-  }
+  nlohmann::json data = readDataFile();
 
   for (auto it = data.begin(); it != data.end();) {
     std::istringstream ss(it.key());
@@ -315,25 +324,9 @@ void VisionGuard::cleanOldData() {
               << slog::endl;
 }
 
-
 std::map<std::string, double> VisionGuard::getDailyStats() {
-  nlohmann::json data;
+  nlohmann::json data = readDataFile();
   std::map<std::string, double> dailyStats;
-
-  try {
-    std::ifstream inFile(dataFilePath);
-    if (inFile.is_open()) {
-      inFile >> data;
-      inFile.close();
-    } else {
-      slog::err << "Unable to open file for reading: " << dataFilePath
-                << slog::endl;
-      throw std::runtime_error("File open error");
-    }
-  } catch (const std::exception &e) {
-    slog::err << "Error reading data file: " << e.what() << slog::endl;
-    throw;
-  }
 
   auto now = std::chrono::system_clock::now();
   auto time = std::chrono::system_clock::to_time_t(now);
@@ -344,7 +337,7 @@ std::map<std::string, double> VisionGuard::getDailyStats() {
 
   // Initialize 24 bins for each hour
   for (int i = 0; i < 24; ++i) {
-    char hourBin[6];
+    char hourBin[3];
     std::snprintf(hourBin, sizeof(hourBin), "%02d", i);
     dailyStats[hourBin] = 0;
   }
@@ -360,23 +353,8 @@ std::map<std::string, double> VisionGuard::getDailyStats() {
 }
 
 std::map<std::string, double> VisionGuard::getWeeklyStats() {
-  nlohmann::json data;
+  nlohmann::json data = readDataFile();
   std::map<std::string, double> weeklyStats;
-
-  try {
-    std::ifstream inFile(dataFilePath);
-    if (inFile.is_open()) {
-      inFile >> data;
-      inFile.close();
-    } else {
-      slog::err << "Unable to open file for reading: " << dataFilePath
-                << slog::endl;
-      throw std::runtime_error("File open error");
-    }
-  } catch (const std::exception &e) {
-    slog::err << "Error reading data file: " << e.what() << slog::endl;
-    throw;
-  }
 
   auto now = std::chrono::system_clock::now();
   auto oneWeekAgo = now - std::chrono::hours(24 * 7);
@@ -418,16 +396,4 @@ void VisionGuard::updateHourlyData(nlohmann::json &data, const std::string &key,
   } else {
     data[hour][key] = value;
   }
-}
-
-void VisionGuard::saveJsonData(const nlohmann::json &data,
-                               const std::string &filePath) {
-  std::ofstream outFile(filePath, std::ios::trunc);
-  if (!outFile.is_open()) {
-    slog::err << "Unable to open file for writing: " << filePath << slog::endl;
-    throw std::runtime_error("File open error");
-  }
-
-  outFile << data.dump(4);
-  outFile.close();
 }
