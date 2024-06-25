@@ -106,6 +106,10 @@ private:
   gaze_estimation::GazeEstimator gazeEstimator;
   gaze_estimation::ResultsMarker resultsMarker;
   std::vector<gaze_estimation::BaseEstimator *> estimators;
+  PerformanceMetrics metrics;
+  std::chrono::steady_clock::time_point start_time;
+  Presenter presenter;
+
 };
 
 #endif // VISIONGUARD_H

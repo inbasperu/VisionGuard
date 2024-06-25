@@ -16,14 +16,16 @@ VisionGuard::VisionGuard(const std::string &gaze_model,
                          const std::string &landmarks_model,
                          const std::string &eye_state_model,
                          const std::string &device)
-    : lastCheckTime(std::chrono::steady_clock::now()),
+    : start_time(std::chrono::steady_clock::now()),
+      lastCheckTime(std::chrono::steady_clock::now()),
       gazeLostTime(std::chrono::steady_clock::now()),
       faceDetector(core, face_model, device, 0.5, false),
       headPoseEstimator(core, head_pose_model, device),
       landmarksEstimator(core, landmarks_model, device),
       eyeStateEstimator(core, eye_state_model, device),
       gazeEstimator(core, gaze_model, device),
-      resultsMarker(false, false, false, true, true) {
+      resultsMarker(false, false, false, true, true),
+      presenter("", 650, cv::Size(320, 60)) {
   // Load OpenVINO runtime
   slog::info << ov::get_openvino_version() << slog::endl;
   estimators = {&headPoseEstimator, &landmarksEstimator, &eyeStateEstimator,
@@ -34,11 +36,17 @@ VisionGuard::VisionGuard(const std::string &gaze_model,
 
 VisionGuard::~VisionGuard() {
   slog::debug << "Destroying VisionGuard Object" << slog::endl;
+  slog::info << "Metrics report:" << slog::endl;
+  metrics.logTotal();
+  slog::info << presenter.reportMeans() << slog::endl;
   // Log gaze data and clean old data before destroying the object
   logGazeData();
   cleanOldData();
 }
-void VisionGuard::toggle(int key) { resultsMarker.toggle(key); }
+void VisionGuard::toggle(int key) {
+  resultsMarker.toggle(key);
+  presenter.handleKey(key);
+}
 std::vector<std::string> VisionGuard::getAvailableDevices() {
   return core.get_available_devices();
 }
@@ -158,6 +166,7 @@ void VisionGuard::updateGazeTime(const cv::Point3f &gazeVector,
 }
 
 void VisionGuard::processFrame(cv::Mat &frame) {
+  start_time = std::chrono::steady_clock::now();
   auto inferenceResults = faceDetector.detect(frame);
   for (auto &inferenceResult : inferenceResults) {
     for (auto estimator : estimators) {
@@ -184,6 +193,9 @@ void VisionGuard::processFrame(cv::Mat &frame) {
       cv::format("Gaze Lost Duration: %.2f seconds", gazeLostDuration.count()),
       cv::Point(10, frame.rows - 30), cv::FONT_HERSHEY_PLAIN, 1.0,
       cv::Scalar(0, 0, 255), 1);
+
+  presenter.drawGraphs(frame);
+  metrics.update(start_time, frame, {10, 22}, cv::FONT_HERSHEY_COMPLEX, 0.65);
 }
 
 double VisionGuard::getAccumulatedGazeTime() const {
