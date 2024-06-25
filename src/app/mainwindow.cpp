@@ -11,7 +11,14 @@
 #include <QtCharts/QValueAxis>
 #include <algorithm>
 #include <filesystem>
+#if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
+#elif defined(__APPLE__)
+#include <mach-o/dyld.h>
+#else
+#include <limits.h>
+#include <unistd.h>
+#endif
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), currentDevice("CPU"),
@@ -47,24 +54,48 @@ MainWindow::~MainWindow() {
   visionGuard.reset();
 }
 
-std::string MainWindow::getModelPath(const std::string &modelName, const std::string &precision) {
-    std::string modelPath = getExecutablePath() + "/" + MODELS_DIR + "/" + modelName + "/" + precision + "/" + modelName + MODEL_EXTENSION;
+std::string MainWindow::getModelPath(const std::string &modelName,
+                                     const std::string &precision) {
+  std::string modelPath = getExecutablePath() + "/" + MODELS_DIR + "/" +
+                          modelName + "/" + precision + "/" + modelName +
+                          MODEL_EXTENSION;
 
-    // Check if the model file exists
-    if (!std::filesystem::exists(modelPath)) {
-        slog::err << "Model file not found: " << modelPath << slog::endl;
-        throw std::runtime_error("Model file not found: " + modelPath);
-    }
-    
-    slog::debug << "Found " << modelName << " at " << modelPath << " with " << precision << " precision" << slog::endl;
-    return modelPath;
+  // Check if the model file exists
+  if (!std::filesystem::exists(modelPath)) {
+    slog::err << "Model file not found: " << modelPath << slog::endl;
+    throw std::runtime_error("Model file not found: " + modelPath);
+  }
+
+  slog::debug << "Found " << modelName << " at " << modelPath << " with "
+              << precision << " precision" << slog::endl;
+  return modelPath;
 }
 
 std::string MainWindow::getExecutablePath() {
-    char buffer[MAX_PATH];
-    GetModuleFileNameA(nullptr, buffer, MAX_PATH);
-    std::string::size_type pos = std::string(buffer).find_last_of("\\/");
-    return std::string(buffer).substr(0, pos);
+  char buffer[PATH_MAX];
+
+#if defined(_WIN32) || defined(_WIN64)
+  GetModuleFileNameA(nullptr, buffer, PATH_MAX);
+  std::string::size_type pos = std::string(buffer).find_last_of("\\/");
+  return std::string(buffer).substr(0, pos);
+#elif defined(__APPLE__)
+  uint32_t size = PATH_MAX;
+  if (_NSGetExecutablePath(buffer, &size) != 0) {
+    throw std::runtime_error("Failed to get executable path");
+  }
+  std::string path(buffer);
+  std::string::size_type pos = path.find_last_of('/');
+  return path.substr(0, pos);
+#else
+  ssize_t count = readlink("/proc/self/exe", buffer, PATH_MAX);
+  if (count == -1) {
+    throw std::runtime_error("Failed to get executable path");
+  }
+  buffer[count] = '\0';
+  std::string path(buffer);
+  std::string::size_type pos = path.find_last_of('/');
+  return path.substr(0, pos);
+#endif
 }
 
 std::unique_ptr<VisionGuard>
