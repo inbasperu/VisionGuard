@@ -7,7 +7,6 @@ VisionGuard is a desktop application designed to help prevent eye strain from ex
 ### Back Development
 
 - [x] Implement Gaze Detection Model
-- [x] Calibrate the Gaze Vector Range
 - [x] Estimate Eye Gaze Time
 - [x] Alert User for Breaks through Notifications (20-20-20)
 - [x] Integrate the GUI
@@ -20,6 +19,7 @@ VisionGuard is a desktop application designed to help prevent eye strain from ex
   - [x] Latency
   - [x] FPS
   - [x] Resource Utilization Graphs
+- [ ] Calibrate the Gaze Vector Range
 - [ ] Perform Optimizations
 - [ ] Handle Multi-Monitor Setup
 - [ ] Handle Multi-Users
@@ -27,7 +27,6 @@ VisionGuard is a desktop application designed to help prevent eye strain from ex
 ### GUI Development
 
 - [x] Real-time User Gaze Vector Display
-- [x] Gaze Calibration Window
 - [x] Ongoing Screen Time Widget
 - [x] Notification Alert Message Box
 - [x] Customizable Settings (Interval and Duration)
@@ -42,9 +41,11 @@ VisionGuard is a desktop application designed to help prevent eye strain from ex
 - [ ] Display model (INT8, FP16, FP32)
 - [ ] Add AUTO to the list of devices and test the application with AUTO.
 - [ ] Run inference at user-specified FPS
+- [ ] Gaze Calibration Window
 - [ ] Windows system tray application
 - [ ] Adaptive UI
 - [ ] Dark and Light Theme Support
+- [ ] VisionGuard Logo
 - [ ] Handle Multi-Monitor Setup
 - [ ] Handle Multi-Users
 
