@@ -38,6 +38,11 @@ VisionGuard is a desktop application designed to help prevent eye strain from ex
   - [x] Latency
   - [x] FPS
   - [x] Resource Utilization Graphs
+- [ ] Display device (CPU, NPU, GPU)
+- [ ] Display model (INT8, FP16, FP32)
+- [ ] Add AUTO to the list of devices and test the application with AUTO.
+- [ ] Run inference at user-specified FPS
+- [ ] Windows system tray application
 - [ ] Adaptive UI
 - [ ] Dark and Light Theme Support
 - [ ] Handle Multi-Monitor Setup
@@ -60,9 +65,46 @@ VisionGuard is a desktop application designed to help prevent eye strain from ex
 
 ### User Testing
 
-- [ ] Initial User Testing and Feedback Collection
+- [x] Initial User Testing and Feedback Collection
 - [ ] Iterative Improvements Based on User Feedback
 - [ ] Final User Testing and Validation
+
+### Bugs
+
+- [ ] Investigate why NPU is always active regardless of the selected device.
+- [ ] Resolve discrepancies in CPU resource utilization between the application and Task Manager.
+- [ ] Fix the GUI issue to ensure numbers are visible and indicate units (minutes and seconds).
+- [ ] Provide feedback when "calibrate" is clicked.
+
+### Research
+
+- [ ] Propose an approach to test the accuracy of the solution.
+- [ ] Research how accuracy depends on FPS and estimate the optimal FPS value for minimal power consumption.
+- [ ] Review the provided procedure to measure power consumption.
+
+### Deployment Deliverables
+
+- [ ] Create an executable and deploy on Windows.
+- [ ] Create an executable and deploy on Linux (Ubuntu, Fedora, Arch).
+- [ ] Create an executable and deploy on MacOS.
+- [ ] Set up GitHub workflows for CI/CD.
+
+### Suggested GitHub Workflows
+
+1. **Continuous Integration (CI) Workflow:**
+   - **Build:** Ensure the application builds correctly on different operating systems (Windows, Linux, MacOS).
+   - **Test:** Run unit tests and integration tests to validate the application.
+   - **Lint:** Check the code for styling and potential errors using tools like `clang-tidy` for C++ and `flake8` for Python scripts (if any).
+
+2. **Continuous Deployment (CD) Workflow:**
+   - **Release:** Automatically create releases and deploy executables to GitHub Releases when new tags are pushed.
+   - **Packaging:** Package the application for different platforms and ensure the executables are uploaded to the release.
+
+3. **Code Quality Workflow:**
+   - **Static Analysis:** Run static analysis tools to check for code quality and potential bugs.
+
+4. **Documentation Workflow:**
+   - **Generate Documentation:** Automatically generate and deploy documentation.
 
 ## Project Status
 
