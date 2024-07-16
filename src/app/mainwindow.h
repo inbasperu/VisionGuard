@@ -29,64 +29,60 @@ protected:
   void keyPressEvent(QKeyEvent *event) override;
 
 private slots:
+  void checkGazeTime();
   void on_Calibrate_clicked();
   void on_actionExit_triggered();
-  void on_actionINT8_triggered();
   void on_actionFP16_triggered();
   void on_actionFP32_triggered();
-  void on_actionShow_Landmarks_triggered();
-  void on_actionShow_Head_Pose_Axes_triggered();
-  void on_actionShow_Gaze_triggered();
-  void on_actionShow_Face_Bounding_Box_triggered();
-  void on_actionShow_Eye_State_triggered();
+  void on_actionINT8_triggered();
   void on_actionShow_All_triggered();
+  void on_actionShow_Eye_State_triggered();
+  void on_actionShow_Face_Bounding_Box_triggered();
+  void on_actionShow_Gaze_triggered();
+  void on_actionShow_Head_Pose_Axes_triggered();
+  void on_actionShow_Landmarks_triggered();
   void on_actionShow_None_triggered();
-  void checkGazeTime();
-
-  void on_breakDurationSpinBox_valueChanged(int arg1);
-
   void on_breakDurationHorizontalSlider_valueChanged(int value);
-
-  void on_breakIntervalSpinBox_valueChanged(int arg1);
-
+  void on_breakDurationSpinBox_valueChanged(int arg1);
   void on_breakIntervalHorizontalSlider_valueChanged(int value);
-
+  void on_breakIntervalSpinBox_valueChanged(int arg1);
   void on_dailyStatButton_clicked();
-
+  void on_resourceUtilizationButton_clicked();
   void on_weeklyStatButton_clicked();
 
-  void on_resourceUtilizationButton_clicked();
-
 private:
-  void updateFrame();
-  void switchDevice(const std::string &device);
-  void loadModels(const std::string &precision);
+  void displayChart(const std::map<std::string, double> &stats,
+                    const QString &title);
+  std::string getExecutablePath();
   std::string getModelPath(const std::string &modelName,
                            const std::string &precision);
-  std::string getExecutablePath();
   std::unique_ptr<VisionGuard>
   initializeVisionGuard(const std::string &precision,
                         const std::string &device);
-  void displayChart(const std::map<std::string, double> &stats,
-                    const QString &title);
-
-  void populateDeviceMenu();
-
-  void switchCamera(int cameraIndex);
+  void loadModels(const std::string &precision);
   void populateCameraMenu();
+  void populateDeviceMenu();
+  void switchCamera(int cameraIndex);
+  void switchDevice(const std::string &device);
+  void updateFrame();
 
   Ui::MainWindow *ui;
-  std::unique_ptr<VisionGuard> visionGuard;
   QTimer *timer;
+  std::unique_ptr<VisionGuard> visionGuard;
   std::unique_ptr<ImagesCapture> cap;
+
+  // Device and Precision
   std::string currentDevice;
   std::string currentPrecision;
+
+  // Performance Metrics
   PerformanceMetrics metrics;
+
+  // Frame Settings
   int delay = 1;
   cv::Size imageSize = cv::Size(1920, 1080);
 
   // Model base paths
-  // const std::string BASE_PATH = "../models";
   const std::string MODELS_DIR = "../omz_models";
   const std::string GAZE_MODEL_NAME = "gaze-estimation-adas-0002";
   const std::string FACE_MODEL_NAME = "face-detection-retail-0004";
@@ -101,12 +97,12 @@ private:
   const std::string INT8_PRECISION = "FP16-INT8";
 
   // Toggle keys
-  const char TOGGLE_LANDMARKS = 'L';
-  const char TOGGLE_HEAD_POSE_AXES = 'O';
-  const char TOGGLE_GAZE = 'G';
-  const char TOGGLE_FACE_BOUNDING_BOX = 'B';
-  const char TOGGLE_EYE_STATE = 'E';
   const char TOGGLE_ALL = 'A';
+  const char TOGGLE_EYE_STATE = 'E';
+  const char TOGGLE_FACE_BOUNDING_BOX = 'B';
+  const char TOGGLE_GAZE = 'G';
+  const char TOGGLE_HEAD_POSE_AXES = 'O';
+  const char TOGGLE_LANDMARKS = 'L';
   const char TOGGLE_NONE = 'N';
   const char TOGGLE_RESOURCE_GRAPH = 'H';
 };

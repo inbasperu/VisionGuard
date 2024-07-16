@@ -11,6 +11,7 @@
 #include <QtCharts/QValueAxis>
 #include <algorithm>
 #include <filesystem>
+
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
 #elif defined(__APPLE__)
@@ -20,6 +21,10 @@
 #include <unistd.h>
 #endif
 
+/**
+ * @brief MainWindow constructor.
+ * @param parent The parent widget.
+ */
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), currentDevice("CPU"),
       currentPrecision("FP32") {
@@ -37,13 +42,9 @@ MainWindow::MainWindow(QWidget *parent)
   connect(timer, &QTimer::timeout, this, &MainWindow::checkGazeTime);
   timer->start(30);
 
-  // Populate the device menu with available devices
   populateDeviceMenu();
-
-  // Populate the camera menu with available camera devices
   populateCameraMenu();
 
-  // Connect sliders and spin boxes to their respective slots
   connect(ui->breakDurationSpinBox, SIGNAL(valueChanged(int)), this,
           SLOT(on_breakDurationSpinBox_valueChanged(int)));
   connect(ui->breakDurationHorizontalSlider, SIGNAL(valueChanged(int)), this,
@@ -54,113 +55,18 @@ MainWindow::MainWindow(QWidget *parent)
           SLOT(on_breakIntervalHorizontalSlider_valueChanged(int)));
 }
 
+/**
+ * @brief MainWindow destructor.
+ */
 MainWindow::~MainWindow() {
   delete ui;
   delete timer;
   visionGuard.reset();
 }
 
-std::string MainWindow::getModelPath(const std::string &modelName,
-                                     const std::string &precision) {
-  std::string modelPath = getExecutablePath() + "/" + MODELS_DIR + "/" +
-                          modelName + "/" + precision + "/" + modelName +
-                          MODEL_EXTENSION;
-
-  // Check if the model file exists
-  if (!std::filesystem::exists(modelPath)) {
-    slog::err << "Model file not found: " << modelPath << slog::endl;
-    throw std::runtime_error("Model file not found: " + modelPath);
-  }
-
-  slog::debug << "Found " << modelName << " at " << modelPath << " with "
-              << precision << " precision" << slog::endl;
-  return modelPath;
-}
-
-std::string MainWindow::getExecutablePath() {
-  char buffer[PATH_MAX];
-
-#if defined(_WIN32) || defined(_WIN64)
-  GetModuleFileNameA(nullptr, buffer, PATH_MAX);
-  std::string::size_type pos = std::string(buffer).find_last_of("\\/");
-  return std::string(buffer).substr(0, pos);
-#elif defined(__APPLE__)
-  uint32_t size = PATH_MAX;
-  if (_NSGetExecutablePath(buffer, &size) != 0) {
-    throw std::runtime_error("Failed to get executable path");
-  }
-  std::string path(buffer);
-  std::string::size_type pos = path.find_last_of('/');
-  return path.substr(0, pos);
-#else
-  ssize_t count = readlink("/proc/self/exe", buffer, PATH_MAX);
-  if (count == -1) {
-    throw std::runtime_error("Failed to get executable path");
-  }
-  buffer[count] = '\0';
-  std::string path(buffer);
-  std::string::size_type pos = path.find_last_of('/');
-  return path.substr(0, pos);
-#endif
-}
-
-std::unique_ptr<VisionGuard>
-MainWindow::initializeVisionGuard(const std::string &precision,
-                                  const std::string &device) {
-  auto guard = std::make_unique<VisionGuard>(
-      getModelPath(GAZE_MODEL_NAME, precision),
-      getModelPath(FACE_MODEL_NAME, precision),
-      getModelPath(HEAD_POSE_MODEL_NAME, precision),
-      getModelPath(LANDMARKS_MODEL_NAME, precision),
-      getModelPath(EYE_STATE_MODEL_NAME, precision), device);
-  // auto guard = std::make_unique<VisionGuard>(
-  //       "C:\\Users\\Inba\\Documents\\GSoC\\open_model_zoo\\omz_models\\intel\\gaze-estimation-adas-0002\\FP32\\gaze-estimation-adas-0002.xml",
-  //       "C:\\Users\\Inba\\Documents\\GSoC\\open_model_zoo\\omz_models\\intel\\face-detection-retail-0004\\FP32\\face-detection-retail-0004.xml",
-  //       "C:\\Users\\Inba\\Documents\\GSoC\\open_model_zoo\\omz_models\\intel\\head-pose-estimation-adas-0001\\FP32\\head-pose-estimation-adas-0001.xml",
-  //       "C:\\Users\\Inba\\Documents\\GSoC\\open_model_zoo\\omz_models\\intel\\facial-landmarks-35-adas-0002\\FP32\\facial-landmarks-35-adas-0002.xml",
-  //       "C:\\Users\\Inba\\Documents\\GSoC\\open_model_zoo\\omz_models\\public\\open-closed-eye-0001\\FP32\\open-closed-eye-0001.xml",
-  //       device
-  //   );
-  guard->defaultCalibration(this->imageSize);
-  return guard;
-}
-
-void MainWindow::on_Calibrate_clicked() {
-  visionGuard->defaultCalibration(this->imageSize);
-}
-
-void MainWindow::updateFrame() {
-  cv::Mat frame = cap->read();
-
-  if (frame.empty())
-    return;
-
-  visionGuard->processFrame(frame);
-
-  cv::cvtColor(frame, frame, cv::COLOR_BGR2RGB);
-  QImage img((const unsigned char *)(frame.data), frame.cols, frame.rows,
-             QImage::Format_RGB888);
-  ui->lastImagePreviewLabel->setPixmap(QPixmap::fromImage(img));
-
-  QTime gazeTime(0, 0);
-  gazeTime =
-      gazeTime.addSecs(static_cast<int>(visionGuard->getAccumulatedGazeTime()));
-  ui->GazeTime->setText(gazeTime.toString("mm:ss"));
-
-  QTime gazeLostTime(0, 0);
-  gazeLostTime = gazeLostTime.addSecs(
-      static_cast<int>(visionGuard->getGazeLostDuration()));
-  ui->GazeLostTime->setText(gazeLostTime.toString("mm:ss"));
-}
-
-void MainWindow::keyPressEvent(QKeyEvent *event) {
-  if (event->key() == Qt::Key_Escape) {
-    close();
-  } else {
-    visionGuard->toggle(event->key());
-  }
-}
-
+/**
+ * @brief Checks if the gaze time exceeds the threshold and alerts the user.
+ */
 void MainWindow::checkGazeTime() {
   if (visionGuard->checkGazeTimeExceeded()) {
     int reply = QMessageBox::question(
@@ -174,154 +80,11 @@ void MainWindow::checkGazeTime() {
   }
 }
 
-void MainWindow::on_actionExit_triggered() { close(); }
-
-void MainWindow::populateCameraMenu() {
-  // Clear existing items
-  ui->menuCamera->clear();
-
-  // Enumerate available camera devices
-  std::vector<int> availableCameras;
-  for (int i = 0; i < 5; ++i) { // Check first 10 camera indices
-    try {
-      cv::VideoCapture cap(i);
-      if (cap.isOpened()) {
-        availableCameras.push_back(i);
-        cap.release();
-        slog::info << "Found camera at index " << i << slog::endl;
-      } else {
-        slog::warn << "Camera at index " << i << " failed to open."
-                   << slog::endl;
-      }
-    } catch (const cv::Exception &e) {
-      continue;
-    } catch (const std::exception &e) {
-      slog::err << "Standard exception while checking camera at index " << i
-                << ": " << e.what() << slog::endl;
-    } catch (...) {
-      slog::err << "Unknown exception while checking camera at index " << i
-                << slog::endl;
-    }
-  }
-
-  // Create actions for each camera device
-  for (int cameraIndex : availableCameras) {
-    QString cameraName = QString("Camera %1").arg(cameraIndex);
-    QAction *cameraAction = new QAction(cameraName, this);
-    connect(cameraAction, &QAction::triggered, this,
-            [this, cameraIndex]() { switchCamera(cameraIndex); });
-    ui->menuCamera->addAction(cameraAction);
-  }
-}
-
-void MainWindow::switchCamera(int cameraIndex) {
-  // TODO
-  // // Add your logic to switch to the selected camera
-  // // Example: reinitialize the VisionGuard with the new camera index
-  // visionGuard->setCameraIndex(cameraIndex);
-  // // Reinitialize VisionGuard with the new camera
-  // visionGuard.reset();
-  // visionGuard = initializeVisionGuard(currentPrecision, currentDevice);
-  // // Restart the capture or other necessary operations
-}
-
-void MainWindow::populateDeviceMenu() {
-  // Clear existing items
-  ui->menuDevices->clear();
-
-  // Get the available devices from VisionGuard
-  std::vector<std::string> availableDevices =
-      visionGuard->getAvailableDevices();
-
-  // Create actions for each device
-  for (const auto &device : availableDevices) {
-    QAction *deviceAction = new QAction(QString::fromStdString(device), this);
-    connect(deviceAction, &QAction::triggered, this,
-            [this, device]() { switchDevice(device); });
-    ui->menuDevices->addAction(deviceAction);
-  }
-}
-
-void MainWindow::switchDevice(const std::string &device) {
-  if (visionGuard->isDeviceAvailable(device)) {
-    currentDevice = device;
-    visionGuard.reset();
-    visionGuard = initializeVisionGuard(currentPrecision, currentDevice);
-  } else {
-    QMessageBox::warning(
-        this, "Warning",
-        QString::fromStdString(device + " device is not available."));
-  }
-}
-
-void MainWindow::loadModels(const std::string &precision) {
-  currentPrecision = precision;
-  visionGuard.reset();
-  visionGuard = initializeVisionGuard(currentPrecision, currentDevice);
-}
-
-void MainWindow::on_actionINT8_triggered() { loadModels(INT8_PRECISION); }
-void MainWindow::on_actionFP16_triggered() { loadModels(FP16_PRECISION); }
-void MainWindow::on_actionFP32_triggered() { loadModels(FP32_PRECISION); }
-
-void MainWindow::on_resourceUtilizationButton_clicked() {
-  visionGuard->toggle(TOGGLE_RESOURCE_GRAPH);
-}
-
-void MainWindow::on_actionShow_Landmarks_triggered() {
-  visionGuard->toggle(TOGGLE_LANDMARKS);
-}
-void MainWindow::on_actionShow_Head_Pose_Axes_triggered() {
-  visionGuard->toggle(TOGGLE_HEAD_POSE_AXES);
-}
-void MainWindow::on_actionShow_Gaze_triggered() {
-  visionGuard->toggle(TOGGLE_GAZE);
-}
-void MainWindow::on_actionShow_Face_Bounding_Box_triggered() {
-  visionGuard->toggle(TOGGLE_FACE_BOUNDING_BOX);
-}
-void MainWindow::on_actionShow_Eye_State_triggered() {
-  visionGuard->toggle(TOGGLE_EYE_STATE);
-}
-void MainWindow::on_actionShow_All_triggered() {
-  visionGuard->toggle(TOGGLE_ALL);
-}
-void MainWindow::on_actionShow_None_triggered() {
-  visionGuard->toggle(TOGGLE_NONE);
-}
-
-void MainWindow::on_breakDurationSpinBox_valueChanged(int arg1) {
-  visionGuard->setAccumulatedGazeTimeThreshold(static_cast<double>(arg1));
-  ui->breakDurationHorizontalSlider->setValue(
-      arg1); // Synchronize slider with spin box
-}
-
-void MainWindow::on_breakDurationHorizontalSlider_valueChanged(int value) {
-  visionGuard->setAccumulatedGazeTimeThreshold(static_cast<double>(value));
-  ui->breakDurationSpinBox->setValue(value); // Synchronize spin box with slider
-}
-
-void MainWindow::on_breakIntervalSpinBox_valueChanged(int arg1) {
-  visionGuard->setGazeLostThreshold(static_cast<double>(arg1));
-  ui->breakIntervalHorizontalSlider->setValue(
-      arg1); // Synchronize slider with spin box
-}
-
-void MainWindow::on_breakIntervalHorizontalSlider_valueChanged(int value) {
-  visionGuard->setGazeLostThreshold(static_cast<double>(value));
-  ui->breakIntervalSpinBox->setValue(value); // Synchronize spin box with slider
-}
-
-void MainWindow::on_dailyStatButton_clicked() {
-  auto dailyStats = visionGuard->getDailyStats();
-  displayChart(dailyStats, "Daily Gaze Time Stats");
-}
-
-void MainWindow::on_weeklyStatButton_clicked() {
-  auto weeklyStats = visionGuard->getWeeklyStats();
-  displayChart(weeklyStats, "Weekly Gaze Time Stats");
-}
-
+/**
+ * @brief Displays a chart with gaze time statistics.
+ * @param stats The statistics data.
+ * @param title The title of the chart.
+ */
 void MainWindow::displayChart(const std::map<std::string, double> &stats,
                               const QString &title) {
   QBarSet *set = new QBarSet("Gaze Time");
@@ -368,7 +131,6 @@ void MainWindow::displayChart(const std::map<std::string, double> &stats,
   chart->addAxis(axisY, Qt::AlignLeft);
   series->attachAxis(axisY);
 
-  // Add average line
   QLineSeries *averageLine = new QLineSeries();
   averageLine->append(0, averageGazeTime);
   averageLine->append(categories.size() - 1, averageGazeTime);
@@ -383,14 +145,12 @@ void MainWindow::displayChart(const std::map<std::string, double> &stats,
   QChartView *chartView = new QChartView(chart);
   chartView->setRenderHint(QPainter::Antialiasing);
 
-  // Enable legend and set font for clarity
   chart->legend()->setVisible(true);
   chart->legend()->setFont(QFont("Arial", 10));
 
-  // Create a message box to display the chart
   QDialog dialog(this);
   dialog.setWindowTitle(title);
-  dialog.resize(800, 600); // Set a standard readable size for the dialog
+  dialog.resize(800, 600);
 
   QVBoxLayout *layout = new QVBoxLayout(&dialog);
   QLabel *label = new QLabel("Gaze Time Statistics", &dialog);
@@ -402,4 +162,279 @@ void MainWindow::displayChart(const std::map<std::string, double> &stats,
   layout->addWidget(okButton);
 
   dialog.exec();
+}
+
+/**
+ * @brief Fetches the executable path.
+ * @return The path to the executable.
+ */
+std::string MainWindow::getExecutablePath() {
+  char buffer[PATH_MAX];
+
+#if defined(_WIN32) || defined(_WIN64)
+  GetModuleFileNameA(nullptr, buffer, PATH_MAX);
+  std::string::size_type pos = std::string(buffer).find_last_of("\\/");
+  return std::string(buffer).substr(0, pos);
+#elif defined(__APPLE__)
+  uint32_t size = PATH_MAX;
+  if (_NSGetExecutablePath(buffer, &size) != 0) {
+    throw std::runtime_error("Failed to get executable path");
+  }
+  std::string path(buffer);
+  std::string::size_type pos = path.find_last_of('/');
+  return path.substr(0, pos);
+#else
+  ssize_t count = readlink("/proc/self/exe", buffer, PATH_MAX);
+  if (count == -1) {
+    throw std::runtime_error("Failed to get executable path");
+  }
+  buffer[count] = '\0';
+  std::string path(buffer);
+  std::string::size_type pos = path.find_last_of('/');
+  return path.substr(0, pos);
+#endif
+}
+
+/**
+ * @brief Retrieves the model path.
+ * @param modelName The name of the model.
+ * @param precision The precision level of the model.
+ * @return The full path to the model.
+ */
+std::string MainWindow::getModelPath(const std::string &modelName,
+                                     const std::string &precision) {
+  std::string modelPath = getExecutablePath() + "/" + MODELS_DIR + "/" +
+                          modelName + "/" + precision + "/" + modelName +
+                          MODEL_EXTENSION;
+
+  if (!std::filesystem::exists(modelPath)) {
+    slog::err << "Model file not found: " << modelPath << slog::endl;
+    throw std::runtime_error("Model file not found: " + modelPath);
+  }
+
+  slog::debug << "Found " << modelName << " at " << modelPath << " with "
+              << precision << " precision" << slog::endl;
+  return modelPath;
+}
+
+/**
+ * @brief Initializes the VisionGuard object.
+ * @param precision The precision level for the models.
+ * @param device The device to run the models on.
+ * @return A unique pointer to the VisionGuard object.
+ */
+std::unique_ptr<VisionGuard>
+MainWindow::initializeVisionGuard(const std::string &precision,
+                                  const std::string &device) {
+  auto guard = std::make_unique<VisionGuard>(
+      getModelPath(GAZE_MODEL_NAME, precision),
+      getModelPath(FACE_MODEL_NAME, precision),
+      getModelPath(HEAD_POSE_MODEL_NAME, precision),
+      getModelPath(LANDMARKS_MODEL_NAME, precision),
+      getModelPath(EYE_STATE_MODEL_NAME, precision), device);
+  guard->defaultCalibration(this->imageSize);
+  return guard;
+}
+
+/**
+ * @brief Handles key press events.
+ * @param event The key event.
+ */
+void MainWindow::keyPressEvent(QKeyEvent *event) {
+  if (event->key() == Qt::Key_Escape) {
+    close();
+  } else {
+    visionGuard->toggle(event->key());
+  }
+}
+
+/**
+ * @brief Loads models with the specified precision.
+ * @param precision The precision level for the models.
+ */
+void MainWindow::loadModels(const std::string &precision) {
+  currentPrecision = precision;
+  visionGuard.reset();
+  visionGuard = initializeVisionGuard(currentPrecision, currentDevice);
+}
+
+void MainWindow::on_actionExit_triggered() { close(); }
+
+void MainWindow::on_actionFP16_triggered() { loadModels(FP16_PRECISION); }
+
+void MainWindow::on_actionFP32_triggered() { loadModels(FP32_PRECISION); }
+
+void MainWindow::on_actionINT8_triggered() { loadModels(INT8_PRECISION); }
+
+void MainWindow::on_actionShow_All_triggered() {
+  visionGuard->toggle(TOGGLE_ALL);
+}
+
+void MainWindow::on_actionShow_Eye_State_triggered() {
+  visionGuard->toggle(TOGGLE_EYE_STATE);
+}
+
+void MainWindow::on_actionShow_Face_Bounding_Box_triggered() {
+  visionGuard->toggle(TOGGLE_FACE_BOUNDING_BOX);
+}
+
+void MainWindow::on_actionShow_Gaze_triggered() {
+  visionGuard->toggle(TOGGLE_GAZE);
+}
+
+void MainWindow::on_actionShow_Head_Pose_Axes_triggered() {
+  visionGuard->toggle(TOGGLE_HEAD_POSE_AXES);
+}
+
+void MainWindow::on_actionShow_Landmarks_triggered() {
+  visionGuard->toggle(TOGGLE_LANDMARKS);
+}
+
+void MainWindow::on_actionShow_None_triggered() {
+  visionGuard->toggle(TOGGLE_NONE);
+}
+
+void MainWindow::on_breakDurationHorizontalSlider_valueChanged(int value) {
+  visionGuard->setAccumulatedGazeTimeThreshold(static_cast<double>(value));
+  ui->breakDurationSpinBox->setValue(value);
+}
+
+void MainWindow::on_breakDurationSpinBox_valueChanged(int arg1) {
+  visionGuard->setAccumulatedGazeTimeThreshold(static_cast<double>(arg1));
+  ui->breakDurationHorizontalSlider->setValue(arg1);
+}
+
+void MainWindow::on_breakIntervalHorizontalSlider_valueChanged(int value) {
+  visionGuard->setGazeLostThreshold(static_cast<double>(value));
+  ui->breakIntervalSpinBox->setValue(value);
+}
+
+void MainWindow::on_breakIntervalSpinBox_valueChanged(int arg1) {
+  visionGuard->setGazeLostThreshold(static_cast<double>(arg1));
+  ui->breakIntervalHorizontalSlider->setValue(arg1);
+}
+
+void MainWindow::on_Calibrate_clicked() {
+  visionGuard->defaultCalibration(this->imageSize);
+}
+
+void MainWindow::on_dailyStatButton_clicked() {
+  auto dailyStats = visionGuard->getDailyStats();
+  displayChart(dailyStats, "Daily Gaze Time Stats");
+}
+
+void MainWindow::on_resourceUtilizationButton_clicked() {
+  visionGuard->toggle(TOGGLE_RESOURCE_GRAPH);
+}
+
+void MainWindow::on_weeklyStatButton_clicked() {
+  auto weeklyStats = visionGuard->getWeeklyStats();
+  displayChart(weeklyStats, "Weekly Gaze Time Stats");
+}
+
+/**
+ * @brief Populates the camera menu with available camera devices.
+ */
+void MainWindow::populateCameraMenu() {
+  ui->menuCamera->clear();
+  std::vector<int> availableCameras;
+  for (int i = 0; i < 5; ++i) {
+    try {
+      cv::VideoCapture cap(i);
+      if (cap.isOpened()) {
+        availableCameras.push_back(i);
+        cap.release();
+        slog::info << "Found camera at index " << i << slog::endl;
+      } else {
+        slog::warn << "Camera at index " << i << " failed to open."
+                   << slog::endl;
+      }
+    } catch (const cv::Exception &e) {
+      continue;
+    } catch (const std::exception &e) {
+      slog::err << "Standard exception while checking camera at index " << i
+                << ": " << e.what() << slog::endl;
+    } catch (...) {
+      slog::err << "Unknown exception while checking camera at index " << i
+                << slog::endl;
+    }
+  }
+  for (int cameraIndex : availableCameras) {
+    QString cameraName = QString("Camera %1").arg(cameraIndex);
+    QAction *cameraAction = new QAction(cameraName, this);
+    connect(cameraAction, &QAction::triggered, this,
+            [this, cameraIndex]() { switchCamera(cameraIndex); });
+    ui->menuCamera->addAction(cameraAction);
+  }
+}
+
+/**
+ * @brief Populates the device menu with available devices.
+ */
+void MainWindow::populateDeviceMenu() {
+  ui->menuDevices->clear();
+  std::vector<std::string> availableDevices =
+      visionGuard->getAvailableDevices();
+  for (const auto &device : availableDevices) {
+    QAction *deviceAction = new QAction(QString::fromStdString(device), this);
+    connect(deviceAction, &QAction::triggered, this,
+            [this, device]() { switchDevice(device); });
+    ui->menuDevices->addAction(deviceAction);
+  }
+}
+
+/**
+ * @brief Switches to the selected camera.
+ * @param cameraIndex The index of the camera.
+ */
+void MainWindow::switchCamera(int cameraIndex) {
+  // TODO: Add your logic to switch to the selected camera
+  // Example: reinitialize the VisionGuard with the new camera index
+  // visionGuard->setCameraIndex(cameraIndex);
+  // visionGuard.reset();
+  // visionGuard = initializeVisionGuard(currentPrecision, currentDevice);
+  // Restart the capture or other necessary operations
+}
+
+/**
+ * @brief Switches to the selected device.
+ * @param device The device to switch to.
+ */
+void MainWindow::switchDevice(const std::string &device) {
+  if (visionGuard->isDeviceAvailable(device)) {
+    currentDevice = device;
+    visionGuard.reset();
+    visionGuard = initializeVisionGuard(currentPrecision, currentDevice);
+  } else {
+    QMessageBox::warning(
+        this, "Warning",
+        QString::fromStdString(device + " device is not available."));
+  }
+}
+
+/**
+ * @brief Updates the frame from the camera.
+ */
+void MainWindow::updateFrame() {
+  cv::Mat frame = cap->read();
+
+  if (frame.empty())
+    return;
+
+  visionGuard->processFrame(frame);
+
+  cv::cvtColor(frame, frame, cv::COLOR_BGR2RGB);
+  QImage img((const unsigned char *)(frame.data), frame.cols, frame.rows,
+             QImage::Format_RGB888);
+  ui->lastImagePreviewLabel->setPixmap(QPixmap::fromImage(img));
+
+  QTime gazeTime(0, 0);
+  gazeTime =
+      gazeTime.addSecs(static_cast<int>(visionGuard->getAccumulatedGazeTime()));
+  ui->GazeTime->setText(gazeTime.toString("mm:ss"));
+
+  QTime gazeLostTime(0, 0);
+  gazeLostTime = gazeLostTime.addSecs(
+      static_cast<int>(visionGuard->getGazeLostDuration()));
+  ui->GazeLostTime->setText(gazeLostTime.toString("mm:ss"));
 }
