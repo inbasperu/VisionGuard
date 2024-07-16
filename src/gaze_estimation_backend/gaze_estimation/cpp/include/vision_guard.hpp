@@ -54,62 +54,71 @@ public:
               const std::string &eye_state_model, const std::string &device);
   ~VisionGuard();
 
-  std::vector<std::string> getAvailableDevices();
-  void processFrame(cv::Mat &frame);
-  void showCalibrationWindow(const cv::Size &imageSize);
-  void defaultCalibration(const cv::Size &imageSize);
   void calibrateScreen(const std::vector<cv::Point2f> &calibrationPoints);
-  double getAccumulatedGazeTime() const;
-  double getGazeLostDuration() const;
-  void toggle(int key);
-  bool isDeviceAvailable(const std::string &device);
   bool checkGazeTimeExceeded() const;
+  void createEmptyDataFile();
+  void defaultCalibration(const cv::Size &imageSize);
+  std::vector<std::string> getAvailableDevices();
+  std::map<std::string, double> getDailyStats();
+  double getAccumulatedGazeTime() const;
+  std::string getHourlyTimestamp() const;
+  double getGazeLostDuration() const;
+  std::map<std::string, double> getWeeklyStats();
+  bool isDeviceAvailable(const std::string &device);
+  void logGazeData();
+  void processFrame(cv::Mat &frame);
   void resetGazeTime();
+  void saveJsonData(const nlohmann::json &data, const std::string &filePath);
   void
   setAccumulatedGazeTimeThreshold(const double accumulated_gaze_time_threshold);
   void setGazeLostThreshold(const double gazeLostThreshold);
-  std::map<std::string, double> getDailyStats();
-  std::map<std::string, double> getWeeklyStats();
+  void showCalibrationWindow(const cv::Size &imageSize);
+  void toggle(int key);
 
 private:
-  void updateGazeTime(const cv::Point3f &gazeVector, const cv::Size &imageSize);
-  bool isPointInsidePolygon(const std::vector<cv::Point2f> &polygon,
-                            const cv::Point2f &point) const;
+  void cleanOldData();
   std::vector<cv::Point2f>
   getDefaultCalibrationPoints(const cv::Size &imageSize,
                               const int numPoints = 5);
-  ScreenCalibration calibration;
-  std::chrono::steady_clock::time_point lastCheckTime;
-  std::chrono::steady_clock::time_point gazeLostTime;
-  double accumulatedGazeTime = 0; // In seconds
-  bool isGazingAtScreen = false;
-  double accumulated_gaze_time_threshold = 20;
-  double gazeLostThreshold = 10;
-
-  void logGazeData();
-  void cleanOldData();
-
+  bool isPointInsidePolygon(const std::vector<cv::Point2f> &polygon,
+                            const cv::Point2f &point) const;
+  nlohmann::json readDataFile();
+  void updateGazeTime(const cv::Point3f &gazeVector, const cv::Size &imageSize);
   void updateHourlyData(nlohmann::json &data, const std::string &key,
                         double value);
-  std::string getHourlyTimestamp() const;
 
-  nlohmann::json readDataFile();
-  void saveJsonData(const nlohmann::json &data, const std::string &filePath);
-  void createEmptyDataFile();
+  // Gaze time tracking
+  double accumulatedGazeTime = 0; // In seconds
+  double accumulated_gaze_time_threshold = 20;
+  bool isGazingAtScreen = false;
+  double gazeLostThreshold = 10;
+  std::chrono::steady_clock::time_point gazeLostTime;
+  std::chrono::steady_clock::time_point lastCheckTime;
+
+  // Data handling
   std::string dataFilePath = "screen_time_stats.json";
 
+  // Calibration
+  ScreenCalibration calibration;
+
+  // OpenVINO components
   ov::Core core;
   gaze_estimation::FaceDetector faceDetector;
+  gaze_estimation::GazeEstimator gazeEstimator;
   gaze_estimation::HeadPoseEstimator headPoseEstimator;
   gaze_estimation::LandmarksEstimator landmarksEstimator;
   gaze_estimation::EyeStateEstimator eyeStateEstimator;
-  gaze_estimation::GazeEstimator gazeEstimator;
   gaze_estimation::ResultsMarker resultsMarker;
   std::vector<gaze_estimation::BaseEstimator *> estimators;
+
+  // Performance metrics
   PerformanceMetrics metrics;
-  std::chrono::steady_clock::time_point start_time;
+
+  // Presenter
   Presenter presenter;
 
+  // Timing
+  std::chrono::steady_clock::time_point start_time;
 };
 
 #endif // VISIONGUARD_H
