@@ -6,24 +6,21 @@ file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp)
 source_group("src" FILES ${SOURCES})
 source_group("include" FILES ${HEADERS})
 
-# # Create executable file from sources
-# add_executable(gaze_estimation ${SOURCES} ${HEADERS})
-
 # Create library target
-add_library(gaze_estimation STATIC ${SOURCES} ${HEADERS})
+add_library(vision_guard_core STATIC ${SOURCES} ${HEADERS})
 
 # Set properties for Windows
 if(WIN32)
-    set_target_properties(gaze_estimation PROPERTIES COMPILE_PDB_NAME gaze_estimation)
+    set_target_properties(vision_guard_core PROPERTIES COMPILE_PDB_NAME vision_guard_core)
 endif()
 
 # Include directories
-target_include_directories(gaze_estimation PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_include_directories(vision_guard_core PUBLIC ${HEADERS})
 
 # Link libraries
-target_link_libraries(gaze_estimation PRIVATE ${OpenCV_LIBRARIES} openvino::runtime monitors utils gflags)
+target_link_libraries(vision_guard_core PRIVATE ${OpenCV_LIBRARIES} openvino::runtime monitors utils gflags)
 
 # Link pthread on Unix
 if(UNIX)
-    target_link_libraries(gaze_estimation PRIVATE pthread)
+    target_link_libraries(vision_guard_core PRIVATE pthread)
 endif()
