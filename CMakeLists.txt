@@ -56,6 +56,15 @@ if(ARM AND NOT CMAKE_CROSSCOMPILING)
     add_compile_options(-march=armv7-a+fp)
 endif()
 
+# Set the Qt installation path
+set(CMAKE_PREFIX_PATH "/Users/inbasekaranperumal/Qt/6.7.1/macos")
+
+# Include directories for OpenCV
+set(OpenCV_DIR /Users/inbasekaranperumal/Developer/OpenSource/build_opencv)
+
+# Include directories for OpenVINO
+set(OpenVINO_DIR /Users/inbasekaranperumal/Developer/Programs/OpenVINO-install-dir/runtime/cmake)
+
 
 find_package(OpenCV REQUIRED COMPONENTS core highgui videoio imgproc imgcodecs)
 
@@ -66,10 +75,10 @@ find_package(Qt6 REQUIRED COMPONENTS Core Widgets Multimedia MultimediaWidgets G
 qt_standard_project_setup()
 
 # Add subdirectories
-add_subdirectory(src/gaze_estimation_backend/thirdparty/gflags)
-add_subdirectory(src/gaze_estimation_backend/common/cpp)
-add_subdirectory(src/gaze_estimation_backend/multi_channel_common/cpp)
-add_subdirectory(src/gaze_estimation_backend/gaze_estimation/cpp)
+add_subdirectory(src/backend/thirdparty/gflags)
+add_subdirectory(src/backend/common)
+add_subdirectory(src/backend/multi_channel_common)
+add_subdirectory(src/backend/vision_guard_core)
 
 qt_add_executable(VisionGuardApp
     src/app/main.cpp
@@ -77,11 +86,21 @@ qt_add_executable(VisionGuardApp
     src/app/mainwindow.ui
 )
 
-target_include_directories(VisionGuardApp PRIVATE ${OpenCV_INCLUDE_DIRS} "${CMAKE_CURRENT_SOURCE_DIR}/src/gaze_estimation_backend/gaze_estimation/cpp/include")
+target_include_directories(VisionGuardApp PRIVATE ${OpenCV_INCLUDE_DIRS} "${CMAKE_CURRENT_SOURCE_DIR}/src/backend/vision_guard_core/include")
 
 target_link_libraries(VisionGuardApp PRIVATE Qt6::Core Qt6::Widgets Qt6::Multimedia Qt6::MultimediaWidgets Qt6::Gui Qt6::Charts ${OpenCV_LIBS} openvino::runtime gaze_estimation ${OpenCV_LIBRARIES} openvino::runtime monitors utils gflags)
 
 set_target_properties(VisionGuardApp PROPERTIES
     WIN32_EXECUTABLE ON
     MACOSX_BUNDLE ON
+)
+
+# Define the path to the omz_models directory
+set(OMZ_MODELS_DIR "/Users/inbasekaranperumal/Developer/OpenSource/GSoC/code/VisionGuard/omz_models")
+
+# Copy the omz_models directory to the output directory after build
+add_custom_command(TARGET VisionGuardApp POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${OMZ_MODELS_DIR}"
+    "$<TARGET_FILE_DIR:VisionGuardApp>/../omz_models"
 )
