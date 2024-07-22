@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>src/assets/openvino.png</file>
+    </qresource>
+</RCC>

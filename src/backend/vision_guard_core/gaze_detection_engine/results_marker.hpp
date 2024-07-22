@@ -41,5 +41,9 @@ private:
   bool showLandmarks;
   bool showGaze;
   bool showEyeState;
+
+  // Helpers
+  void gazeVectorToGazeAngles(const cv::Point3f &gazeVector,
+                              cv::Point2f &gazeAngles);
 };
 } // namespace gaze_estimation

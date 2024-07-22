@@ -78,7 +78,7 @@ qt_standard_project_setup()
 add_subdirectory(src/backend/thirdparty/gflags)
 add_subdirectory(src/backend/common)
 add_subdirectory(src/backend/multi_channel_common)
-add_subdirectory(src/backend/vision_guard_core)
+# add_subdirectory(src/backend/vision_guard_core)
 
 qt_add_executable(VisionGuardApp
     src/app/main.cpp

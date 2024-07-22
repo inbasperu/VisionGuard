@@ -13,7 +13,6 @@
 
 #include "face_inference_results.hpp"
 #include "results_marker.hpp"
-#include "utils.hpp"
 
 namespace gaze_estimation {
 
@@ -23,6 +22,7 @@ ResultsMarker::ResultsMarker(bool showFaceBoundingBox, bool showHeadPoseAxes,
     : showFaceBoundingBox(showFaceBoundingBox),
       showHeadPoseAxes(showHeadPoseAxes), showLandmarks(showLandmarks),
       showGaze(showGaze), showEyeState(showEyeState) {}
+
 // Getters
 bool ResultsMarker::getFaceBoundingBoxToggle() { return showFaceBoundingBox; }
 bool ResultsMarker::getHeadPoseAxesToggle() { return showHeadPoseAxes; }
@@ -43,6 +43,21 @@ void ResultsMarker::setLandmarksToggle(bool showLandmarks) {
 void ResultsMarker::setGazeToggle(bool showGaze) { this->showGaze = showGaze; }
 void ResultsMarker::setEyeStateToggle(bool showEyeState) {
   this->showEyeState = showEyeState;
+}
+
+// Helpers
+void ResultsMarker::gazeVectorToGazeAngles(const cv::Point3f &gazeVector,
+                                           cv::Point2f &gazeAngles) {
+  auto r = cv::norm(gazeVector);
+
+  double v0 = static_cast<double>(gazeVector.x);
+  double v1 = static_cast<double>(gazeVector.y);
+  double v2 = static_cast<double>(gazeVector.z);
+
+  gazeAngles.x =
+      static_cast<float>(180.0 / M_PI * (M_PI_2 + std::atan2(v2, v0)));
+  gazeAngles.y =
+      static_cast<float>(180.0 / M_PI * (M_PI_2 - std::acos(v1 / r)));
 }
 
 void ResultsMarker::mark(cv::Mat &image,

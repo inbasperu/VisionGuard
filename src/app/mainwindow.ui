@@ -11,7 +11,13 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Camera</string>
+   <string>VisionGuard</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <!-- Path to the Logo -->
+    <normaloff>src/assets/openvino.png</normaloff>
+   </iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout_3">
@@ -456,6 +462,16 @@
   <action name="actionFP32">
    <property name="text">
     <string>FP32</string>
+   </property>
+  </action>
+  <action name="actionLightTheme">
+   <property name="text">
+    <string>Light Theme</string>
+   </property>
+  </action>
+  <action name="actionDarkTheme">
+   <property name="text">
+    <string>Dark Theme</string>
    </property>
   </action>
  </widget>
