@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "constants.hpp"
 #include "ui_mainwindow.h"
 #include <QKeyEvent>
 #include <QMessageBox>
@@ -27,7 +28,7 @@
  */
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), currentDevice("CPU"),
-      currentPrecision("FP32") {
+      currentPrecision(FP32_PRECISION) {
   ui->setupUi(this);
 
   visionGuard = initializeVisionGuard(currentPrecision, currentDevice);

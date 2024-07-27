@@ -12,22 +12,24 @@
 #include "ie_wrapper.hpp"
 
 namespace gaze_estimation {
-class GazeEstimator : public BaseEstimator {
+
+class HeadPoseEstimator : public BaseEstimator {
 public:
-  GazeEstimator(ov::Core &core, const std::string &modelPath,
-                const std::string &deviceName, bool doRollAlign = true);
+  HeadPoseEstimator(ov::Core &core, const std::string &modelPath,
+                    const std::string &deviceName);
+  ~HeadPoseEstimator() override;
+
   void estimate(const cv::Mat &image,
                 FaceInferenceResults &outputResults) override;
-  ~GazeEstimator() override;
 
-  const std::string modelType = "Gaze Estimation";
+  // Getters
+  const std::string getModelType() const { return modelType; }
 
 private:
+  // Data members
   IEWrapper ieWrapper;
-  std::string outputTensorName;
-  bool rollAlign;
-
-  void rotateImageAroundCenter(const cv::Mat &srcImage, cv::Mat &dstImage,
-                               float angle) const;
+  std::string inputTensorName;
+  const std::string modelType = "Head Pose Estimation";
 };
+
 } // namespace gaze_estimation

@@ -7,6 +7,7 @@
 
 namespace gaze_estimation {
 
+// Overloaded output operator for logging FaceInferenceResults
 slog::LogStream &operator<<(slog::LogStream &os,
                             const FaceInferenceResults &faceInferenceResults) {
   os << "--Inference results--" << slog::endl;
@@ -33,6 +34,7 @@ slog::LogStream &operator<<(slog::LogStream &os,
   return os;
 }
 
+// Method to get eye landmarks from the face landmarks
 std::vector<cv::Point2f> FaceInferenceResults::getEyeLandmarks() {
   std::vector<cv::Point2f> result(4);
   if (faceLandmarks.size() == 35) {
@@ -50,4 +52,5 @@ std::vector<cv::Point2f> FaceInferenceResults::getEyeLandmarks() {
   }
   return result;
 }
+
 } // namespace gaze_estimation

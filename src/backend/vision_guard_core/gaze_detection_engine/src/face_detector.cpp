@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include <cstdio>
-#include <map>
 #include <string>
 #include <vector>
 
@@ -20,6 +18,7 @@ FaceDetector::FaceDetector(ov::Core &core, const std::string &modelPath,
     : ieWrapper(core, modelPath, modelType, deviceName),
       detectionThreshold(detectionConfidenceThreshold),
       enableReshape(enableReshape) {
+  // Initialize input and output tensor names and dimensions
   const auto &inputInfo = ieWrapper.getInputTensorDimsInfo();
 
   inputTensorName = ieWrapper.expectSingleInput();
@@ -40,7 +39,10 @@ FaceDetector::FaceDetector(ov::Core &core, const std::string &modelPath,
   numTotalDetections = outputTensorDims[2];
 }
 
+FaceDetector::~FaceDetector() {}
+
 void FaceDetector::adjustBoundingBox(cv::Rect &boundingBox) const {
+  // Adjust bounding box size and position
   auto w = boundingBox.width;
   auto h = boundingBox.height;
 
@@ -82,9 +84,11 @@ std::vector<FaceInferenceResults> FaceDetector::detect(const cv::Mat &image) {
     }
   }
 
+  // Set the input tensor with the image and run inference
   ieWrapper.setInputTensor(inputTensorName, image);
   ieWrapper.infer();
 
+  // Get the output tensor and process the results
   std::vector<float> rawDetectionResults;
   ieWrapper.getOutputTensor(outputTensorName, rawDetectionResults);
   FaceInferenceResults tmp;
@@ -122,7 +126,5 @@ std::vector<FaceInferenceResults> FaceDetector::detect(const cv::Mat &image) {
 
   return detectionResult;
 }
-
-FaceDetector::~FaceDetector() {}
 
 } // namespace gaze_estimation

@@ -21,9 +21,10 @@ GazeEstimator::GazeEstimator(ov::Core &ie, const std::string &modelPath,
 
   for (const auto &TensorName : {TENSOR_HEAD_POSE_ANGLES, TENSOR_LEFT_EYE_IMAGE,
                                  TENSOR_RIGHT_EYE_IMAGE}) {
-    if (inputInfo.find(TensorName) == inputInfo.end())
+    if (inputInfo.find(TensorName) == inputInfo.end()) {
       throw std::runtime_error(modelPath + ": expected to have input named \"" +
                                TensorName + "\"");
+    }
   }
 
   auto expectAngles = [&modelPath](const std::string &TensorName,
@@ -51,25 +52,14 @@ GazeEstimator::GazeEstimator(ov::Core &ie, const std::string &modelPath,
   expectAngles(outputTensorName, outputInfo.at(outputTensorName));
 }
 
-void GazeEstimator::rotateImageAroundCenter(const cv::Mat &srcImage,
-                                            cv::Mat &dstImage,
-                                            float angle) const {
-  auto w = srcImage.cols;
-  auto h = srcImage.rows;
-
-  cv::Size size(w, h);
-
-  cv::Point2f center(static_cast<float>(w / 2), static_cast<float>(h / 2));
-
-  auto rotMatrix =
-      cv::getRotationMatrix2D(center, static_cast<double>(angle), 1);
-  cv::warpAffine(srcImage, dstImage, rotMatrix, size, 1, cv::BORDER_REPLICATE);
-}
+GazeEstimator::~GazeEstimator() {}
 
 void GazeEstimator::estimate(const cv::Mat &image,
                              FaceInferenceResults &outputResults) {
   if (!outputResults.leftEyeState || !outputResults.rightEyeState)
     return;
+
+  // Prepare input tensors
   std::vector<float> headPoseAngles(3);
   auto roll = outputResults.headPoseAngles.z;
   headPoseAngles[0] = outputResults.headPoseAngles.x;
@@ -79,6 +69,7 @@ void GazeEstimator::estimate(const cv::Mat &image,
   cv::Mat leftEyeImage(image, outputResults.leftEyeBoundingBox);
   cv::Mat rightEyeImage(image, outputResults.rightEyeBoundingBox);
 
+  // Align eyes if necessary
   if (rollAlign) {
     headPoseAngles[2] = 0;
     cv::Mat leftEyeImageRotated, rightEyeImageRotated;
@@ -94,8 +85,8 @@ void GazeEstimator::estimate(const cv::Mat &image,
 
   ieWrapper.infer();
 
+  // Process output tensor
   std::vector<float> rawResults;
-
   ieWrapper.getOutputTensor(outputTensorName, rawResults);
 
   cv::Point3f gazeVector;
@@ -105,8 +96,8 @@ void GazeEstimator::estimate(const cv::Mat &image,
 
   gazeVector = gazeVector / cv::norm(gazeVector);
 
+  // Compensate for roll alignment if necessary
   if (rollAlign) {
-    // rotate gaze vector to compensate for the alignment
     float cs =
         static_cast<float>(std::cos(static_cast<double>(roll) * CV_PI / 180.0));
     float sn =
@@ -122,5 +113,19 @@ void GazeEstimator::estimate(const cv::Mat &image,
   outputResults.gazeVector = gazeVector;
 }
 
-GazeEstimator::~GazeEstimator() {}
+void GazeEstimator::rotateImageAroundCenter(const cv::Mat &srcImage,
+                                            cv::Mat &dstImage,
+                                            float angle) const {
+  // Rotate the image around its center by a given angle
+  auto w = srcImage.cols;
+  auto h = srcImage.rows;
+
+  cv::Size size(w, h);
+
+  cv::Point2f center(static_cast<float>(w / 2), static_cast<float>(h / 2));
+  auto rotMatrix =
+      cv::getRotationMatrix2D(center, static_cast<double>(angle), 1);
+  cv::warpAffine(srcImage, dstImage, rotMatrix, size, 1, cv::BORDER_REPLICATE);
+}
+
 } // namespace gaze_estimation

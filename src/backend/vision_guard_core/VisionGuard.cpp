@@ -6,11 +6,13 @@ VisionGuard::VisionGuard(const std::string &gaze_model,
                          const std::string &head_pose_model,
                          const std::string &landmarks_model,
                          const std::string &eye_state_model,
-                         const std::string &device)
+                         const std::string &device, const cv::Size &screenSize,
+                         const std::string &screenTimeStatsFilePath)
     : gazeDetectionEngine(face_model, head_pose_model, landmarks_model,
                           eye_state_model, device, core),
-      vectorCalibration(), eyeGazeTimeTracker(), breakNotificationSystem(),
-      performanceTracker(), screenTimeMetricLogger("screen_time_stats.json") {
+      vectorCalibration(screenSize), eyeGazeTimeTracker(),
+      breakNotificationSystem(), performanceTracker(),
+      screenTimeMetricLogger(screenTimeStatsFilePath) {
   slog::info << ov::get_openvino_version() << slog::endl;
   slog::info << "Available Devices:";
   slog::info << gazeDetectionEngine.getAvailableDevices() << slog::endl;
@@ -21,7 +23,8 @@ VisionGuard::~VisionGuard() {
   slog::info << "Metrics report:" << slog::endl;
   performanceTracker.getMetrics().logTotal();
   // Log gaze data and clean old data before destroying the object
-  screenTimeMetricLogger.logGazeData();
+  screenTimeMetricLogger.logGazeData(
+      eyeGazeTimeTracker.getAccumulatedGazeTime());
   screenTimeMetricLogger.cleanOldData();
 }
 
@@ -53,8 +56,4 @@ void VisionGuard::processFrame(cv::Mat &frame) {
 void VisionGuard::toggle(int key) {
   gazeDetectionEngine.toggle(key);
   performanceTracker.toggle(key);
-}
-
-std::vector<std::string> VisionGuard::getAvailableDevices() {
-  return gazeDetectionEngine.getAvailableDevices();
 }

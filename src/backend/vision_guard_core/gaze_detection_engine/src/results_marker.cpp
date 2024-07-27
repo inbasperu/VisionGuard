@@ -25,22 +25,22 @@ ResultsMarker::ResultsMarker(bool showFaceBoundingBox, bool showHeadPoseAxes,
 
 // Getters
 bool ResultsMarker::getFaceBoundingBoxToggle() { return showFaceBoundingBox; }
+bool ResultsMarker::getGazeToggle() { return showGaze; }
 bool ResultsMarker::getHeadPoseAxesToggle() { return showHeadPoseAxes; }
-bool ResultsMarker::getLandmarksToggle() { return showLandmarks; };
-bool ResultsMarker::getGazeToggle() { return showGaze; };
+bool ResultsMarker::getLandmarksToggle() { return showLandmarks; }
 bool ResultsMarker::getEyeStateToggle() { return showEyeState; }
 
 // Setters
 void ResultsMarker::setFaceBoundingBoxToggle(bool showFaceBoundingBox) {
   this->showFaceBoundingBox = showFaceBoundingBox;
 }
+void ResultsMarker::setGazeToggle(bool showGaze) { this->showGaze = showGaze; }
 void ResultsMarker::setHeadPoseAxesToggle(bool showHeadPoseAxes) {
   this->showHeadPoseAxes = showHeadPoseAxes;
 }
 void ResultsMarker::setLandmarksToggle(bool showLandmarks) {
   this->showLandmarks = showLandmarks;
 }
-void ResultsMarker::setGazeToggle(bool showGaze) { this->showGaze = showGaze; }
 void ResultsMarker::setEyeStateToggle(bool showEyeState) {
   this->showEyeState = showEyeState;
 }
@@ -213,24 +213,24 @@ void ResultsMarker::mark(cv::Mat &image,
 
 void ResultsMarker::toggle(int key) {
   switch (std::toupper(key)) {
-  case 'L':
-    setLandmarksToggle(!getLandmarksToggle());
-    break;
-  case 'O':
-    setHeadPoseAxesToggle(!getHeadPoseAxesToggle());
-    break;
-  case 'G':
-    setGazeToggle(!getGazeToggle());
-    break;
-  case 'B':
-    setFaceBoundingBoxToggle(!getFaceBoundingBoxToggle());
-    break;
   case 'A':
     setFaceBoundingBoxToggle(true);
     setHeadPoseAxesToggle(true);
     setLandmarksToggle(true);
     setGazeToggle(true);
     setEyeStateToggle(true);
+    break;
+  case 'B':
+    setFaceBoundingBoxToggle(!getFaceBoundingBoxToggle());
+    break;
+  case 'E':
+    setEyeStateToggle(!getEyeStateToggle());
+    break;
+  case 'G':
+    setGazeToggle(!getGazeToggle());
+    break;
+  case 'L':
+    setLandmarksToggle(!getLandmarksToggle());
     break;
   case 'N':
     setFaceBoundingBoxToggle(false);
@@ -239,9 +239,10 @@ void ResultsMarker::toggle(int key) {
     setGazeToggle(false);
     setEyeStateToggle(false);
     break;
-  case 'E':
-    setEyeStateToggle(!getEyeStateToggle());
+  case 'O':
+    setHeadPoseAxesToggle(!getHeadPoseAxesToggle());
     break;
   }
 }
+
 } // namespace gaze_estimation

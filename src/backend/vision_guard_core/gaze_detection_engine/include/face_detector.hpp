@@ -14,26 +14,32 @@
 #include "ie_wrapper.hpp"
 
 namespace gaze_estimation {
+
 class FaceDetector {
 public:
   FaceDetector(ov::Core &core, const std::string &modelPath,
                const std::string &deviceName,
                double detectionConfidenceThreshold, bool enableReshape);
-  std::vector<FaceInferenceResults> detect(const cv::Mat &image);
   ~FaceDetector();
 
-  const std::string modelType = "Face Detection";
+  std::vector<FaceInferenceResults> detect(const cv::Mat &image);
+
+  // Getters
+  const std::string getModelType() const { return modelType; }
 
 private:
+  // Data members
+  bool enableReshape;
+  double detectionThreshold;
   IEWrapper ieWrapper;
   std::string inputTensorName;
   ov::Shape inputTensorDims;
-  std::string outputTensorName;
+  const std::string modelType = "Face Detection";
   std::size_t numTotalDetections;
+  std::string outputTensorName;
 
-  double detectionThreshold;
-  bool enableReshape;
-
+  // Other member functions
   void adjustBoundingBox(cv::Rect &boundingBox) const;
 };
+
 } // namespace gaze_estimation

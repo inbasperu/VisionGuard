@@ -12,24 +12,32 @@
 #include "screen_time_metric_logger.hpp"
 #include "vector_calibration.hpp"
 
+const cv::Size defaultScreenSize = cv::Size(1920, 1080);
+const std::string defaultScreenTimeStatsFilePath = "screen_time_stats.json";
+const std::string defaultDevice = "AUTO";
+
 class VisionGuard {
 public:
-    VisionGuard(const std::string &gaze_model, const std::string &face_model,
-                const std::string &head_pose_model,
-                const std::string &landmarks_model,
-                const std::string &eye_state_model, const std::string &device);
-    ~VisionGuard();
+  VisionGuard(const std::string &gaze_model, const std::string &face_model,
+              const std::string &head_pose_model,
+              const std::string &landmarks_model,
+              const std::string &eye_state_model,
+              const std::string &device = defaultDevice,
+              const cv::Size &screenSize = defaultScreenSize,
+              const std::string &screenTimeStatsFilePath =
+                  defaultScreenTimeStatsFilePath);
+  ~VisionGuard();
 
-    void processFrame(cv::Mat &frame);
-    void toggle(int key);
+  void processFrame(cv::Mat &frame);
+  void toggle(int key);
 
 private:
-    GazeDetectionEngine gazeDetectionEngine;
-    VectorCalibration vectorCalibration;
-    EyeGazeTimeTracker eyeGazeTimeTracker;
-    BreakNotificationSystem breakNotificationSystem;
-    PerformanceTracker performanceTracker;
-    ScreenTimeMetricLogger screenTimeMetricLogger;
+  BreakNotificationSystem breakNotificationSystem;
+  EyeGazeTimeTracker eyeGazeTimeTracker;
+  GazeDetectionEngine gazeDetectionEngine;
+  PerformanceTracker performanceTracker;
+  ScreenTimeMetricLogger screenTimeMetricLogger;
+  VectorCalibration vectorCalibration;
 };
 
 #endif // VISIONGUARD_HPP
