@@ -139,7 +139,10 @@ double VisionGuard::getAccumulatedGazeTime() const {
  * @return A vector of available devices.
  */
 std::vector<std::string> VisionGuard::getAvailableDevices() {
-  return core.get_available_devices();
+  auto devices = core.get_available_devices();
+  if(devices.size())
+    devices.push_back("AUTO");
+  return devices;
 }
 
 /**

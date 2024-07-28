@@ -21,8 +21,8 @@
 #include <unistd.h>
 #endif
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), ui(new Ui::MainWindow), currentDevice("CPU"),
-      currentPrecision("FP32"),
+    : QMainWindow(parent), ui(new Ui::MainWindow), currentDevice("AUTO"),
+      currentPrecision("FP16"),
       currentCameraIndex(0) { // Initialize currentCameraIndex
   ui->setupUi(this);
 
@@ -35,13 +35,6 @@ MainWindow::MainWindow(QWidget *parent)
     QCoreApplication::quit();
     return;
   }
-
-  // Show privacy information
-  QMessageBox::information(
-      this, "Privacy Information",
-      "VisionGuard requires camera access to function properly."
-      "The inference is done on your device and no data "
-      "is sent externally. Your privacy is safe.");
 
   visionGuard = initializeVisionGuard(currentPrecision, currentDevice);
   slog::debug << "VisionGuard backend initialized successfully" << slog::endl;
@@ -67,6 +60,13 @@ MainWindow::MainWindow(QWidget *parent)
           SLOT(on_breakIntervalSpinBox_valueChanged(int)));
   connect(ui->breakIntervalHorizontalSlider, SIGNAL(valueChanged(int)), this,
           SLOT(on_breakIntervalHorizontalSlider_valueChanged(int)));
+
+  // Show privacy information
+  QMessageBox::information(
+      this, "Privacy Information",
+      "VisionGuard requires camera access to function properly."
+      "The inference is done on your device and no data "
+      "is sent externally. Your privacy is safe.");
 }
 
 MainWindow::~MainWindow() {
