@@ -20,23 +20,18 @@
 #include <limits.h>
 #include <unistd.h>
 #endif
-
-/**
- * @brief MainWindow constructor.
- * @param parent The parent widget.
- */
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), currentDevice("CPU"),
-      currentPrecision("FP32") {
+      currentPrecision("FP32"),
+      currentCameraIndex(0) { // Initialize currentCameraIndex
   ui->setupUi(this);
 
   visionGuard = initializeVisionGuard(currentPrecision, currentDevice);
   slog::debug << "VisionGuard backend initialized successfully" << slog::endl;
 
-  cap = openImagesCapture("0", false, read_type::efficient, 0,
-                          std::numeric_limits<size_t>::max(),
-                          stringToSize("1280x720"));
-  slog::debug << "Capture device initialized successfully" << slog::endl;
+  // Open the initial capture device
+  switchCamera(currentCameraIndex); // Use the switchCamera method
+
   timer = new QTimer(this);
   connect(timer, &QTimer::timeout, this, &MainWindow::updateFrame);
   connect(timer, &QTimer::timeout, this, &MainWindow::checkGazeTime);
@@ -300,13 +295,9 @@ void MainWindow::on_weeklyStatButton_clicked() {
   displayChart(weeklyStats, "Weekly Gaze Time Stats");
 }
 
-/**
- * @brief Populates the camera menu with available camera devices.
- */
-void MainWindow::populateCameraMenu() {
-  ui->menuCamera->clear();
+std::vector<int> MainWindow::getAvailableCameras(int maxCameras) {
   std::vector<int> availableCameras;
-  for (int i = 0; i < 5; ++i) {
+  for (int i = 0; i < maxCameras; ++i) {
     try {
       cv::VideoCapture cap(i);
       if (cap.isOpened()) {
@@ -327,18 +318,40 @@ void MainWindow::populateCameraMenu() {
                 << slog::endl;
     }
   }
+  return availableCameras;
+}
+
+QAction *MainWindow::createCameraAction(int cameraIndex) {
+  QAction *cameraAction =
+      new QAction(QString("Camera %1").arg(cameraIndex), this);
+  cameraAction->setCheckable(true);
+  if (cameraIndex == currentCameraIndex) {
+    cameraAction->setChecked(true);
+  }
+  connect(cameraAction, &QAction::triggered, this, [this, cameraIndex]() {
+    switchCamera(cameraIndex);
+    updateCameraMenu(); // Update the menu to reflect the new state
+  });
+  return cameraAction;
+}
+
+void MainWindow::populateCameraMenu() {
+  ui->menuCamera->clear();
+  std::vector<int> availableCameras = getAvailableCameras(5);
   for (int cameraIndex : availableCameras) {
-    QString cameraName = QString("Camera %1").arg(cameraIndex);
-    QAction *cameraAction = new QAction(cameraName, this);
-    connect(cameraAction, &QAction::triggered, this,
-            [this, cameraIndex]() { switchCamera(cameraIndex); });
+    QAction *cameraAction = createCameraAction(cameraIndex);
     ui->menuCamera->addAction(cameraAction);
   }
 }
 
-/**
- * @brief Populates the device menu with available devices.
- */
+void MainWindow::updateCameraMenu() {
+  for (QAction *action : ui->menuCamera->actions()) {
+    bool isCurrent =
+        action->text() == QString("Camera %1").arg(currentCameraIndex);
+    action->setChecked(isCurrent);
+  }
+}
+
 void MainWindow::populateDeviceMenu() {
   ui->menuDevices->clear();
   std::vector<std::string> availableDevices =
@@ -424,23 +437,30 @@ void MainWindow::updateToggleMenu() {
   }
 }
 
-/**
- * @brief Switches to the selected camera.
- * @param cameraIndex The index of the camera.
- */
 void MainWindow::switchCamera(int cameraIndex) {
-  // TODO: Add your logic to switch to the selected camera
-  // Example: reinitialize the VisionGuard with the new camera index
-  // visionGuard->setCameraIndex(cameraIndex);
-  // visionGuard.reset();
-  // visionGuard = initializeVisionGuard(currentPrecision, currentDevice);
-  // Restart the capture or other necessary operations
+  currentCameraIndex = cameraIndex;
+
+  // Close the existing capture device if it's open
+  if (cap) {
+    cap.reset();
+  }
+
+  // Open the new capture device
+  cap = openImagesCapture(
+      std::to_string(currentCameraIndex).c_str(), false, read_type::efficient,
+      0, std::numeric_limits<size_t>::max(), stringToSize("1280x720"));
+
+  if (cap) {
+    slog::debug << "Capture device " << currentCameraIndex
+                << " initialized successfully" << slog::endl;
+  } else {
+    slog::err << "Failed to initialize capture device " << currentCameraIndex
+              << slog::endl;
+  }
+
+  updateCameraMenu(); // Update the menu to reflect the new state
 }
 
-/**
- * @brief Switches to the selected device.
- * @param device The device to switch to.
- */
 void MainWindow::switchDevice(const std::string &device) {
   if (visionGuard->isDeviceAvailable(device)) {
     currentDevice = device;

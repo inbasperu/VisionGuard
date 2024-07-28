@@ -34,9 +34,9 @@ VisionGuard::VisionGuard(const std::string &gaze_model,
   slog::info << getAvailableDevices() << slog::endl;
 
   toggleStates = {{TOGGLE_ALL, false},
-                  {TOGGLE_EYE_STATE, false},
+                  {TOGGLE_EYE_STATE, true},
                   {TOGGLE_FACE_BOUNDING_BOX, false},
-                  {TOGGLE_GAZE, false},
+                  {TOGGLE_GAZE, true},
                   {TOGGLE_HEAD_POSE_AXES, false},
                   {TOGGLE_LANDMARKS, false},
                   {TOGGLE_NONE, false},

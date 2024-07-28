@@ -51,6 +51,9 @@ private:
                         const std::string &device);
   void loadModels(const std::string &precision);
   void populateCameraMenu();
+  void updateCameraMenu();
+  std::vector<int> getAvailableCameras(int maxCameras);
+  QAction *createCameraAction(int cameraIndex);
   void populateDeviceMenu();
   void updateDeviceMenu();
   void populateModelMenu();
@@ -69,6 +72,7 @@ private:
   // Device and Precision
   std::string currentDevice;
   std::string currentPrecision;
+  int currentCameraIndex;
 
   // Performance Metrics
   PerformanceMetrics metrics;
