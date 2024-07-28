@@ -32,6 +32,15 @@ VisionGuard::VisionGuard(const std::string &gaze_model,
                 &gazeEstimator};
   slog::info << "Available Devices:";
   slog::info << getAvailableDevices() << slog::endl;
+
+  toggleStates = {{TOGGLE_ALL, false},
+                  {TOGGLE_EYE_STATE, false},
+                  {TOGGLE_FACE_BOUNDING_BOX, false},
+                  {TOGGLE_GAZE, false},
+                  {TOGGLE_HEAD_POSE_AXES, false},
+                  {TOGGLE_LANDMARKS, false},
+                  {TOGGLE_NONE, false},
+                  {TOGGLE_RESOURCE_GRAPH, false}};
 }
 
 VisionGuard::~VisionGuard() {
@@ -449,8 +458,17 @@ void VisionGuard::setGazeLostThreshold(const double gazeLostThreshold) {
  * @param key The key pressed.
  */
 void VisionGuard::toggle(int key) {
+  toggleStates[key] = !toggleStates[key];
   resultsMarker.toggle(key);
   presenter.handleKey(key);
+}
+
+bool VisionGuard::isToggled(char toggleType) const {
+  auto it = toggleStates.find(toggleType);
+  if (it != toggleStates.end()) {
+    return it->second;
+  }
+  return false;
 }
 
 /**

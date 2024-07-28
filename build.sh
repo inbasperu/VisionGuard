@@ -14,6 +14,7 @@ cmake -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_PREFIX_PATH="/Users/inbasekaranperumal/Qt/6.7.1/macos" \
     -DOpenCV_DIR="/Users/inbasekaranperumal/Developer/OpenSource/build_opencv" \
     -DOpenVINO_DIR="/Users/inbasekaranperumal/Developer/Programs/OpenVINO-install-dir/runtime/cmake" \
+    -DOMZ_MODELS_DIR="/Users/inbasekaranperumal/Developer/OpenSource/GSoC/code/VisionGuard/omz_models" \
     /Users/inbasekaranperumal/Developer/OpenSource/GSoC/code/VisionGuard
 
 # Build the project

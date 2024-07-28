@@ -44,6 +44,8 @@ MainWindow::MainWindow(QWidget *parent)
 
   populateDeviceMenu();
   populateCameraMenu();
+  populateModelMenu();
+  populateToggleMenu();
 
   connect(ui->breakDurationSpinBox, SIGNAL(valueChanged(int)), this,
           SLOT(on_breakDurationSpinBox_valueChanged(int)));
@@ -260,40 +262,6 @@ void MainWindow::loadModels(const std::string &precision) {
 
 void MainWindow::on_actionExit_triggered() { close(); }
 
-void MainWindow::on_actionFP16_triggered() { loadModels(FP16_PRECISION); }
-
-void MainWindow::on_actionFP32_triggered() { loadModels(FP32_PRECISION); }
-
-void MainWindow::on_actionINT8_triggered() { loadModels(INT8_PRECISION); }
-
-void MainWindow::on_actionShow_All_triggered() {
-  visionGuard->toggle(TOGGLE_ALL);
-}
-
-void MainWindow::on_actionShow_Eye_State_triggered() {
-  visionGuard->toggle(TOGGLE_EYE_STATE);
-}
-
-void MainWindow::on_actionShow_Face_Bounding_Box_triggered() {
-  visionGuard->toggle(TOGGLE_FACE_BOUNDING_BOX);
-}
-
-void MainWindow::on_actionShow_Gaze_triggered() {
-  visionGuard->toggle(TOGGLE_GAZE);
-}
-
-void MainWindow::on_actionShow_Head_Pose_Axes_triggered() {
-  visionGuard->toggle(TOGGLE_HEAD_POSE_AXES);
-}
-
-void MainWindow::on_actionShow_Landmarks_triggered() {
-  visionGuard->toggle(TOGGLE_LANDMARKS);
-}
-
-void MainWindow::on_actionShow_None_triggered() {
-  visionGuard->toggle(TOGGLE_NONE);
-}
-
 void MainWindow::on_breakDurationHorizontalSlider_valueChanged(int value) {
   visionGuard->setAccumulatedGazeTimeThreshold(static_cast<double>(value));
   ui->breakDurationSpinBox->setValue(value);
@@ -377,9 +345,82 @@ void MainWindow::populateDeviceMenu() {
       visionGuard->getAvailableDevices();
   for (const auto &device : availableDevices) {
     QAction *deviceAction = new QAction(QString::fromStdString(device), this);
-    connect(deviceAction, &QAction::triggered, this,
-            [this, device]() { switchDevice(device); });
+    deviceAction->setCheckable(true);
+    if (device == currentDevice) {
+      deviceAction->setChecked(true);
+    }
+    connect(deviceAction, &QAction::triggered, this, [this, device]() {
+      switchDevice(device);
+      updateDeviceMenu();
+    });
     ui->menuDevices->addAction(deviceAction);
+  }
+}
+void MainWindow::updateDeviceMenu() {
+  for (QAction *action : ui->menuDevices->actions()) {
+    action->setChecked(action->text().toStdString() == currentDevice);
+  }
+}
+void MainWindow::populateModelMenu() {
+  ui->menuModels->clear();
+  std::vector<std::string> precisions = {INT8_PRECISION, FP16_PRECISION,
+                                         FP32_PRECISION};
+  for (const auto &precision : precisions) {
+    QAction *precisionAction =
+        new QAction(QString::fromStdString(precision), this);
+    precisionAction->setCheckable(true);
+    if (precision == currentPrecision) {
+      precisionAction->setChecked(true);
+    }
+    connect(precisionAction, &QAction::triggered, this, [this, precision]() {
+      loadModels(precision);
+      updateModelMenu();
+    });
+    ui->menuModels->addAction(precisionAction);
+  }
+}
+
+void MainWindow::updateModelMenu() {
+  for (QAction *action : ui->menuModels->actions()) {
+    action->setChecked(action->text().toStdString() == currentPrecision);
+  }
+}
+
+void MainWindow::populateToggleMenu() {
+  ui->menuToggles->clear();
+
+  for (const auto &toggleAction : toggleActions) {
+    QAction *action =
+        new QAction(QString::fromStdString(toggleAction.name), this);
+    action->setCheckable(true);
+    connect(action, &QAction::triggered, this, [this, toggleAction]() {
+      visionGuard->toggle(toggleAction.toggleType);
+      updateToggleMenu(); // Update the menu to reflect the new state
+    });
+    ui->menuToggles->addAction(action);
+  }
+
+  updateToggleMenu(); // Initial update to set the correct check states
+}
+
+void MainWindow::updateToggleMenu() {
+  // Update the check states of the toggle actions based on the current state
+  for (QAction *action : ui->menuToggles->actions()) {
+    if (action->text() == "Show All") {
+      action->setChecked(visionGuard->isToggled(TOGGLE_ALL));
+    } else if (action->text() == "Show Gaze") {
+      action->setChecked(visionGuard->isToggled(TOGGLE_GAZE));
+    } else if (action->text() == "Show Eye State") {
+      action->setChecked(visionGuard->isToggled(TOGGLE_EYE_STATE));
+    } else if (action->text() == "Show Landmarks") {
+      action->setChecked(visionGuard->isToggled(TOGGLE_LANDMARKS));
+    } else if (action->text() == "Show Head Pose Axes") {
+      action->setChecked(visionGuard->isToggled(TOGGLE_HEAD_POSE_AXES));
+    } else if (action->text() == "Show Face Bounding Box") {
+      action->setChecked(visionGuard->isToggled(TOGGLE_FACE_BOUNDING_BOX));
+    } else if (action->text() == "Show None") {
+      action->setChecked(visionGuard->isToggled(TOGGLE_NONE));
+    }
   }
 }
 

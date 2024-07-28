@@ -32,16 +32,6 @@ private slots:
   void checkGazeTime();
   void on_Calibrate_clicked();
   void on_actionExit_triggered();
-  void on_actionFP16_triggered();
-  void on_actionFP32_triggered();
-  void on_actionINT8_triggered();
-  void on_actionShow_All_triggered();
-  void on_actionShow_Eye_State_triggered();
-  void on_actionShow_Face_Bounding_Box_triggered();
-  void on_actionShow_Gaze_triggered();
-  void on_actionShow_Head_Pose_Axes_triggered();
-  void on_actionShow_Landmarks_triggered();
-  void on_actionShow_None_triggered();
   void on_breakDurationHorizontalSlider_valueChanged(int value);
   void on_breakDurationSpinBox_valueChanged(int arg1);
   void on_breakIntervalHorizontalSlider_valueChanged(int value);
@@ -62,6 +52,11 @@ private:
   void loadModels(const std::string &precision);
   void populateCameraMenu();
   void populateDeviceMenu();
+  void updateDeviceMenu();
+  void populateModelMenu();
+  void updateModelMenu();
+  void populateToggleMenu();
+  void updateToggleMenu();
   void switchCamera(int cameraIndex);
   void switchDevice(const std::string &device);
   void updateFrame();

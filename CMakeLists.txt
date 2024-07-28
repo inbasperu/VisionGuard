@@ -56,6 +56,14 @@ if(ARM AND NOT CMAKE_CROSSCOMPILING)
     add_compile_options(-march=armv7-a+fp)
 endif()
 
+# # Set the Qt installation path
+# set(CMAKE_PREFIX_PATH "/Users/inbasekaranperumal/Qt/6.7.1/macos")
+
+# # Include directories for OpenCV
+# set(OpenCV_DIR /Users/inbasekaranperumal/Developer/OpenSource/build_opencv)
+
+# # Include directories for OpenVINO
+# set(OpenVINO_DIR /Users/inbasekaranperumal/Developer/Programs/OpenVINO-install-dir/runtime/cmake)
 
 find_package(OpenCV REQUIRED COMPONENTS core highgui videoio imgproc imgcodecs)
 
@@ -84,4 +92,14 @@ target_link_libraries(VisionGuardApp PRIVATE Qt6::Core Qt6::Widgets Qt6::Multime
 set_target_properties(VisionGuardApp PROPERTIES
     WIN32_EXECUTABLE ON
     MACOSX_BUNDLE ON
+)
+
+## Define the path to the omz_models directory
+# set(OMZ_MODELS_DIR "/Users/inbasekaranperumal/Developer/OpenSource/GSoC/code/VisionGuard/omz_models")
+
+# Copy the omz_models directory to the output directory after build
+add_custom_command(TARGET VisionGuardApp POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${OMZ_MODELS_DIR}"
+    "$<TARGET_FILE_DIR:VisionGuardApp>/../omz_models"
 )

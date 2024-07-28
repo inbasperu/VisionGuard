@@ -1,0 +1,1 @@
+OMZ_MODELS_DIR="/Users/inbasekaranperumal/Developer/OpenSource/GSoC/code/VisionGuard/omz_models"

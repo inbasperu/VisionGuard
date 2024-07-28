@@ -127,7 +127,7 @@
        <bool>true</bool>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tabCallibration">
        <attribute name="title">
@@ -366,26 +366,16 @@
     <property name="title">
      <string>Toggles</string>
     </property>
-    <addaction name="actionShow_All"/>
-    <addaction name="actionShow_Gaze"/>
-    <addaction name="actionShow_Eye_State"/>
-    <addaction name="actionShow_Landmarks"/>
-    <addaction name="actionShow_Head_Pose_Axes"/>
-    <addaction name="actionShow_Face_Bounding_Box"/>
-    <addaction name="actionShow_None"/>
    </widget>
    <widget class="QMenu" name="menuDevices">
     <property name="title">
      <string>Devices</string>
     </property>
    </widget>
-   <widget class="QMenu" name="menuModel">
+   <widget class="QMenu" name="menuModels">
     <property name="title">
-     <string>Model</string>
+     <string>Models</string>
     </property>
-    <addaction name="actionINT8"/>
-    <addaction name="actionFP16"/>
-    <addaction name="actionFP32"/>
    </widget>
    <widget class="QMenu" name="menuCamera">
     <property name="title">
@@ -395,7 +385,7 @@
    <addaction name="menuFile"/>
    <addaction name="menuCamera"/>
    <addaction name="menuDevices"/>
-   <addaction name="menuModel"/>
+   <addaction name="menuModels"/>
    <addaction name="menuToggles"/>
   </widget>
   <widget class="QStatusBar" name="statusbar">
@@ -406,56 +396,6 @@
   <action name="actionExit">
    <property name="text">
     <string>Close</string>
-   </property>
-  </action>
-  <action name="actionShow_Landmarks">
-   <property name="text">
-    <string>Show Landmarks</string>
-   </property>
-  </action>
-  <action name="actionShow_Head_Pose_Axes">
-   <property name="text">
-    <string>Show Head Pose Axes</string>
-   </property>
-  </action>
-  <action name="actionShow_Gaze">
-   <property name="text">
-    <string>Show Gaze</string>
-   </property>
-  </action>
-  <action name="actionShow_Face_Bounding_Box">
-   <property name="text">
-    <string>Show Face Bounding Box</string>
-   </property>
-  </action>
-  <action name="actionShow_Eye_State">
-   <property name="text">
-    <string>Show Eye State</string>
-   </property>
-  </action>
-  <action name="actionShow_All">
-   <property name="text">
-    <string>Show All</string>
-   </property>
-  </action>
-  <action name="actionShow_None">
-   <property name="text">
-    <string>Show None</string>
-   </property>
-  </action>
-  <action name="actionINT8">
-   <property name="text">
-    <string>INT8</string>
-   </property>
-  </action>
-  <action name="actionFP16">
-   <property name="text">
-    <string>FP16</string>
-   </property>
-  </action>
-  <action name="actionFP32">
-   <property name="text">
-    <string>FP32</string>
    </property>
   </action>
  </widget>

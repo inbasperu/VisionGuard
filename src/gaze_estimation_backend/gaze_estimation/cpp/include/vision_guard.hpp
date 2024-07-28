@@ -40,6 +40,7 @@
 #include "landmarks_estimator.hpp"
 #include "results_marker.hpp"
 #include "utils.hpp"
+#include "constants.hpp"
 
 struct ScreenCalibration {
   std::vector<cv::Point2f> points; // Calibration points on the screen
@@ -65,6 +66,7 @@ public:
   double getGazeLostDuration() const;
   std::map<std::string, double> getWeeklyStats();
   bool isDeviceAvailable(const std::string &device);
+  bool isToggled(char toggleType) const;
   void logGazeData();
   void processFrame(cv::Mat &frame);
   void resetGazeTime();
@@ -116,6 +118,7 @@ private:
 
   // Presenter
   Presenter presenter;
+  std::unordered_map<char, bool> toggleStates;
 
   // Timing
   std::chrono::steady_clock::time_point start_time;
