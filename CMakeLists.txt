@@ -69,10 +69,22 @@ add_subdirectory(src/gaze_estimation_backend/common/cpp)
 add_subdirectory(src/gaze_estimation_backend/multi_channel_common/cpp)
 add_subdirectory(src/gaze_estimation_backend/gaze_estimation/cpp)
 
+# Set up resources
+set(RESOURCES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/resources")
+qt_add_resources(RESOURCES ${RESOURCES_DIR}/resources.qrc)
+
+if(WIN32)
+    enable_language(RC)
+    set(WIN32_RESOURCES ${RESOURCES_DIR}/windows_resource.rc)
+endif()
+
 qt_add_executable(VisionGuardApp
+    MACOSX_BUNDLE
     src/app/main.cpp
     src/app/mainwindow.cpp
     src/app/mainwindow.ui
+    ${RESOURCES}
+    ${WIN32_RESOURCES}
 )
 
 # Platform-specific settings
@@ -83,7 +95,10 @@ if(APPLE)
         MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
         MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
         MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist
+        MACOSX_BUNDLE_ICON_FILE vision-guard-removebg.icns
+        RESOURCE ${RESOURCES_DIR}/vision-guard-removebg.icns
     )
+    set_source_files_properties(${APP_ICON_MACOSX} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 elseif(WIN32)
     set_target_properties(VisionGuardApp PROPERTIES
         WIN32_EXECUTABLE TRUE
