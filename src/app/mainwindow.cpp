@@ -321,6 +321,10 @@ void MainWindow::on_breakIntervalSpinBox_valueChanged(int arg1) {
 
 void MainWindow::on_Calibrate_clicked() {
   visionGuard->defaultCalibration(this->imageSize);
+
+  QMessageBox::information(
+      this, "Calibration Complete",
+      "The default calibration technique has been applied successfully. ");
 }
 
 void MainWindow::on_dailyStatButton_clicked() {
