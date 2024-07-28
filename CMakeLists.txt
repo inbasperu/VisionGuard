@@ -56,19 +56,9 @@ if(ARM AND NOT CMAKE_CROSSCOMPILING)
     add_compile_options(-march=armv7-a+fp)
 endif()
 
-# # Set the Qt installation path
-# set(CMAKE_PREFIX_PATH "/Users/inbasekaranperumal/Qt/6.7.1/macos")
-
-# # Include directories for OpenCV
-# set(OpenCV_DIR /Users/inbasekaranperumal/Developer/OpenSource/build_opencv)
-
-# # Include directories for OpenVINO
-# set(OpenVINO_DIR /Users/inbasekaranperumal/Developer/Programs/OpenVINO-install-dir/runtime/cmake)
-
+# Find required packages
 find_package(OpenCV REQUIRED COMPONENTS core highgui videoio imgproc imgcodecs)
-
 find_package(OpenVINO REQUIRED COMPONENTS Runtime)
-
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Multimedia MultimediaWidgets Gui Charts)
 
 qt_standard_project_setup()
@@ -85,17 +75,42 @@ qt_add_executable(VisionGuardApp
     src/app/mainwindow.ui
 )
 
-target_include_directories(VisionGuardApp PRIVATE ${OpenCV_INCLUDE_DIRS} "${CMAKE_CURRENT_SOURCE_DIR}/src/gaze_estimation_backend/gaze_estimation/cpp/include")
+# Platform-specific settings
+if(APPLE)
+    set_target_properties(VisionGuardApp PROPERTIES
+        MACOSX_BUNDLE TRUE
+        MACOSX_BUNDLE_GUI_IDENTIFIER com.yourcompany.VisionGuardApp
+        MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+        MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
+        MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist
+    )
+elseif(WIN32)
+    set_target_properties(VisionGuardApp PROPERTIES
+        WIN32_EXECUTABLE TRUE
+    )
+endif()
 
-target_link_libraries(VisionGuardApp PRIVATE Qt6::Core Qt6::Widgets Qt6::Multimedia Qt6::MultimediaWidgets Qt6::Gui Qt6::Charts ${OpenCV_LIBS} openvino::runtime gaze_estimation ${OpenCV_LIBRARIES} openvino::runtime monitors utils gflags)
-
-set_target_properties(VisionGuardApp PROPERTIES
-    WIN32_EXECUTABLE ON
-    MACOSX_BUNDLE ON
+target_include_directories(VisionGuardApp PRIVATE 
+    ${OpenCV_INCLUDE_DIRS} 
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/gaze_estimation_backend/gaze_estimation/cpp/include"
 )
 
-## Define the path to the omz_models directory
-# set(OMZ_MODELS_DIR "/Users/inbasekaranperumal/Developer/OpenSource/GSoC/code/VisionGuard/omz_models")
+target_link_libraries(VisionGuardApp PRIVATE 
+    Qt6::Core 
+    Qt6::Widgets 
+    Qt6::Multimedia 
+    Qt6::MultimediaWidgets 
+    Qt6::Gui 
+    Qt6::Charts 
+    ${OpenCV_LIBS} 
+    openvino::runtime 
+    gaze_estimation 
+    ${OpenCV_LIBRARIES} 
+    openvino::runtime 
+    monitors 
+    utils 
+    gflags
+)
 
 # Copy the omz_models directory to the output directory after build
 add_custom_command(TARGET VisionGuardApp POST_BUILD

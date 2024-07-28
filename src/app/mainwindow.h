@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include "vision_guard.hpp"
+#include <QPermissions>
 #include <QMainWindow>
 #include <QTimer>
 #include <QtCharts/QBarCategoryAxis>
@@ -54,13 +55,14 @@ private:
   void updateCameraMenu();
   std::vector<int> getAvailableCameras(int maxCameras);
   QAction *createCameraAction(int cameraIndex);
+  void switchCamera(int cameraIndex);
+  bool requestCameraPermission();
   void populateDeviceMenu();
   void updateDeviceMenu();
   void populateModelMenu();
   void updateModelMenu();
   void populateToggleMenu();
   void updateToggleMenu();
-  void switchCamera(int cameraIndex);
   void switchDevice(const std::string &device);
   void updateFrame();
 

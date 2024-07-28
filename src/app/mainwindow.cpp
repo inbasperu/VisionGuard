@@ -26,6 +26,23 @@ MainWindow::MainWindow(QWidget *parent)
       currentCameraIndex(0) { // Initialize currentCameraIndex
   ui->setupUi(this);
 
+  // Request camera permissions
+  if (!requestCameraPermission()) {
+    QMessageBox::critical(
+        this, "Permission Denied",
+        "VisionGuard requires camera access to function properly. Please grant "
+        "camera access and restart the application.");
+    QCoreApplication::quit();
+    return;
+  }
+
+  // Show privacy information
+  QMessageBox::information(
+      this, "Privacy Information",
+      "VisionGuard requires camera access to function properly."
+      "The inference is done on your device and no data "
+      "is sent externally. Your privacy is safe.");
+
   visionGuard = initializeVisionGuard(currentPrecision, currentDevice);
   slog::debug << "VisionGuard backend initialized successfully" << slog::endl;
 
@@ -52,18 +69,27 @@ MainWindow::MainWindow(QWidget *parent)
           SLOT(on_breakIntervalHorizontalSlider_valueChanged(int)));
 }
 
-/**
- * @brief MainWindow destructor.
- */
 MainWindow::~MainWindow() {
   delete ui;
   delete timer;
   visionGuard.reset();
 }
 
-/**
- * @brief Checks if the gaze time exceeds the threshold and alerts the user.
- */
+bool MainWindow::requestCameraPermission() {
+  QCameraPermission cameraPermission;
+  switch (qApp->checkPermission(cameraPermission)) {
+  case Qt::PermissionStatus::Undetermined:
+    qApp->requestPermission(cameraPermission, this,
+                            &MainWindow::requestCameraPermission);
+    return false;
+  case Qt::PermissionStatus::Denied:
+    return false;
+  case Qt::PermissionStatus::Granted:
+    return true;
+  }
+  return false;
+}
+
 void MainWindow::checkGazeTime() {
   if (visionGuard->checkGazeTimeExceeded()) {
     int reply = QMessageBox::question(
