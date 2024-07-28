@@ -2,8 +2,8 @@
 #define MAINWINDOW_H
 
 #include "vision_guard.hpp"
-#include <QPermissions>
 #include <QMainWindow>
+#include <QPermissions>
 #include <QTimer>
 #include <QtCharts/QBarCategoryAxis>
 #include <QtCharts/QBarSeries>
@@ -40,6 +40,8 @@ private slots:
   void on_dailyStatButton_clicked();
   void on_resourceUtilizationButton_clicked();
   void on_weeklyStatButton_clicked();
+  void on_FPSLimitSpinBox_valueChanged(int value);
+  void on_FPSLimitHorizontalSlider_valueChanged(int value);
 
 private:
   void displayChart(const std::map<std::string, double> &stats,
@@ -80,7 +82,9 @@ private:
   PerformanceMetrics metrics;
 
   // Frame Settings
-  int delay = 1;
+  int FPS_LIMIT = 25;
+  std::chrono::time_point<std::chrono::high_resolution_clock> lastFrameTime;
+  int frameIntervalMs = 1000 / FPS_LIMIT;
   cv::Size imageSize = cv::Size(1920, 1080);
 
   // Model base paths

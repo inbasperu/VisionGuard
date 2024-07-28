@@ -40,12 +40,12 @@ MainWindow::MainWindow(QWidget *parent)
   slog::debug << "VisionGuard backend initialized successfully" << slog::endl;
 
   // Open the initial capture device
-  switchCamera(currentCameraIndex); // Use the switchCamera method
+  switchCamera(currentCameraIndex);
 
   timer = new QTimer(this);
   connect(timer, &QTimer::timeout, this, &MainWindow::updateFrame);
   connect(timer, &QTimer::timeout, this, &MainWindow::checkGazeTime);
-  timer->start(30);
+  timer->start(33);
 
   populateDeviceMenu();
   populateCameraMenu();
@@ -60,6 +60,11 @@ MainWindow::MainWindow(QWidget *parent)
           SLOT(on_breakIntervalSpinBox_valueChanged(int)));
   connect(ui->breakIntervalHorizontalSlider, SIGNAL(valueChanged(int)), this,
           SLOT(on_breakIntervalHorizontalSlider_valueChanged(int)));
+  // Connect the FPS limit controls
+  connect(ui->FPSLimitSpinBox, SIGNAL(valueChanged(int)), this,
+          SLOT(on_FPSLimitSpinBox_valueChanged(int)));
+  connect(ui->FPSLimitHorizontalSlider, SIGNAL(valueChanged(int)), this,
+          SLOT(on_FPSLimitHorizontalSlider_valueChanged(int)));
 
   // Show privacy information
   QMessageBox::information(
@@ -67,6 +72,9 @@ MainWindow::MainWindow(QWidget *parent)
       "VisionGuard requires camera access to function properly."
       "The inference is done on your device and no data "
       "is sent externally. Your privacy is safe.");
+
+  // Initialize the last frame time
+  lastFrameTime = std::chrono::high_resolution_clock::now();
 }
 
 MainWindow::~MainWindow() {
@@ -271,10 +279,6 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
   }
 }
 
-/**
- * @brief Loads models with the specified precision.
- * @param precision The precision level for the models.
- */
 void MainWindow::loadModels(const std::string &precision) {
   currentPrecision = precision;
   visionGuard.reset();
@@ -282,6 +286,18 @@ void MainWindow::loadModels(const std::string &precision) {
 }
 
 void MainWindow::on_actionExit_triggered() { close(); }
+
+void MainWindow::on_FPSLimitSpinBox_valueChanged(int value) {
+  FPS_LIMIT = value;
+  frameIntervalMs = 1000 / FPS_LIMIT;
+  ui->FPSLimitHorizontalSlider->setValue(value);
+}
+
+void MainWindow::on_FPSLimitHorizontalSlider_valueChanged(int value) {
+  FPS_LIMIT = value;
+  frameIntervalMs = 1000 / FPS_LIMIT;
+  ui->FPSLimitSpinBox->setValue(value);
+}
 
 void MainWindow::on_breakDurationHorizontalSlider_valueChanged(int value) {
   visionGuard->setAccumulatedGazeTimeThreshold(static_cast<double>(value));
@@ -499,10 +515,18 @@ void MainWindow::switchDevice(const std::string &device) {
   }
 }
 
-/**
- * @brief Updates the frame from the camera.
- */
 void MainWindow::updateFrame() {
+  auto now = std::chrono::high_resolution_clock::now();
+  auto elapsedTime =
+      std::chrono::duration_cast<std::chrono::milliseconds>(now - lastFrameTime)
+          .count();
+
+  if (elapsedTime < frameIntervalMs) {
+    return;
+  }
+
+  lastFrameTime = now;
+
   cv::Mat frame = cap->read();
 
   if (frame.empty())
