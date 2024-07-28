@@ -27,6 +27,9 @@ const QString DARK_THEME_STYLESHEET =
 // Screen Size
 const QSize DEFAULT_SCREEN_SIZE = QSize(1920, 1080);
 
+// Default Device type
+const std::string defaultDevice = "AUTO";
+
 // Model Directory and Names
 const std::string MODELS_DIR = "../omz_models";
 const std::string GAZE_MODEL_NAME = "gaze-estimation-adas-0002";

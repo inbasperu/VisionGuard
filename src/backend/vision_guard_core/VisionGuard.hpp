@@ -12,9 +12,11 @@
 #include "screen_time_metric_logger.hpp"
 #include "vector_calibration.hpp"
 
+namespace VisionGuardConfig {
 const cv::Size defaultScreenSize = cv::Size(1920, 1080);
 const std::string defaultScreenTimeStatsFilePath = "screen_time_stats.json";
 const std::string defaultDevice = "AUTO";
+} // namespace VisionGuardConfig
 
 class VisionGuard {
 public:
@@ -22,10 +24,10 @@ public:
               const std::string &head_pose_model,
               const std::string &landmarks_model,
               const std::string &eye_state_model,
-              const std::string &device = defaultDevice,
-              const cv::Size &screenSize = defaultScreenSize,
+              const std::string &device = VisionGuardConfig::defaultDevice,
+              const cv::Size &screenSize = VisionGuardConfig::defaultScreenSize,
               const std::string &screenTimeStatsFilePath =
-                  defaultScreenTimeStatsFilePath);
+                  VisionGuardConfig::defaultScreenTimeStatsFilePath);
   ~VisionGuard();
 
   void processFrame(cv::Mat &frame);
