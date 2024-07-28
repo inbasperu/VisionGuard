@@ -5,6 +5,8 @@ source /Users/inbasekaranperumal/Developer/Programs/OpenVINO-install-dir/setupva
 export OpenVINO_DIR=/Users/inbasekaranperumal/Developer/Programs/OpenVINO-install-dir/runtime/cmake
 export OpenCV_DIR=/Users/inbasekaranperumal/Developer/OpenSource/build_opencv
 
+rm -rf /Users/inbasekaranperumal/Developer/OpenSource/GSoC/code/VisionGuard/build
+
 # Navigate to the build directory or create it if it doesn't exist
 mkdir -p /Users/inbasekaranperumal/Developer/OpenSource/GSoC/code/VisionGuard/build
 cd /Users/inbasekaranperumal/Developer/OpenSource/GSoC/code/VisionGuard/build

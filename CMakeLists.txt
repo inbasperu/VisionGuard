@@ -133,3 +133,11 @@ add_custom_command(TARGET VisionGuardApp POST_BUILD
     "${OMZ_MODELS_DIR}"
     "$<TARGET_FILE_DIR:VisionGuardApp>/../omz_models"
 )
+
+if(APPLE)
+    add_custom_command(TARGET VisionGuardApp POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${CMAKE_CURRENT_SOURCE_DIR}/resources/vision-guard-removebg.icns
+        $<TARGET_FILE_DIR:VisionGuardApp>/../Resources/vision-guard-removebg.icns
+    )
+endif()
