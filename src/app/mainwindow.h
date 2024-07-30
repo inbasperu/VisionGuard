@@ -47,7 +47,6 @@ private slots:
   void on_weeklyStatButton_clicked();
   void on_FPSLimitSpinBox_valueChanged(int value);
   void on_FPSLimitHorizontalSlider_valueChanged(int value);
-  void handleQuit();
 
   // Sys tray methods and variables
 private:
@@ -96,8 +95,7 @@ private:
   std::unique_ptr<VisionGuard> visionGuard;
   std::unique_ptr<ImagesCapture> cap;
 
-  bool isQuitting;
-
+  static bool quitting;
   // Device and Precision
   std::string currentDevice;
   std::string currentPrecision;

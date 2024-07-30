@@ -20,6 +20,9 @@
 #include <limits.h>
 #include <unistd.h>
 #endif
+
+bool MainWindow::quitting = false;
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), currentDevice("AUTO"),
       currentPrecision("FP16"),
@@ -109,13 +112,8 @@ void MainWindow::createActions() {
   connect(restoreAction, &QAction::triggered, this, &QWidget::showNormal);
 
   quitAction = new QAction(tr("&Quit"), this);
-  connect(quitAction, &QAction::triggered, this,
-          &MainWindow::handleQuit);
-}
-
-void MainWindow::handleQuit() {
-  isQuitting = true;
-  qApp->quit();
+  quitAction->setShortcut(QKeySequence::Quit); // This sets Command + Q on Mac
+  connect(quitAction, &QAction::triggered, qApp, &QCoreApplication::quit);
 }
 
 void MainWindow::createTrayIcon() {
@@ -144,7 +142,7 @@ void MainWindow::setIcon() {
 
 void MainWindow::iconActivated(QSystemTrayIcon::ActivationReason reason) {
   switch (reason) {
-  case QSystemTrayIcon::Trigger:
+  // case QSystemTrayIcon::Trigger:
   case QSystemTrayIcon::DoubleClick:
     if (isVisible())
       hide();
@@ -157,8 +155,12 @@ void MainWindow::iconActivated(QSystemTrayIcon::ActivationReason reason) {
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
-  if (isQuitting) {
-    QMainWindow::closeEvent(event);
+  if (quitting || qApp->isSavingSession() ||
+      qApp->queryKeyboardModifiers() & Qt::ControlModifier) {
+    // If we're quitting, it's a session save, or Command/Control is pressed,
+    // quit the application
+    event->accept();
+    qApp->quit();
   } else if (trayIcon && trayIcon->isVisible()) {
     QMessageBox::information(
         this, tr("VisionGuard"),
@@ -356,7 +358,7 @@ MainWindow::initializeVisionGuard(const std::string &precision,
 
 void MainWindow::keyPressEvent(QKeyEvent *event) {
   if (event->key() == Qt::Key_Escape) {
-    close();
+    hide();
   } else {
     visionGuard->toggle(event->key());
   }
@@ -368,8 +370,10 @@ void MainWindow::loadModels(const std::string &precision) {
   visionGuard = initializeVisionGuard(currentPrecision, currentDevice);
 }
 
-void MainWindow::on_actionExit_triggered() { close(); }
-
+void MainWindow::on_actionExit_triggered() {
+  quitting = true;
+  close();
+}
 void MainWindow::on_FPSLimitSpinBox_valueChanged(int value) {
   FPS_LIMIT = value;
   frameIntervalMs = 1000 / FPS_LIMIT;
