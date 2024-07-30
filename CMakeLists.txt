@@ -59,7 +59,7 @@ endif()
 # Find required packages
 find_package(OpenCV REQUIRED COMPONENTS core highgui videoio imgproc imgcodecs)
 find_package(OpenVINO REQUIRED COMPONENTS Runtime)
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets Multimedia MultimediaWidgets Gui Charts)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Multimedia MultimediaWidgets Gui Charts Network)
 
 qt_standard_project_setup()
 
@@ -132,6 +132,13 @@ add_custom_command(TARGET VisionGuardApp POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     "${OMZ_MODELS_DIR}"
     "$<TARGET_FILE_DIR:VisionGuardApp>/../omz_models"
+)
+
+# Copy the icon to the resources directory
+add_custom_command(TARGET VisionGuardApp POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${CMAKE_CURRENT_SOURCE_DIR}/resources/vision-guard-removebg.png
+    $<TARGET_FILE_DIR:VisionGuardApp>/../resources/vision-guard-removebg.png
 )
 
 if(APPLE)

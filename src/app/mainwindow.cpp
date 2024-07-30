@@ -73,6 +73,21 @@ MainWindow::MainWindow(QWidget *parent)
       "The inference is done on your device and no data "
       "is sent externally. Your privacy is safe.");
 
+  iconPath = QString::fromStdString(getExecutablePath() +
+                                    "/../resources/vision-guard-removebg.png");
+  createActions();
+  createTrayIcon();
+  setIcon();
+
+  if (QSystemTrayIcon::isSystemTrayAvailable()) {
+    connect(trayIcon, &QSystemTrayIcon::activated, this,
+            &MainWindow::iconActivated);
+    trayIcon->show();
+  } else {
+    QMessageBox::warning(this, "System Tray",
+                         "System tray is not available on this system. "
+                         "The application will run without tray icon support.");
+  }
   // Initialize the last frame time
   lastFrameTime = std::chrono::high_resolution_clock::now();
 }
@@ -81,6 +96,80 @@ MainWindow::~MainWindow() {
   delete ui;
   delete timer;
   visionGuard.reset();
+}
+
+void MainWindow::createActions() {
+  minimizeAction = new QAction(tr("Mi&nimize"), this);
+  connect(minimizeAction, &QAction::triggered, this, &QWidget::hide);
+
+  maximizeAction = new QAction(tr("Ma&ximize"), this);
+  connect(maximizeAction, &QAction::triggered, this, &QWidget::showMaximized);
+
+  restoreAction = new QAction(tr("&Restore"), this);
+  connect(restoreAction, &QAction::triggered, this, &QWidget::showNormal);
+
+  quitAction = new QAction(tr("&Quit"), this);
+  connect(quitAction, &QAction::triggered, this,
+          &MainWindow::handleQuit);
+}
+
+void MainWindow::handleQuit() {
+  isQuitting = true;
+  qApp->quit();
+}
+
+void MainWindow::createTrayIcon() {
+  trayIconMenu = new QMenu(this);
+  trayIconMenu->addAction(minimizeAction);
+  trayIconMenu->addAction(maximizeAction);
+  trayIconMenu->addAction(restoreAction);
+  trayIconMenu->addSeparator();
+  trayIconMenu->addAction(quitAction);
+
+  trayIcon = new QSystemTrayIcon(this);
+  trayIcon->setContextMenu(trayIconMenu);
+}
+
+void MainWindow::setIcon() {
+  QIcon icon(iconPath);
+  if (icon.isNull()) {
+    qWarning() << "Failed to load icon from path:" << iconPath;
+  } else {
+    if (trayIcon) {
+      trayIcon->setIcon(icon);
+    }
+    setWindowIcon(icon);
+  }
+}
+
+void MainWindow::iconActivated(QSystemTrayIcon::ActivationReason reason) {
+  switch (reason) {
+  case QSystemTrayIcon::Trigger:
+  case QSystemTrayIcon::DoubleClick:
+    if (isVisible())
+      hide();
+    else
+      show();
+    break;
+  default:
+    break;
+  }
+}
+
+void MainWindow::closeEvent(QCloseEvent *event) {
+  if (isQuitting) {
+    QMainWindow::closeEvent(event);
+  } else if (trayIcon && trayIcon->isVisible()) {
+    QMessageBox::information(
+        this, tr("VisionGuard"),
+        tr("The program will keep running in the system tray. To terminate the "
+           "program, "
+           "choose <b>Quit</b> in the context menu of the system tray entry."));
+    hide();
+    event->ignore();
+  } else {
+    QMainWindow::closeEvent(event);
+  }
 }
 
 bool MainWindow::requestCameraPermission() {
@@ -265,10 +354,6 @@ MainWindow::initializeVisionGuard(const std::string &precision,
   return guard;
 }
 
-/**
- * @brief Handles key press events.
- * @param event The key event.
- */
 void MainWindow::keyPressEvent(QKeyEvent *event) {
   if (event->key() == Qt::Key_Escape) {
     close();

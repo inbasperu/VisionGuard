@@ -2,8 +2,13 @@
 #define MAINWINDOW_H
 
 #include "vision_guard.hpp"
+#include <QCloseEvent>
+#include <QIcon>
 #include <QMainWindow>
+#include <QMenu>
+#include <QMessageBox>
 #include <QPermissions>
+#include <QSystemTrayIcon>
 #include <QTimer>
 #include <QtCharts/QBarCategoryAxis>
 #include <QtCharts/QBarSeries>
@@ -42,6 +47,24 @@ private slots:
   void on_weeklyStatButton_clicked();
   void on_FPSLimitSpinBox_valueChanged(int value);
   void on_FPSLimitHorizontalSlider_valueChanged(int value);
+  void handleQuit();
+
+  // Sys tray methods and variables
+private:
+  void createTrayIcon();
+  void createActions();
+  void setIcon();
+  void iconActivated(QSystemTrayIcon::ActivationReason reason);
+
+  QSystemTrayIcon *trayIcon;
+  QMenu *trayIconMenu;
+  QAction *minimizeAction;
+  QAction *maximizeAction;
+  QAction *restoreAction;
+  QAction *quitAction;
+
+protected:
+  void closeEvent(QCloseEvent *event) override;
 
 private:
   void displayChart(const std::map<std::string, double> &stats,
@@ -73,6 +96,8 @@ private:
   std::unique_ptr<VisionGuard> visionGuard;
   std::unique_ptr<ImagesCapture> cap;
 
+  bool isQuitting;
+
   // Device and Precision
   std::string currentDevice;
   std::string currentPrecision;
@@ -94,6 +119,8 @@ private:
   // TODO: change it to 20 sec after testing
   int intervalDuration = 10;
 
+  // Path to image icon png
+  QString iconPath;
 
   // Model base paths
   const std::string MODELS_DIR = "../omz_models";
