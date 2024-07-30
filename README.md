@@ -37,15 +37,15 @@ VisionGuard is a desktop application designed to help prevent eye strain from ex
   - [x] Latency
   - [x] FPS
   - [x] Resource Utilization Graphs
-- [ ] Display device (CPU, NPU, GPU)
-- [ ] Display model (INT8, FP16, FP32)
-- [ ] Add AUTO to the list of devices and test the application with AUTO.
-- [ ] Run inference at user-specified FPS
-- [ ] Gaze Calibration Window
-- [ ] Windows system tray application
+- [x] Display device (CPU, NPU, GPU)
+- [x] Display model (INT8, FP16, FP32)
+- [x] Add AUTO to the list of devices and test the application with AUTO.
+- [x] Run inference at user-specified FPS
+- [x] Gaze Calibration Window
+- [x] Windows system tray application
 - [ ] Adaptive UI
-- [ ] Dark and Light Theme Support
-- [ ] VisionGuard Logo
+- [x] Dark and Light Theme Support
+- [x] VisionGuard Logo
 - [ ] Handle Multi-Monitor Setup
 - [ ] Handle Multi-Users
 
@@ -390,12 +390,14 @@ The demo allows you to control what information is displayed in run-time. The fo
 ### Setup and Build
 
 1. **Set Environment Variables:**
+
     ```bash
     export OpenVINO_DIR=/Users/inbasekaranperumal/Developer/Programs/OpenVINO-install-dir/runtime/cmake
     export OpenCV_DIR=/Users/inbasekaranperumal/Developer/OpenSource/build_opencv
     ```
 
 2. **Build Project:**
+
     ```bash
     cmake -DCMAKE_BUILD_TYPE=Release /Users/inbasekaranperumal/Developer/OpenSource/GSoC/code/VisionGuard
     cmake --build .
