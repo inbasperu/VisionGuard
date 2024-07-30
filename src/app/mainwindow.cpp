@@ -100,22 +100,20 @@ bool MainWindow::requestCameraPermission() {
 
 void MainWindow::checkGazeTime() {
   if (visionGuard->checkGazeTimeExceeded()) {
-    int reply = QMessageBox::question(
-        this, "20-20-20 Rule Alert",
-        "You have been looking at the screen for more than 20 minutes. Please "
-        "look at an object 20 feet away for 20 seconds.",
-        QMessageBox::Ok | QMessageBox::Cancel);
+    QString message =
+        QString("You have been looking at the screen for more than %1 minutes. "
+                "Please take a break for %2 seconds.")
+            .arg(gazeDuration)
+            .arg(intervalDuration);
+
+    int reply = QMessageBox::question(this, "Break Alert", message,
+                                      QMessageBox::Ok | QMessageBox::Cancel);
     if (reply == QMessageBox::Ok) {
       visionGuard->resetGazeTime();
     }
   }
 }
 
-/**
- * @brief Displays a chart with gaze time statistics.
- * @param stats The statistics data.
- * @param title The title of the chart.
- */
 void MainWindow::displayChart(const std::map<std::string, double> &stats,
                               const QString &title) {
   QBarSet *set = new QBarSet("Gaze Time");
@@ -300,21 +298,25 @@ void MainWindow::on_FPSLimitHorizontalSlider_valueChanged(int value) {
 }
 
 void MainWindow::on_breakDurationHorizontalSlider_valueChanged(int value) {
+  gazeDuration = value;
   visionGuard->setAccumulatedGazeTimeThreshold(static_cast<double>(value));
   ui->breakDurationSpinBox->setValue(value);
 }
 
 void MainWindow::on_breakDurationSpinBox_valueChanged(int arg1) {
+  gazeDuration = arg1;
   visionGuard->setAccumulatedGazeTimeThreshold(static_cast<double>(arg1));
   ui->breakDurationHorizontalSlider->setValue(arg1);
 }
 
 void MainWindow::on_breakIntervalHorizontalSlider_valueChanged(int value) {
+  intervalDuration = value;
   visionGuard->setGazeLostThreshold(static_cast<double>(value));
   ui->breakIntervalSpinBox->setValue(value);
 }
 
 void MainWindow::on_breakIntervalSpinBox_valueChanged(int arg1) {
+  intervalDuration = arg1;
   visionGuard->setGazeLostThreshold(static_cast<double>(arg1));
   ui->breakIntervalHorizontalSlider->setValue(arg1);
 }

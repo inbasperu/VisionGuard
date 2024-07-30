@@ -87,6 +87,14 @@ private:
   int frameIntervalMs = 1000 / FPS_LIMIT;
   cv::Size imageSize = cv::Size(1920, 1080);
 
+  // Break duration (seconds)
+  // TODO: change it to 20 min after testing
+  int gazeDuration = 20;
+  // Break interval (seconds)
+  // TODO: change it to 20 sec after testing
+  int intervalDuration = 10;
+
+
   // Model base paths
   const std::string MODELS_DIR = "../omz_models";
   const std::string GAZE_MODEL_NAME = "gaze-estimation-adas-0002";
