@@ -20,6 +20,9 @@
 #include <limits.h>
 #include <unistd.h>
 #endif
+#ifndef PATH_MAX
+#define PATH_MAX MAX_PATH
+#endif
 
 bool MainWindow::quitting = false;
 
@@ -76,16 +79,14 @@ MainWindow::MainWindow(QWidget *parent)
       "The inference is done on your device and no data "
       "is sent externally. Your privacy is safe.");
 
-  iconPath = QString::fromStdString(getExecutablePath() +
+  if (QSystemTrayIcon::isSystemTrayAvailable()) {
+    iconPath = QString::fromStdString(getExecutablePath() +
                                     "/../resources/vision-guard-removebg.png");
   createActions();
   createTrayIcon();
   setIcon();
-
-  if (QSystemTrayIcon::isSystemTrayAvailable()) {
-    connect(trayIcon, &QSystemTrayIcon::activated, this,
+  connect(trayIcon, &QSystemTrayIcon::activated, this,
             &MainWindow::iconActivated);
-    trayIcon->show();
   } else {
     QMessageBox::warning(this, "System Tray",
                          "System tray is not available on this system. "
@@ -112,7 +113,7 @@ void MainWindow::createActions() {
   connect(restoreAction, &QAction::triggered, this, &QWidget::showNormal);
 
   quitAction = new QAction(tr("&Quit"), this);
-  quitAction->setShortcut(QKeySequence::Quit); // This sets Command + Q on Mac
+  quitAction->setShortcut(QKeySequence::Quit);
   connect(quitAction, &QAction::triggered, qApp, &QCoreApplication::quit);
 }
 
@@ -142,7 +143,7 @@ void MainWindow::setIcon() {
 
 void MainWindow::iconActivated(QSystemTrayIcon::ActivationReason reason) {
   switch (reason) {
-  // case QSystemTrayIcon::Trigger:
+  case QSystemTrayIcon::Trigger:
   case QSystemTrayIcon::DoubleClick:
     if (isVisible())
       hide();
