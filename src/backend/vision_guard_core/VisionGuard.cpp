@@ -22,7 +22,6 @@ VisionGuard::~VisionGuard() {
   slog::debug << "Destroying VisionGuard Object" << slog::endl;
   slog::info << "Metrics report:" << slog::endl;
   performanceTracker.getMetrics().logTotal();
-  // Log gaze data and clean old data before destroying the object
   screenTimeMetricLogger.logGazeData(
       eyeGazeTimeTracker.getAccumulatedGazeTime());
   screenTimeMetricLogger.cleanOldData();
@@ -32,24 +31,11 @@ void VisionGuard::processFrame(cv::Mat &frame) {
   gazeDetectionEngine.processFrame(frame);
   if (vectorCalibration.isCalibrated()) {
     auto gazeVector = gazeDetectionEngine.getGazeVector();
-    eyeGazeTimeTracker.updateGazeTime(gazeVector, frame.size());
+    eyeGazeTimeTracker.updateGazeTime(gazeVector, frame);
     if (eyeGazeTimeTracker.checkGazeTimeExceeded()) {
       breakNotificationSystem.notifyBreak();
     }
   }
-
-  // Display accumulated gaze time and gaze lost duration on the frame
-  cv::putText(frame,
-              cv::format("Gaze Time: %.2f seconds",
-                         eyeGazeTimeTracker.getAccumulatedGazeTime()),
-              cv::Point(10, frame.rows - 60), cv::FONT_HERSHEY_PLAIN, 1.0,
-              cv::Scalar(0, 255, 0), 1);
-  cv::putText(frame,
-              cv::format("Gaze Lost Duration: %.2f seconds",
-                         eyeGazeTimeTracker.getGazeLostDuration()),
-              cv::Point(10, frame.rows - 30), cv::FONT_HERSHEY_PLAIN, 1.0,
-              cv::Scalar(0, 0, 255), 1);
-
   performanceTracker.update(frame);
 }
 

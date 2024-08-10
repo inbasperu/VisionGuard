@@ -14,7 +14,6 @@
 #include <utility>
 #include <vector>
 
-#include <nlohmann/json.hpp>
 
 #include <opencv2/core.hpp>
 #include <opencv2/highgui/highgui.hpp>

@@ -3,6 +3,8 @@
 
 #include <chrono>
 #include <opencv2/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
 class EyeGazeTimeTracker {
 public:
@@ -18,13 +20,16 @@ public:
 
   // Other member functions
   void resetGazeTime();
-  void updateGazeTime(const cv::Point3f &gazeVector, const cv::Size &imageSize);
+  void updateGazeTime(const cv::Point3f &gazeVector, cv::Mat &frame);
 
 private:
+  void updateGazeTime(cv::Mat &frame);
   // Data members
   // TODO: change the names of `accumulatedGazeTime` => `screenGazeDuration`
-  // TODO: change the names of `accumulatedGazeTimeThreshold` => screenGazeDurationThreshold
-  // TODO: change the names of `gazeLostThreshold` => `screenBreakDurationThreshold`
+  // TODO: change the names of `accumulatedGazeTimeThreshold` =>
+  // screenGazeDurationThreshold
+  // TODO: change the names of `gazeLostThreshold` =>
+  // `screenBreakDurationThreshold`
   double accumulatedGazeTime;
   double accumulatedGazeTimeThreshold;
   double gazeLostThreshold;

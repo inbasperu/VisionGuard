@@ -29,10 +29,15 @@ void EyeGazeTimeTracker::setGazeLostThreshold(const double threshold) {
 }
 
 // Other member functions
-void EyeGazeTimeTracker::resetGazeTime() { accumulatedGazeTime = 0; }
+void EyeGazeTimeTracker::resetGazeTime() {
+  //! The data is not being saved before being reset.
+  accumulatedGazeTime = 0;
+}
 
 void EyeGazeTimeTracker::updateGazeTime(const cv::Point3f &gazeVector,
-                                        const cv::Size &imageSize) {
+                                        cv::Mat &frame) {
+
+  const cv::Size imageSize = frame.size();
   auto now = std::chrono::steady_clock::now();
   cv::Point2f gazePoint(
       imageSize.width / 2 + gazeVector.x * imageSize.width / 2,
@@ -50,4 +55,18 @@ void EyeGazeTimeTracker::updateGazeTime(const cv::Point3f &gazeVector,
       resetGazeTime();
     }
   }
+  updateGazeTime(frame);
+}
+
+void EyeGazeTimeTracker::updateGazeTime(cv::Mat &frame) {
+  // Display accumulated gaze time and gaze lost duration on the frame
+  cv::putText(frame,
+              cv::format("Gaze Time: %.2f seconds", getAccumulatedGazeTime()),
+              cv::Point(10, frame.rows - 60), cv::FONT_HERSHEY_PLAIN, 1.0,
+              cv::Scalar(0, 255, 0), 1);
+  cv::putText(
+      frame,
+      cv::format("Gaze Lost Duration: %.2f seconds", getGazeLostDuration()),
+      cv::Point(10, frame.rows - 30), cv::FONT_HERSHEY_PLAIN, 1.0,
+      cv::Scalar(0, 0, 255), 1);
 }
