@@ -35,6 +35,9 @@ protected:
   void keyPressEvent(QKeyEvent *event) override;
 
 private slots:
+  void quitApplication();
+
+private slots:
   void checkGazeTime();
   void on_Calibrate_clicked();
   void on_actionExit_triggered();
@@ -96,6 +99,7 @@ private:
   std::unique_ptr<ImagesCapture> cap;
 
   static bool quitting;
+  static bool first_quit;
   // Device and Precision
   std::string currentDevice;
   std::string currentPrecision;

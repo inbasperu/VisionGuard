@@ -25,6 +25,7 @@
 #endif
 
 bool MainWindow::quitting = false;
+bool MainWindow::first_quit = true;
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), currentDevice("AUTO"),
@@ -80,13 +81,14 @@ MainWindow::MainWindow(QWidget *parent)
       "is sent externally. Your privacy is safe.");
 
   if (QSystemTrayIcon::isSystemTrayAvailable()) {
-    iconPath = QString::fromStdString(getExecutablePath() +
-                                    "/../resources/vision-guard-removebg.png");
-  createActions();
-  createTrayIcon();
-  setIcon();
-  connect(trayIcon, &QSystemTrayIcon::activated, this,
+    iconPath = QString::fromStdString(
+        getExecutablePath() + "/../resources/vision-guard-removebg.png");
+    createActions();
+    createTrayIcon();
+    setIcon();
+    connect(trayIcon, &QSystemTrayIcon::activated, this,
             &MainWindow::iconActivated);
+    trayIcon->show();
   } else {
     QMessageBox::warning(this, "System Tray",
                          "System tray is not available on this system. "
@@ -114,7 +116,12 @@ void MainWindow::createActions() {
 
   quitAction = new QAction(tr("&Quit"), this);
   quitAction->setShortcut(QKeySequence::Quit);
-  connect(quitAction, &QAction::triggered, qApp, &QCoreApplication::quit);
+  connect(quitAction, &QAction::triggered, this, &MainWindow::quitApplication);
+}
+
+void MainWindow::quitApplication() {
+  quitting = true;
+  qApp->quit();
 }
 
 void MainWindow::createTrayIcon() {
@@ -143,7 +150,7 @@ void MainWindow::setIcon() {
 
 void MainWindow::iconActivated(QSystemTrayIcon::ActivationReason reason) {
   switch (reason) {
-  case QSystemTrayIcon::Trigger:
+  // case QSystemTrayIcon::Trigger:
   case QSystemTrayIcon::DoubleClick:
     if (isVisible())
       hide();
@@ -163,11 +170,15 @@ void MainWindow::closeEvent(QCloseEvent *event) {
     event->accept();
     qApp->quit();
   } else if (trayIcon && trayIcon->isVisible()) {
-    QMessageBox::information(
-        this, tr("VisionGuard"),
-        tr("The program will keep running in the system tray. To terminate the "
-           "program, "
-           "choose <b>Quit</b> in the context menu of the system tray entry."));
+    if (first_quit) {
+      first_quit = false;
+      QMessageBox::information(this, tr("VisionGuard"),
+                               tr("The program will keep running in the system "
+                                  "tray. To terminate the "
+                                  "program, "
+                                  "choose <b>Quit</b> in the context menu of "
+                                  "the system tray entry."));
+    }
     hide();
     event->ignore();
   } else {
