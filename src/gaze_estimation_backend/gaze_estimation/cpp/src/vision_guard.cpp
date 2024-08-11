@@ -126,6 +126,8 @@ void VisionGuard::customCalibration(
 void VisionGuard::fourPointCalibration(const cv::Size &imageSize) {
   cv::Mat calibrationImage = cv::Mat::zeros(imageSize, CV_8UC3);
   ScreenCalibration calibration;
+  slog::debug << "Performing 4 point calibration for screen size " << imageSize
+              << slog::endl;
 
   // Define calibration points (corners)
   calibration.topLeft =
@@ -158,6 +160,8 @@ void VisionGuard::fourPointCalibration(const cv::Size &imageSize) {
 
 ScreenCalibration
 VisionGuard::getDefaultCalibrationPoints(const cv::Size &imageSize) {
+  slog::debug << "Performing default calibration for screen size " << imageSize
+              << slog::endl;
   ScreenCalibration calibration;
 
   calibration.topLeft =
@@ -168,6 +172,9 @@ VisionGuard::getDefaultCalibrationPoints(const cv::Size &imageSize) {
       cv::Point2f(0.9f * imageSize.width, 0.9f * imageSize.height);
   calibration.bottomLeft =
       cv::Point2f(0.1f * imageSize.width, 0.9f * imageSize.height);
+
+  // Log the calibration points
+  slog::debug << calibration << slog::endl;
 
   return calibration;
 }
@@ -406,8 +413,16 @@ bool VisionGuard::isToggled(char toggleType) const {
 
 cv::Point2f convertGazeVectorToPoint(const cv::Point3f &gazeVector,
                                      const cv::Size &imageSize) {
-  return {imageSize.width / 2 + gazeVector.x * imageSize.width / 2,
-          imageSize.height / 2 - gazeVector.y * imageSize.height / 2};
+  cv::Point2f point{imageSize.width / 2 + gazeVector.x * imageSize.width / 2,
+                    imageSize.height / 2 - gazeVector.y * imageSize.height / 2};
+
+  // Log the gaze vector and the converted point
+  slog::debug << "Gaze Vector: (" << gazeVector.x << ", " << gazeVector.y
+              << ", " << gazeVector.z << ")" << slog::endl;
+  slog::debug << "Converted Point: (" << point.x << ", " << point.y << ")"
+              << slog::endl;
+
+  return point;
 }
 
 bool VisionGuard::isGazeInScreen(const ScreenCalibration &calibration,
@@ -432,32 +447,48 @@ bool VisionGuard::isGazeInScreen(const ScreenCalibration &calibration,
     }
   }
 
+  // Log whether the gaze point is inside the screen
+  slog::debug << "Gaze is " << (isInside ? "inside" : "outside")
+              << " the screen" << slog::endl;
+
   return isInside;
 }
 
 void VisionGuard::updateGazeTime(const cv::Point3f &gazeVector,
                                  const cv::Size &imageSize) {
-
   auto now = std::chrono::steady_clock::now();
 
-  if (isGazeInScreen(calibration, gazeVector, imageSize)) {
+  // Check if the gaze is inside the screen
+  bool isGazeOnScreen = isGazeInScreen(calibration, gazeVector, imageSize);
+
+  if (isGazeOnScreen) {
     if (!isGazingAtScreen) {
+      // User started gazing at the screen
       isGazingAtScreen = true;
       lastCheckTime = now;
+      slog::debug << "Gaze started at the screen." << slog::endl;
     } else {
+      // User continues gazing at the screen
       std::chrono::duration<double> elapsed = now - lastCheckTime;
       accumulatedGazeTime += elapsed.count();
       lastCheckTime = now;
+      slog::debug << "Accumulated Gaze Time: " << accumulatedGazeTime
+                  << " seconds" << slog::endl;
     }
     gazeLostTime = now;
   } else {
+    // User is not gazing at the screen
     isGazingAtScreen = false;
-    double gazeLostDuration = getGazeLostDuration();
-    double accumulatedGazeTime = getAccumulatedGazeTime();
-    if (gazeLostDuration > gazeLostThreshold && accumulatedGazeTime != 0) {
-      slog::debug << "Gaze lost duration: " << gazeLostDuration
-                  << " Gaze lost threshold: " << gazeLostThreshold
-                  << slog::endl;
+    std::chrono::duration<double> elapsed = now - gazeLostTime;
+    double gazeLostDuration = elapsed.count();
+
+    slog::debug << "Gaze lost duration: " << gazeLostDuration << " seconds"
+                << slog::endl;
+
+    if (gazeLostDuration > gazeLostThreshold) {
+      slog::debug
+          << "Gaze lost duration exceeded threshold. Resetting gaze time."
+          << slog::endl;
       resetGazeTime();
     }
   }
