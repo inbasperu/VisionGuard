@@ -1,4 +1,5 @@
 #include "vision_guard.hpp"
+#include <opencv2/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <utils/slog.hpp>
 
@@ -8,6 +9,10 @@
 #include <fcntl.h>
 #include <sys/file.h>
 #include <unistd.h>
+#endif
+
+#ifdef __APPLE__
+#include <CoreGraphics/CoreGraphics.h>
 #endif
 
 VisionGuard::VisionGuard(const std::string &gaze_model,
@@ -118,43 +123,56 @@ void VisionGuard::defaultCalibration(
   this->setCalibrationPoints(this->getDefaultCalibrationPoints(imageSize));
 }
 
-void VisionGuard::customCalibration(
-    const cv::Size &imageSize = cv::Size(1920, 1080)) {
-  this->fourPointCalibration(imageSize);
-}
+void VisionGuard::customCalibration() { this->fourPointCalibration(); }
 
-void VisionGuard::fourPointCalibration(const cv::Size &imageSize) {
-  cv::Mat calibrationImage = cv::Mat::zeros(imageSize, CV_8UC3);
+void VisionGuard::fourPointCalibration() {
+  int screenWidth = 0;
+  int screenHeight = 0;
+
+#ifdef __APPLE__
+  CGRect screenRect = CGDisplayBounds(CGMainDisplayID());
+  screenWidth = static_cast<int>(screenRect.size.width);
+  screenHeight = static_cast<int>(screenRect.size.height);
+#else
+  cv::namedWindow("TempWindow", cv::WINDOW_NORMAL);
+  cv::setWindowProperty("TempWindow", cv::WND_PROP_FULLSCREEN,
+                        cv::WINDOW_FULLSCREEN);
+  screenWidth = cv::getWindowImageRect("TempWindow").width;
+  screenHeight = cv::getWindowImageRect("TempWindow").height;
+  cv::destroyWindow("TempWindow");
+#endif
+
+  cv::Size screenSize(screenWidth, screenHeight);
   ScreenCalibration calibration;
-  slog::debug << "Performing 4 point calibration for screen size " << imageSize
+  slog::debug << "Performing 4-point calibration for screen size " << screenSize
               << slog::endl;
 
   // Define calibration points (corners)
-  calibration.topLeft =
-      cv::Point2f(0.1f * imageSize.width, 0.1f * imageSize.height);
-  calibration.topRight =
-      cv::Point2f(0.9f * imageSize.width, 0.1f * imageSize.height);
+  calibration.topLeft = cv::Point2f(0.1f * screenWidth, 0.1f * screenHeight);
+  calibration.topRight = cv::Point2f(0.9f * screenWidth, 0.1f * screenHeight);
   calibration.bottomRight =
-      cv::Point2f(0.9f * imageSize.width, 0.9f * imageSize.height);
-  calibration.bottomLeft =
-      cv::Point2f(0.1f * imageSize.width, 0.9f * imageSize.height);
+      cv::Point2f(0.9f * screenWidth, 0.9f * screenHeight);
+  calibration.bottomLeft = cv::Point2f(0.1f * screenWidth, 0.9f * screenHeight);
 
-  // Draw circles on calibration points
   const std::vector<cv::Point2f> points = {
       calibration.topLeft, calibration.topRight, calibration.bottomRight,
       calibration.bottomLeft};
+
+  cv::namedWindow("Calibration", cv::WINDOW_NORMAL);
+  cv::setWindowProperty("Calibration", cv::WND_PROP_FULLSCREEN,
+                        cv::WINDOW_FULLSCREEN);
+
   for (const auto &point : points) {
-    calibrationImage = cv::Mat::zeros(imageSize, CV_8UC3);
-    cv::circle(calibrationImage, point, 10, cv::Scalar(0, 255, 0), -1);
+    cv::Mat calibrationImage = cv::Mat::zeros(screenSize, CV_8UC3);
+    cv::circle(calibrationImage, point, 20, cv::Scalar(0, 255, 0), -1);
     cv::imshow("Calibration", calibrationImage);
-    cv::waitKey(1000); // Wait for 1 second
+    cv::waitKey(0);
   }
+
+  // Wait for a key press before closing
   cv::destroyWindow("Calibration");
 
-  // Log the calibration points
   slog::debug << calibration << slog::endl;
-
-  // Set the calibration points
   setCalibrationPoints(calibration);
 }
 
@@ -466,14 +484,14 @@ void VisionGuard::updateGazeTime(const cv::Point3f &gazeVector,
       // User started gazing at the screen
       isGazingAtScreen = true;
       lastCheckTime = now;
-      slog::debug << "Gaze started at the screen." << slog::endl;
+      // slog::debug << "Gaze started at the screen." << slog::endl;
     } else {
       // User continues gazing at the screen
       std::chrono::duration<double> elapsed = now - lastCheckTime;
       accumulatedGazeTime += elapsed.count();
       lastCheckTime = now;
-      slog::debug << "Accumulated Gaze Time: " << accumulatedGazeTime
-                  << " seconds" << slog::endl;
+      // slog::debug << "Accumulated Gaze Time: " << accumulatedGazeTime
+      //             << " seconds" << slog::endl;
     }
     gazeLostTime = now;
   } else {
@@ -482,8 +500,8 @@ void VisionGuard::updateGazeTime(const cv::Point3f &gazeVector,
     std::chrono::duration<double> elapsed = now - gazeLostTime;
     double gazeLostDuration = elapsed.count();
 
-    slog::debug << "Gaze lost duration: " << gazeLostDuration << " seconds"
-                << slog::endl;
+    // slog::debug << "Gaze lost duration: " << gazeLostDuration << " seconds"
+    //             << slog::endl;
 
     if (gazeLostDuration > gazeLostThreshold) {
       slog::debug

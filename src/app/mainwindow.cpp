@@ -425,7 +425,7 @@ void MainWindow::on_breakIntervalSpinBox_valueChanged(int arg1) {
 }
 
 void MainWindow::on_Calibrate_clicked() {
-  visionGuard->fourPointCalibration(this->imageSize);
+  visionGuard->fourPointCalibration();
 
   QMessageBox::information(
       this, "Calibration Complete",
