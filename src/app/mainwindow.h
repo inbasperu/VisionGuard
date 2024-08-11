@@ -30,7 +30,6 @@ protected:
   void keyPressEvent(QKeyEvent *event) override;
 
 private slots:
-  void checkGazeTime();
   void on_Calibrate_clicked();
   void on_actionExit_triggered();
   void on_actionFP16_triggered();
@@ -57,9 +56,6 @@ private:
   std::string getExecutablePath();
   std::string getModelPath(const std::string &modelName,
                            const std::string &precision);
-  std::unique_ptr<VisionGuard>
-  initializeVisionGuard(const std::string &precision,
-                        const std::string &device);
   void loadModels(const std::string &precision);
   void populateCameraMenu();
   void populateDeviceMenu();
@@ -76,11 +72,7 @@ private:
   std::string currentDevice;
   std::string currentPrecision;
 
-  // Performance Metrics
-  PerformanceMetrics metrics;
-
   // Frame Settings
-  int delay = 1;
   cv::Size imageSize = DEFAULT_SCREEN_SIZE;
 };
 

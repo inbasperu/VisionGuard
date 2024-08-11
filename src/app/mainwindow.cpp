@@ -31,16 +31,23 @@ MainWindow::MainWindow(QWidget *parent)
       currentPrecision(FP32_PRECISION) {
   ui->setupUi(this);
 
-  visionGuard = initializeVisionGuard(currentPrecision, currentDevice);
+  // Initialize VisionGuard only once
+  visionGuard = std::make_unique<VisionGuard>(
+      getModelPath(GAZE_MODEL_NAME, currentPrecision),
+      getModelPath(FACE_MODEL_NAME, currentPrecision),
+      getModelPath(HEAD_POSE_MODEL_NAME, currentPrecision),
+      getModelPath(LANDMARKS_MODEL_NAME, currentPrecision),
+      getModelPath(EYE_STATE_MODEL_NAME, currentPrecision), currentDevice);
+
   slog::debug << "VisionGuard backend initialized successfully" << slog::endl;
 
   cap = openImagesCapture("0", false, read_type::efficient, 0,
                           std::numeric_limits<size_t>::max(),
                           stringToSize("1280x720"));
   slog::debug << "Capture device initialized successfully" << slog::endl;
+
   timer = new QTimer(this);
   connect(timer, &QTimer::timeout, this, &MainWindow::updateFrame);
-  connect(timer, &QTimer::timeout, this, &MainWindow::checkGazeTime);
   timer->start(30);
 
   populateDeviceMenu();
@@ -63,22 +70,6 @@ MainWindow::~MainWindow() {
   delete ui;
   delete timer;
   visionGuard.reset();
-}
-
-/**
- * @brief Checks if the gaze time exceeds the threshold and alerts the user.
- */
-void MainWindow::checkGazeTime() {
-  if (visionGuard->checkGazeTimeExceeded()) {
-    int reply = QMessageBox::question(
-        this, "20-20-20 Rule Alert",
-        "You have been looking at the screen for more than 20 minutes. Please "
-        "look at an object 20 feet away for 20 seconds.",
-        QMessageBox::Ok | QMessageBox::Cancel);
-    if (reply == QMessageBox::Ok) {
-      visionGuard->resetGazeTime();
-    }
-  }
 }
 
 /**
@@ -219,25 +210,6 @@ std::string MainWindow::getModelPath(const std::string &modelName,
 }
 
 /**
- * @brief Initializes the VisionGuard object.
- * @param precision The precision level for the models.
- * @param device The device to run the models on.
- * @return A unique pointer to the VisionGuard object.
- */
-std::unique_ptr<VisionGuard>
-MainWindow::initializeVisionGuard(const std::string &precision,
-                                  const std::string &device) {
-  auto guard = std::make_unique<VisionGuard>(
-      getModelPath(GAZE_MODEL_NAME, precision),
-      getModelPath(FACE_MODEL_NAME, precision),
-      getModelPath(HEAD_POSE_MODEL_NAME, precision),
-      getModelPath(LANDMARKS_MODEL_NAME, precision),
-      getModelPath(EYE_STATE_MODEL_NAME, precision), device);
-  guard->defaultCalibration(this->imageSize);
-  return guard;
-}
-
-/**
  * @brief Handles key press events.
  * @param event The key event.
  */
@@ -256,81 +228,39 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
 void MainWindow::loadModels(const std::string &precision) {
   currentPrecision = precision;
   visionGuard.reset();
-  visionGuard = initializeVisionGuard(currentPrecision, currentDevice);
+  visionGuard = std::make_unique<VisionGuard>(
+      getModelPath(GAZE_MODEL_NAME, currentPrecision),
+      getModelPath(FACE_MODEL_NAME, currentPrecision),
+      getModelPath(HEAD_POSE_MODEL_NAME, currentPrecision),
+      getModelPath(LANDMARKS_MODEL_NAME, currentPrecision),
+      getModelPath(EYE_STATE_MODEL_NAME, currentPrecision), currentDevice);
 }
 
-void MainWindow::on_actionExit_triggered() { close(); }
+/**
+ * @brief Updates the frame from the camera.
+ */
+void MainWindow::updateFrame() {
+  cv::Mat frame = cap->read();
 
-void MainWindow::on_actionFP16_triggered() { loadModels(FP16_PRECISION); }
+  if (frame.empty())
+    return;
 
-void MainWindow::on_actionFP32_triggered() { loadModels(FP32_PRECISION); }
+  visionGuard->processFrame(frame);
 
-void MainWindow::on_actionINT8_triggered() { loadModels(INT8_PRECISION); }
+  cv::cvtColor(frame, frame, cv::COLOR_BGR2RGB);
+  QImage img((const unsigned char *)(frame.data), frame.cols, frame.rows,
+             QImage::Format_RGB888);
+  ui->lastImagePreviewLabel->setPixmap(QPixmap::fromImage(img));
 
-void MainWindow::on_actionShow_All_triggered() {
-  visionGuard->toggle(TOGGLE_ALL);
-}
+  QTime gazeTime(0, 0);
+  gazeTime =
+      gazeTime.addSecs(static_cast<int>(visionGuard->getAccumulatedGazeTime()));
+  ui->GazeTime->setText(gazeTime.toString("mm:ss"));
 
-void MainWindow::on_actionShow_Eye_State_triggered() {
-  visionGuard->toggle(TOGGLE_EYE_STATE);
-}
-
-void MainWindow::on_actionShow_Face_Bounding_Box_triggered() {
-  visionGuard->toggle(TOGGLE_FACE_BOUNDING_BOX);
-}
-
-void MainWindow::on_actionShow_Gaze_triggered() {
-  visionGuard->toggle(TOGGLE_GAZE);
-}
-
-void MainWindow::on_actionShow_Head_Pose_Axes_triggered() {
-  visionGuard->toggle(TOGGLE_HEAD_POSE_AXES);
-}
-
-void MainWindow::on_actionShow_Landmarks_triggered() {
-  visionGuard->toggle(TOGGLE_LANDMARKS);
-}
-
-void MainWindow::on_actionShow_None_triggered() {
-  visionGuard->toggle(TOGGLE_NONE);
-}
-
-void MainWindow::on_breakDurationHorizontalSlider_valueChanged(int value) {
-  visionGuard->setAccumulatedGazeTimeThreshold(static_cast<double>(value));
-  ui->breakDurationSpinBox->setValue(value);
-}
-
-void MainWindow::on_breakDurationSpinBox_valueChanged(int arg1) {
-  visionGuard->setAccumulatedGazeTimeThreshold(static_cast<double>(arg1));
-  ui->breakDurationHorizontalSlider->setValue(arg1);
-}
-
-void MainWindow::on_breakIntervalHorizontalSlider_valueChanged(int value) {
-  visionGuard->setGazeLostThreshold(static_cast<double>(value));
-  ui->breakIntervalSpinBox->setValue(value);
-}
-
-void MainWindow::on_breakIntervalSpinBox_valueChanged(int arg1) {
-  visionGuard->setGazeLostThreshold(static_cast<double>(arg1));
-  ui->breakIntervalHorizontalSlider->setValue(arg1);
-}
-
-void MainWindow::on_Calibrate_clicked() {
-  visionGuard->defaultCalibration(this->imageSize);
-}
-
-void MainWindow::on_dailyStatButton_clicked() {
-  auto dailyStats = visionGuard->getDailyStats();
-  displayChart(dailyStats, "Daily Gaze Time Stats");
-}
-
-void MainWindow::on_resourceUtilizationButton_clicked() {
-  visionGuard->toggle(TOGGLE_RESOURCE_GRAPH);
-}
-
-void MainWindow::on_weeklyStatButton_clicked() {
-  auto weeklyStats = visionGuard->getWeeklyStats();
-  displayChart(weeklyStats, "Weekly Gaze Time Stats");
+  QTime gazeLostTime(0, 0);
+  gazeLostTime = gazeLostTime.addSecs(
+      static_cast<int>(visionGuard->getGazeLostDuration()));
+  ui->GazeLostTime->setText(gazeLostTime.toString("mm:ss"));
 }
 
 /**
@@ -389,12 +319,7 @@ void MainWindow::populateDeviceMenu() {
  * @param cameraIndex The index of the camera.
  */
 void MainWindow::switchCamera(int cameraIndex) {
-  // TODO: Add your logic to switch to the selected camera
-  // Example: reinitialize the VisionGuard with the new camera index
-  // visionGuard->setCameraIndex(cameraIndex);
-  // visionGuard.reset();
-  // visionGuard = initializeVisionGuard(currentPrecision, currentDevice);
-  // Restart the capture or other necessary operations
+  // TODO: Add logic to switch to the selected camera
 }
 
 /**
@@ -405,7 +330,12 @@ void MainWindow::switchDevice(const std::string &device) {
   if (visionGuard->isDeviceAvailable(device)) {
     currentDevice = device;
     visionGuard.reset();
-    visionGuard = initializeVisionGuard(currentPrecision, currentDevice);
+    visionGuard = std::make_unique<VisionGuard>(
+        getModelPath(GAZE_MODEL_NAME, currentPrecision),
+        getModelPath(FACE_MODEL_NAME, currentPrecision),
+        getModelPath(HEAD_POSE_MODEL_NAME, currentPrecision),
+        getModelPath(LANDMARKS_MODEL_NAME, currentPrecision),
+        getModelPath(EYE_STATE_MODEL_NAME, currentPrecision), currentDevice);
   } else {
     QMessageBox::warning(
         this, "Warning",
@@ -414,28 +344,99 @@ void MainWindow::switchDevice(const std::string &device) {
 }
 
 /**
- * @brief Updates the frame from the camera.
+ * @brief Slot to handle break duration slider value change.
  */
-void MainWindow::updateFrame() {
-  cv::Mat frame = cap->read();
+void MainWindow::on_breakDurationHorizontalSlider_valueChanged(int value) {
+  visionGuard->setAccumulatedGazeTimeThreshold(static_cast<double>(value));
+  ui->breakDurationSpinBox->setValue(value);
+}
 
-  if (frame.empty())
-    return;
+/**
+ * @brief Slot to handle break duration spin box value change.
+ */
+void MainWindow::on_breakDurationSpinBox_valueChanged(int arg1) {
+  visionGuard->setAccumulatedGazeTimeThreshold(static_cast<double>(arg1));
+  ui->breakDurationHorizontalSlider->setValue(arg1);
+}
 
-  visionGuard->processFrame(frame);
+/**
+ * @brief Slot to handle break interval slider value change.
+ */
+void MainWindow::on_breakIntervalHorizontalSlider_valueChanged(int value) {
+  visionGuard->setGazeLostThreshold(static_cast<double>(value));
+  ui->breakIntervalSpinBox->setValue(value);
+}
 
-  cv::cvtColor(frame, frame, cv::COLOR_BGR2RGB);
-  QImage img((const unsigned char *)(frame.data), frame.cols, frame.rows,
-             QImage::Format_RGB888);
-  ui->lastImagePreviewLabel->setPixmap(QPixmap::fromImage(img));
+/**
+ * @brief Slot to handle break interval spin box value change.
+ */
+void MainWindow::on_breakIntervalSpinBox_valueChanged(int arg1) {
+  visionGuard->setGazeLostThreshold(static_cast<double>(arg1));
+  ui->breakIntervalHorizontalSlider->setValue(arg1);
+}
 
-  QTime gazeTime(0, 0);
-  gazeTime =
-      gazeTime.addSecs(static_cast<int>(visionGuard->getAccumulatedGazeTime()));
-  ui->GazeTime->setText(gazeTime.toString("mm:ss"));
+/**
+ * @brief Handles the calibration button click event.
+ */
+void MainWindow::on_Calibrate_clicked() {
+  visionGuard->defaultCalibration(this->imageSize);
+}
 
-  QTime gazeLostTime(0, 0);
-  gazeLostTime = gazeLostTime.addSecs(
-      static_cast<int>(visionGuard->getGazeLostDuration()));
-  ui->GazeLostTime->setText(gazeLostTime.toString("mm:ss"));
+/**
+ * @brief Handles the daily statistics button click event.
+ */
+void MainWindow::on_dailyStatButton_clicked() {
+  auto dailyStats = visionGuard->getDailyStats();
+  displayChart(dailyStats, "Daily Gaze Time Stats");
+}
+
+/**
+ * @brief Handles the resource utilization button click event.
+ */
+void MainWindow::on_resourceUtilizationButton_clicked() {
+  visionGuard->toggle(TOGGLE_RESOURCE_GRAPH);
+}
+
+/**
+ * @brief Handles the weekly statistics button click event.
+ */
+void MainWindow::on_weeklyStatButton_clicked() {
+  auto weeklyStats = visionGuard->getWeeklyStats();
+  displayChart(weeklyStats, "Weekly Gaze Time Stats");
+}
+
+void MainWindow::on_actionExit_triggered() { close(); }
+
+void MainWindow::on_actionFP16_triggered() { loadModels(FP16_PRECISION); }
+
+void MainWindow::on_actionFP32_triggered() { loadModels(FP32_PRECISION); }
+
+void MainWindow::on_actionINT8_triggered() { loadModels(INT8_PRECISION); }
+
+void MainWindow::on_actionShow_All_triggered() {
+  visionGuard->toggle(TOGGLE_ALL);
+}
+
+void MainWindow::on_actionShow_Eye_State_triggered() {
+  visionGuard->toggle(TOGGLE_EYE_STATE);
+}
+
+void MainWindow::on_actionShow_Face_Bounding_Box_triggered() {
+  visionGuard->toggle(TOGGLE_FACE_BOUNDING_BOX);
+}
+
+void MainWindow::on_actionShow_Gaze_triggered() {
+  visionGuard->toggle(TOGGLE_GAZE);
+}
+
+void MainWindow::on_actionShow_Head_Pose_Axes_triggered() {
+  visionGuard->toggle(TOGGLE_HEAD_POSE_AXES);
+}
+
+void MainWindow::on_actionShow_Landmarks_triggered() {
+  visionGuard->toggle(TOGGLE_LANDMARKS);
+}
+
+void MainWindow::on_actionShow_None_triggered() {
+  visionGuard->toggle(TOGGLE_NONE);
 }
