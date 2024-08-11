@@ -404,12 +404,20 @@ bool VisionGuard::isToggled(char toggleType) const {
   return false;
 }
 
-bool VisionGuard::isPointInsidePolygon(const ScreenCalibration &calibration,
-                                       const cv::Point2f &point) const {
+cv::Point2f convertGazeVectorToPoint(const cv::Point3f &gazeVector,
+                                     const cv::Size &imageSize) {
+  return {imageSize.width / 2 + gazeVector.x * imageSize.width / 2,
+          imageSize.height / 2 - gazeVector.y * imageSize.height / 2};
+}
+
+bool VisionGuard::isGazeInScreen(const ScreenCalibration &calibration,
+                                 const cv::Point3f &gazeVector,
+                                 const cv::Size &imageSize) const {
   // Extract the four points from the ScreenCalibration struct
   std::vector<cv::Point2f> polygon = {calibration.topLeft, calibration.topRight,
                                       calibration.bottomRight,
                                       calibration.bottomLeft};
+  auto point = convertGazeVectorToPoint(gazeVector, imageSize);
 
   int i, j, nvert = polygon.size();
   bool isInside = false;
@@ -431,11 +439,8 @@ void VisionGuard::updateGazeTime(const cv::Point3f &gazeVector,
                                  const cv::Size &imageSize) {
 
   auto now = std::chrono::steady_clock::now();
-  cv::Point2f gazePoint(
-      imageSize.width / 2 + gazeVector.x * imageSize.width / 2,
-      imageSize.height / 2 - gazeVector.y * imageSize.height / 2);
 
-  if (isPointInsidePolygon(calibration, gazePoint)) {
+  if (isGazeInScreen(calibration, gazeVector, imageSize)) {
     if (!isGazingAtScreen) {
       isGazingAtScreen = true;
       lastCheckTime = now;

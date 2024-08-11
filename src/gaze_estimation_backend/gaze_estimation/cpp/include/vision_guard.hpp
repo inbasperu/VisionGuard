@@ -93,8 +93,9 @@ public:
 private:
   void cleanOldData();
   ScreenCalibration getDefaultCalibrationPoints(const cv::Size &imageSize);
-  bool isPointInsidePolygon(const ScreenCalibration &calibration,
-                            const cv::Point2f &point) const;
+  bool isGazeInScreen(const ScreenCalibration &calibration,
+                      const cv::Point3f &gazeVector,
+                      const cv::Size &imageSize) const;
   nlohmann::json readDataFile();
   void updateGazeTime(const cv::Point3f &gazeVector, const cv::Size &imageSize);
   void updateHourlyData(nlohmann::json &data, const std::string &key,
