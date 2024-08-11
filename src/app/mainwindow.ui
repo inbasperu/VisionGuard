@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1047</width>
-    <height>517</height>
+    <width>900</width>
+    <height>520</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -98,7 +98,7 @@
         <item row="0" column="1">
          <widget class="QLabel" name="lastImagePreviewLabel">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
@@ -420,8 +420,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1047</width>
-     <height>22</height>
+     <width>900</width>
+     <height>37</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

@@ -203,6 +203,8 @@ bool MainWindow::requestCameraPermission() {
 
 void MainWindow::checkGazeTime() {
   if (visionGuard->checkGazeTimeExceeded()) {
+    show();
+    QApplication::beep();
     QString message =
         QString("You have been looking at the screen for more than %1 minutes. "
                 "Please take a break for %2 seconds.")
@@ -597,7 +599,7 @@ void MainWindow::switchCamera(int cameraIndex) {
   // Open the new capture device
   cap = openImagesCapture(
       std::to_string(currentCameraIndex).c_str(), false, read_type::efficient,
-      0, std::numeric_limits<size_t>::max(), stringToSize("1280x720"));
+      0, std::numeric_limits<size_t>::max(), stringToSize("800x400"));
 
   if (cap) {
     slog::debug << "Capture device " << currentCameraIndex
