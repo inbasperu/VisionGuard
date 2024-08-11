@@ -54,16 +54,6 @@ VisionGuard::~VisionGuard() {
 }
 
 /**
- * @brief Calibrates the screen using specified calibration points.
- * @param calibrationPoints The calibration points on the screen.
- */
-void VisionGuard::calibrateScreen(
-    const std::vector<cv::Point2f> &calibrationPoints) {
-  calibration.points = calibrationPoints;
-  calibration.isCalibrated = true;
-}
-
-/**
  * @brief Checks if the accumulated gaze time has exceeded the threshold.
  * @return True if the accumulated gaze time has exceeded the threshold, false
  * otherwise.
@@ -118,18 +108,70 @@ void VisionGuard::createEmptyDataFile() {
               << dataFilePath << slog::endl;
 }
 
-/**
- * @brief Performs default screen calibration.
- * @param imageSize The size of the image used for calibration.
- */
-void VisionGuard::defaultCalibration(const cv::Size &imageSize) {
-  this->calibrateScreen(this->getDefaultCalibrationPoints(imageSize));
+void VisionGuard::setCalibrationPoints(
+    const ScreenCalibration &calibrationPoints) {
+  calibration = calibrationPoints;
 }
 
-/**
- * @brief Gets the accumulated gaze time.
- * @return The accumulated gaze time in seconds.
- */
+void VisionGuard::defaultCalibration(
+    const cv::Size &imageSize = cv::Size(1920, 1080)) {
+  this->setCalibrationPoints(this->getDefaultCalibrationPoints(imageSize));
+}
+
+void VisionGuard::customCalibration(
+    const cv::Size &imageSize = cv::Size(1920, 1080)) {
+  this->fourPointCalibration(imageSize);
+}
+
+void VisionGuard::fourPointCalibration(const cv::Size &imageSize) {
+  cv::Mat calibrationImage = cv::Mat::zeros(imageSize, CV_8UC3);
+  ScreenCalibration calibration;
+
+  // Define calibration points (corners)
+  calibration.topLeft =
+      cv::Point2f(0.1f * imageSize.width, 0.1f * imageSize.height);
+  calibration.topRight =
+      cv::Point2f(0.9f * imageSize.width, 0.1f * imageSize.height);
+  calibration.bottomRight =
+      cv::Point2f(0.9f * imageSize.width, 0.9f * imageSize.height);
+  calibration.bottomLeft =
+      cv::Point2f(0.1f * imageSize.width, 0.9f * imageSize.height);
+
+  // Draw circles on calibration points
+  const std::vector<cv::Point2f> points = {
+      calibration.topLeft, calibration.topRight, calibration.bottomRight,
+      calibration.bottomLeft};
+  for (const auto &point : points) {
+    calibrationImage = cv::Mat::zeros(imageSize, CV_8UC3);
+    cv::circle(calibrationImage, point, 10, cv::Scalar(0, 255, 0), -1);
+    cv::imshow("Calibration", calibrationImage);
+    cv::waitKey(1000); // Wait for 1 second
+  }
+  cv::destroyWindow("Calibration");
+
+  // Log the calibration points
+  slog::debug << calibration << slog::endl;
+
+  // Set the calibration points
+  setCalibrationPoints(calibration);
+}
+
+ScreenCalibration
+VisionGuard::getDefaultCalibrationPoints(const cv::Size &imageSize) {
+  ScreenCalibration calibration;
+
+  calibration.topLeft =
+      cv::Point2f(0.1f * imageSize.width, 0.1f * imageSize.height);
+  calibration.topRight =
+      cv::Point2f(0.9f * imageSize.width, 0.1f * imageSize.height);
+  calibration.bottomRight =
+      cv::Point2f(0.9f * imageSize.width, 0.9f * imageSize.height);
+  calibration.bottomLeft =
+      cv::Point2f(0.1f * imageSize.width, 0.9f * imageSize.height);
+
+  return calibration;
+}
+
 double VisionGuard::getAccumulatedGazeTime() const {
   return accumulatedGazeTime;
 }
@@ -140,7 +182,7 @@ double VisionGuard::getAccumulatedGazeTime() const {
  */
 std::vector<std::string> VisionGuard::getAvailableDevices() {
   auto devices = core.get_available_devices();
-  if(devices.size())
+  if (devices.size())
     devices.push_back("AUTO");
   return devices;
 }
@@ -175,30 +217,6 @@ std::map<std::string, double> VisionGuard::getDailyStats() {
   }
 
   return dailyStats;
-}
-
-/**
- * @brief Gets the default calibration points on the screen.
- * @param imageSize The size of the image used for calibration.
- * @param numPoints The number of calibration points.
- * @return A vector of calibration points.
- */
-std::vector<cv::Point2f>
-VisionGuard::getDefaultCalibrationPoints(const cv::Size &imageSize,
-                                         const int numPoints) {
-  std::vector<cv::Point2f> calibrationPoints;
-  // Define calibration points (corners and center)
-  calibrationPoints.push_back(
-      cv::Point2f(0.1 * imageSize.width, 0.1 * imageSize.height)); // Top-left
-  calibrationPoints.push_back(
-      cv::Point2f(0.9 * imageSize.width, 0.1 * imageSize.height)); // Top-right
-  calibrationPoints.push_back(
-      cv::Point2f(0.5 * imageSize.width, 0.5 * imageSize.height)); // Center
-  calibrationPoints.push_back(cv::Point2f(
-      0.1 * imageSize.width, 0.9 * imageSize.height)); // Bottom-left
-  calibrationPoints.push_back(cv::Point2f(
-      0.9 * imageSize.width, 0.9 * imageSize.height)); // Bottom-right
-  return calibrationPoints;
 }
 
 /**
@@ -254,41 +272,12 @@ std::map<std::string, double> VisionGuard::getWeeklyStats() {
   return weeklyStats;
 }
 
-/**
- * @brief Checks if a device is available.
- * @param device The name of the device.
- * @return True if the device is available, false otherwise.
- */
 bool VisionGuard::isDeviceAvailable(const std::string &device) {
   std::vector<std::string> availableDevices = getAvailableDevices();
   return std::find(availableDevices.begin(), availableDevices.end(), device) !=
          availableDevices.end();
 }
 
-/**
- * @brief Checks if a point is inside a polygon.
- * @param polygon The polygon defined by a vector of points.
- * @param point The point to check.
- * @return True if the point is inside the polygon, false otherwise.
- */
-bool VisionGuard::isPointInsidePolygon(const std::vector<cv::Point2f> &polygon,
-                                       const cv::Point2f &point) const {
-  int i, j, nvert = polygon.size();
-  bool c = false;
-  for (i = 0, j = nvert - 1; i < nvert; j = i++) {
-    if (((polygon[i].y >= point.y) != (polygon[j].y >= point.y)) &&
-        (point.x <= (polygon[j].x - polygon[i].x) * (point.y - polygon[i].y) /
-                            (polygon[j].y - polygon[i].y) +
-                        polygon[i].x)) {
-      c = !c;
-    }
-  }
-  return c;
-}
-
-/**
- * @brief Logs gaze data to the data file.
- */
 void VisionGuard::logGazeData() {
   double gazeDuration = getAccumulatedGazeTime();
   nlohmann::json data = readDataFile();
@@ -305,10 +294,6 @@ void VisionGuard::logGazeData() {
               << slog::endl;
 }
 
-/**
- * @brief Processes a frame and updates gaze data.
- * @param frame The frame to process.
- */
 void VisionGuard::processFrame(cv::Mat &frame) {
   start_time = std::chrono::steady_clock::now();
   auto inferenceResults = faceDetector.detect(frame);
@@ -341,10 +326,7 @@ void VisionGuard::processFrame(cv::Mat &frame) {
   presenter.drawGraphs(frame);
   metrics.update(start_time, frame, {10, 22}, cv::FONT_HERSHEY_COMPLEX, 0.65);
 }
-/**
- * @brief Reads data from the data file.
- * @return The data read from the file as a JSON object.
- */
+
 nlohmann::json VisionGuard::readDataFile() {
   nlohmann::json data;
 
@@ -375,51 +357,11 @@ nlohmann::json VisionGuard::readDataFile() {
   return data;
 }
 
-/**
- * @brief Resets the accumulated gaze time.
- */
 void VisionGuard::resetGazeTime() {
   logGazeData();
   accumulatedGazeTime = 0;
 }
 
-/**
- * @brief Shows the calibration window.
- * @param imageSize The size of the image used for calibration.
- */
-void VisionGuard::showCalibrationWindow(const cv::Size &imageSize) {
-  const int numPoints = 5;
-  cv::Mat calibrationImage = cv::Mat::zeros(imageSize, CV_8UC3);
-  std::vector<cv::Point2f> calibrationPoints;
-
-  // Define calibration points (corners and center)
-  calibrationPoints.push_back(
-      cv::Point2f(0.1 * imageSize.width, 0.1 * imageSize.height)); // Top-left
-  calibrationPoints.push_back(
-      cv::Point2f(0.9 * imageSize.width, 0.1 * imageSize.height)); // Top-right
-  calibrationPoints.push_back(
-      cv::Point2f(0.5 * imageSize.width, 0.5 * imageSize.height)); // Center
-  calibrationPoints.push_back(cv::Point2f(
-      0.1 * imageSize.width, 0.9 * imageSize.height)); // Bottom-left
-  calibrationPoints.push_back(cv::Point2f(
-      0.9 * imageSize.width, 0.9 * imageSize.height)); // Bottom-right
-
-  for (int i = 0; i < numPoints; ++i) {
-    calibrationImage = cv::Mat::zeros(imageSize, CV_8UC3);
-    cv::circle(calibrationImage, calibrationPoints[i], 10,
-               cv::Scalar(0, 255, 0), -1);
-    cv::imshow("Calibration", calibrationImage);
-    cv::waitKey(1000); // Wait for 1 second
-  }
-  cv::destroyWindow("Calibration");
-  calibrateScreen(calibrationPoints);
-}
-
-/**
- * @brief Saves JSON data to a file.
- * @param data The JSON data to save.
- * @param filePath The path to the file.
- */
 void VisionGuard::saveJsonData(const nlohmann::json &data,
                                const std::string &filePath) {
   try {
@@ -439,27 +381,15 @@ void VisionGuard::saveJsonData(const nlohmann::json &data,
   }
 }
 
-/**
- * @brief Sets the threshold for accumulated gaze time.
- * @param accumulated_gaze_time_threshold The threshold value.
- */
 void VisionGuard::setAccumulatedGazeTimeThreshold(
     const double accumulated_gaze_time_threshold) {
   this->accumulated_gaze_time_threshold = accumulated_gaze_time_threshold;
 }
 
-/**
- * @brief Sets the threshold for gaze lost duration.
- * @param gazeLostThreshold The threshold value.
- */
 void VisionGuard::setGazeLostThreshold(const double gazeLostThreshold) {
   this->gazeLostThreshold = gazeLostThreshold;
 }
 
-/**
- * @brief Toggles the display options based on the key pressed.
- * @param key The key pressed.
- */
 void VisionGuard::toggle(int key) {
   toggleStates[key] = !toggleStates[key];
   resultsMarker.toggle(key);
@@ -474,22 +404,38 @@ bool VisionGuard::isToggled(char toggleType) const {
   return false;
 }
 
-/**
- * @brief Updates the gaze time based on the gaze vector.
- * @param gazeVector The gaze vector.
- * @param imageSize The size of the image used for calibration.
- */
+bool VisionGuard::isPointInsidePolygon(const ScreenCalibration &calibration,
+                                       const cv::Point2f &point) const {
+  // Extract the four points from the ScreenCalibration struct
+  std::vector<cv::Point2f> polygon = {calibration.topLeft, calibration.topRight,
+                                      calibration.bottomRight,
+                                      calibration.bottomLeft};
+
+  int i, j, nvert = polygon.size();
+  bool isInside = false;
+
+  for (i = 0, j = nvert - 1; i < nvert; j = i++) {
+    // Check if point is inside the polygon using the ray-casting algorithm
+    if (((polygon[i].y > point.y) != (polygon[j].y > point.y)) &&
+        (point.x < (polygon[j].x - polygon[i].x) * (point.y - polygon[i].y) /
+                           (polygon[j].y - polygon[i].y) +
+                       polygon[i].x)) {
+      isInside = !isInside;
+    }
+  }
+
+  return isInside;
+}
+
 void VisionGuard::updateGazeTime(const cv::Point3f &gazeVector,
                                  const cv::Size &imageSize) {
-  if (!calibration.isCalibrated)
-    return;
 
   auto now = std::chrono::steady_clock::now();
   cv::Point2f gazePoint(
       imageSize.width / 2 + gazeVector.x * imageSize.width / 2,
       imageSize.height / 2 - gazeVector.y * imageSize.height / 2);
 
-  if (isPointInsidePolygon(calibration.points, gazePoint)) {
+  if (isPointInsidePolygon(calibration, gazePoint)) {
     if (!isGazingAtScreen) {
       isGazingAtScreen = true;
       lastCheckTime = now;
@@ -512,12 +458,6 @@ void VisionGuard::updateGazeTime(const cv::Point3f &gazeVector,
   }
 }
 
-/**
- * @brief Updates the hourly gaze data.
- * @param data The JSON object containing gaze data.
- * @param key The key for the gaze data.
- * @param value The gaze data value to update.
- */
 void VisionGuard::updateHourlyData(nlohmann::json &data, const std::string &key,
                                    double value) {
   std::string hour = getHourlyTimestamp();

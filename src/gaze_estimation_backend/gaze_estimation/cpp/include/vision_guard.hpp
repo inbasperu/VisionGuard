@@ -32,6 +32,7 @@
 #include <utils/slog.hpp>
 
 #include "base_estimator.hpp"
+#include "constants.hpp"
 #include "eye_state_estimator.hpp"
 #include "face_detector.hpp"
 #include "face_inference_results.hpp"
@@ -40,12 +41,23 @@
 #include "landmarks_estimator.hpp"
 #include "results_marker.hpp"
 #include "utils.hpp"
-#include "constants.hpp"
 
 struct ScreenCalibration {
-  std::vector<cv::Point2f> points; // Calibration points on the screen
-  bool isCalibrated = false;
+  cv::Point2f topLeft;
+  cv::Point2f topRight;
+  cv::Point2f bottomRight;
+  cv::Point2f bottomLeft;
 };
+
+// Overload the << operator to print the points for logging
+inline std::ostream &operator<<(std::ostream &os,
+                                const ScreenCalibration &calibration) {
+  os << "Top-left: " << calibration.topLeft << ", "
+     << "Top-right: " << calibration.topRight << ", "
+     << "Bottom-right: " << calibration.bottomRight << ", "
+     << "Bottom-left: " << calibration.bottomLeft;
+  return os;
+}
 
 class VisionGuard {
 public:
@@ -55,10 +67,11 @@ public:
               const std::string &eye_state_model, const std::string &device);
   ~VisionGuard();
 
-  void calibrateScreen(const std::vector<cv::Point2f> &calibrationPoints);
+  void setCalibrationPoints(const ScreenCalibration &calibrationPoints);
   bool checkGazeTimeExceeded() const;
   void createEmptyDataFile();
   void defaultCalibration(const cv::Size &imageSize);
+  void customCalibration(const cv::Size &imageSize);
   std::vector<std::string> getAvailableDevices();
   std::map<std::string, double> getDailyStats();
   double getAccumulatedGazeTime() const;
@@ -74,15 +87,13 @@ public:
   void
   setAccumulatedGazeTimeThreshold(const double accumulated_gaze_time_threshold);
   void setGazeLostThreshold(const double gazeLostThreshold);
-  void showCalibrationWindow(const cv::Size &imageSize);
+  void fourPointCalibration(const cv::Size &imageSize);
   void toggle(int key);
 
 private:
   void cleanOldData();
-  std::vector<cv::Point2f>
-  getDefaultCalibrationPoints(const cv::Size &imageSize,
-                              const int numPoints = 5);
-  bool isPointInsidePolygon(const std::vector<cv::Point2f> &polygon,
+  ScreenCalibration getDefaultCalibrationPoints(const cv::Size &imageSize);
+  bool isPointInsidePolygon(const ScreenCalibration &calibration,
                             const cv::Point2f &point) const;
   nlohmann::json readDataFile();
   void updateGazeTime(const cv::Point3f &gazeVector, const cv::Size &imageSize);
