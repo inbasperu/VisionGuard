@@ -37,3 +37,4 @@ build/*
 #Mac 
 .DS_store
 .vscode
+CMakeLists.txt.user
