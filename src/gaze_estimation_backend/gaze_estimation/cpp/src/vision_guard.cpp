@@ -499,11 +499,11 @@ cv::Point2f convertGazeVectorToPoint(const cv::Point3f &gazeVector,
   cv::Point2f point{imageSize.width / 2 + gazeVector.x * imageSize.width / 2,
                     imageSize.height / 2 - gazeVector.y * imageSize.height / 2};
 
-  // Log the gaze vector and the converted point
-  slog::debug << "Gaze Vector: (" << gazeVector.x << ", " << gazeVector.y
-              << ", " << gazeVector.z << ")" << slog::endl;
-  slog::debug << "Converted Point: (" << point.x << ", " << point.y << ")"
-              << slog::endl;
+  // // Log the gaze vector and the converted point
+  // slog::debug << "Gaze Vector: (" << gazeVector.x << ", " << gazeVector.y
+  //             << ", " << gazeVector.z << ")" << slog::endl;
+  // slog::debug << "Converted Point: (" << point.x << ", " << point.y << ")"
+  //             << slog::endl;
 
   return point;
 }
