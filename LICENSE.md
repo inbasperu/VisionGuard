@@ -2,7 +2,16 @@
 
 Copyright (c) 2024 Inbasekaran Perumal
 
-This software is part of the GSoC 2024 project under the OpenVINO Toolkit.
+This software is part of the Google Summer of Code (GSoC) 2024 initiative, developed under the guidance of the OpenVINO Toolkit.
+
+## Acknowledgements
+
+The VisionGuard Application has been developed with the invaluable support and mentorship of:
+
+- [Dmitriy Pastushenkov](https://github.com/DimaPastushenkov)
+- [Ria Cheruvu](https://github.com/riacheruvu)
+
+Special thanks to the [OpenVINO Toolkit](https://github.com/openvinotoolkit) organization for providing the platform and resources essential to this project.
 
 ## Dual Licensing
 
