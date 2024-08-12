@@ -1,6 +1,8 @@
 #include "vision_guard.hpp"
+#include <cmath>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/opencv.hpp>
 #include <utils/slog.hpp>
 
 #ifdef _WIN32
@@ -14,6 +16,8 @@
 #ifdef __APPLE__
 #include <CoreGraphics/CoreGraphics.h>
 #endif
+
+static int cnt = 0;
 
 VisionGuard::VisionGuard(const std::string &gaze_model,
                          const std::string &face_model,
@@ -142,7 +146,7 @@ void VisionGuard::fourPointCalibration() {
   cv::destroyWindow("TempWindow");
 #endif
 
-  cv::Size screenSize(screenWidth, screenHeight);
+  cv::Size screenSize(screenWidth, screenHeight / 4);
   ScreenCalibration calibration;
   slog::debug << "Performing 4-point calibration for screen size " << screenSize
               << slog::endl;
@@ -319,21 +323,82 @@ void VisionGuard::logGazeData() {
               << slog::endl;
 }
 
+bool isLookingAtScreen(
+    const gaze_estimation::FaceInferenceResults &inferenceResults,
+    const ScreenCalibration &screenCalibration, const cv::Size &imageSize) {
+  slog::debug << "[COUNT]: " << cnt << slog::endl;
+
+  // Convert head pose angles from degrees to radians
+  float yaw = inferenceResults.headPoseAngles.x * CV_PI / 180.0f;
+  float pitch = inferenceResults.headPoseAngles.y * CV_PI / 180.0f;
+  float roll = inferenceResults.headPoseAngles.z * CV_PI / 180.0f;
+
+  // Calculate rotation matrix from head pose angles
+  cv::Matx33f rx(1, 0, 0, 0, cos(pitch), -sin(pitch), 0, sin(pitch),
+                 cos(pitch));
+  cv::Matx33f ry(cos(yaw), 0, sin(yaw), 0, 1, 0, -sin(yaw), 0, cos(yaw));
+  cv::Matx33f rz(cos(roll), -sin(roll), 0, sin(roll), cos(roll), 0, 0, 0, 1);
+  cv::Matx33f rotationMatrix = rz * ry * rx;
+
+  // Use the gaze vector directly from inferenceResults
+  cv::Vec3f gazeVectorCamera(inferenceResults.gazeVector);
+
+  // Calculate eye position (midpoint between left and right eyes)
+  cv::Point2f eyePosition =
+      (inferenceResults.leftEyeMidpoint + inferenceResults.rightEyeMidpoint) *
+      0.5f;
+
+  // Assume the eye is at some distance in front of the camera (e.g., 500 units)
+  float assumedEyeDistance = 500.0f;
+  cv::Point3f eyePosition3D(eyePosition.x - imageSize.width / 2.0f,
+                            eyePosition.y - imageSize.height / 2.0f,
+                            assumedEyeDistance);
+
+  // Calculate screen plane normal (assuming it's parallel to the image plane)
+  cv::Point3f screenNormal(0, 0, -1); // Pointing towards the camera
+
+  // Assume the screen is at z = 0
+  float screenDistance = assumedEyeDistance;
+  float d = screenDistance;
+
+  // Calculate the intersection point of gaze vector with screen plane
+  float t = (d - eyePosition3D.z) / gazeVectorCamera[2];
+
+  // Check if the gaze vector is pointing towards the screen
+  if (t < 0) {
+    return false;
+  }
+
+  cv::Point3f intersection = eyePosition3D + cv::Point3f(t * gazeVectorCamera);
+
+  // Transform intersection point back to image coordinates
+  cv::Point2f intersectionPoint(intersection.x + imageSize.width / 2.0f,
+                                intersection.y + imageSize.height / 2.0f);
+
+  // Check if the intersection point is within the screen bounds
+  std::vector<cv::Point2f> screenCorners = {
+      screenCalibration.topLeft, screenCalibration.topRight,
+      screenCalibration.bottomRight, screenCalibration.bottomLeft};
+
+  return cv::pointPolygonTest(screenCorners, intersectionPoint, false) >= 0;
+}
+
 void VisionGuard::processFrame(cv::Mat &frame) {
   start_time = std::chrono::steady_clock::now();
   auto inferenceResults = faceDetector.detect(frame);
   for (auto &inferenceResult : inferenceResults) {
     for (auto estimator : estimators) {
+      // &headPoseEstimator
+      // &landmarksEstimator
+      // &eyeStateEstimator
+      // &gazeEstimator
       estimator->estimate(frame, inferenceResult);
     }
   }
 
   for (auto const &inferenceResult : inferenceResults) {
     resultsMarker.mark(frame, inferenceResult);
-  }
-
-  if (!inferenceResults.empty()) {
-    updateGazeTime(inferenceResults[0].gazeVector, frame.size());
+    updateGazeTime(inferenceResult, frame.size());
   }
 
   // Display accumulated gaze time and gaze lost duration on the frame
@@ -472,12 +537,17 @@ bool VisionGuard::isGazeInScreen(const ScreenCalibration &calibration,
   return isInside;
 }
 
-void VisionGuard::updateGazeTime(const cv::Point3f &gazeVector,
-                                 const cv::Size &imageSize) {
+void VisionGuard::updateGazeTime(
+    const gaze_estimation::FaceInferenceResults &faceInferenceResults,
+    const cv::Size &imageSize) {
   auto now = std::chrono::steady_clock::now();
 
-  // Check if the gaze is inside the screen
-  bool isGazeOnScreen = isGazeInScreen(calibration, gazeVector, imageSize);
+  bool isEyeOpen =
+      faceInferenceResults.leftEyeState && faceInferenceResults.rightEyeState;
+
+  bool isGazeOnScreen =
+      isEyeOpen &&
+      isGazeInScreen(calibration, faceInferenceResults.gazeVector, imageSize);
 
   if (isGazeOnScreen) {
     if (!isGazingAtScreen) {

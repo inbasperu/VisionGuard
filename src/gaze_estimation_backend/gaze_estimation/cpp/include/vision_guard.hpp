@@ -97,7 +97,8 @@ private:
                       const cv::Point3f &gazeVector,
                       const cv::Size &imageSize) const;
   nlohmann::json readDataFile();
-  void updateGazeTime(const cv::Point3f &gazeVector, const cv::Size &imageSize);
+  void updateGazeTime(const gaze_estimation::FaceInferenceResults &faceInferenceResults,
+                      const cv::Size &imageSize);
   void updateHourlyData(nlohmann::json &data, const std::string &key,
                         double value);
 
