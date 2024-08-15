@@ -11,4 +11,4 @@ cmake -A x64 -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release `
       ..
 
 # Build the project
-cmake --build . --config Release --parallel 6 --verbose
+cmake --build . --config Release --parallel 12 --verbose

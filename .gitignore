@@ -39,3 +39,4 @@ backend/build/*
 .DS_store
 .vscode
 CMakeLists.txt.user
+VisionGuardBin.code-workspace

@@ -110,13 +110,13 @@ if(APPLE)
 elseif(WIN32)
     # Copy resources for Windows
     add_custom_command(TARGET VisionGuardApp POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:VisionGuardApp>/Resources"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:VisionGuardApp>"
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${OMZ_MODELS_DIR}"
-        "$<TARGET_FILE_DIR:VisionGuardApp>/Resources/omz_models"
+        "$<TARGET_FILE_DIR:VisionGuardApp>/omz_models"
         COMMAND ${CMAKE_COMMAND} -E copy
         "${RESOURCES_DIR}/vision-guard-removebg.png"
-        "$<TARGET_FILE_DIR:VisionGuardApp>/Resources/"
+        "$<TARGET_FILE_DIR:VisionGuardApp>/"
     )
 else()
     # Copy resources for Linux

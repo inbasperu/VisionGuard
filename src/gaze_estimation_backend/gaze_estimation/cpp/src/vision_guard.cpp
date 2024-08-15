@@ -403,7 +403,7 @@ void VisionGuard::processFrame(cv::Mat &frame) {
       cv::Scalar(0, 0, 255), 1);
 
   presenter.drawGraphs(frame);
-  metrics.update(start_time, frame, {10, 22}, cv::FONT_HERSHEY_COMPLEX, 0.65);
+  metrics.update(start_time, frame, {12, 35}, cv::FONT_HERSHEY_COMPLEX, 0.65);
 }
 
 void VisionGuard::resetGazeTime() {
