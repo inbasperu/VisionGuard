@@ -39,7 +39,6 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), currentDevice("AUTO"),
       currentPrecision("FP16"), currentCameraIndex(0) {
   ui->setupUi(this);
-  hide();
   initializeUI();
 
   if (requestCameraPermission()) {
@@ -637,7 +636,7 @@ void MainWindow::switchCamera(int cameraIndex) {
   // Open the new capture device
   cap = openImagesCapture(
       std::to_string(currentCameraIndex).c_str(), false, read_type::efficient,
-      0, std::numeric_limits<size_t>::max(), stringToSize("800x400"));
+      0, std::numeric_limits<size_t>::max(), stringToSize("600x400"));
 
   if (cap) {
     slog::debug << "Capture device " << currentCameraIndex
