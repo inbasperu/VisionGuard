@@ -461,12 +461,7 @@ void MainWindow::on_breakIntervalSpinBox_valueChanged(int arg1) {
   ui->breakIntervalHorizontalSlider->setValue(arg1);
 }
 
-void MainWindow::on_Calibrate_clicked() {
-  this->performFourPointCalibration();
-  QMessageBox::information(
-      this, "Calibration Complete",
-      "The custom calibration technique has been applied successfully. ");
-}
+void MainWindow::on_Calibrate_clicked() { this->performFourPointCalibration(); }
 
 void MainWindow::performFourPointCalibration() {
   QScreen *screen = QGuiApplication::primaryScreen();
