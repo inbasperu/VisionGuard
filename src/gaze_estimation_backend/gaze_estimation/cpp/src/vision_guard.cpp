@@ -193,59 +193,6 @@ void VisionGuard::defaultCalibration(
   this->setCalibrationPoints(this->getDefaultCalibrationPoints(imageSize));
 }
 
-void VisionGuard::customCalibration() { this->fourPointCalibration(); }
-
-void VisionGuard::fourPointCalibration() {
-  int screenWidth = 0;
-  int screenHeight = 0;
-
-#ifdef __APPLE__
-  CGRect screenRect = CGDisplayBounds(CGMainDisplayID());
-  screenWidth = static_cast<int>(screenRect.size.width);
-  screenHeight = static_cast<int>(screenRect.size.height);
-#else
-  cv::namedWindow("TempWindow", cv::WINDOW_NORMAL);
-  cv::setWindowProperty("TempWindow", cv::WND_PROP_FULLSCREEN,
-                        cv::WINDOW_FULLSCREEN);
-  screenWidth = cv::getWindowImageRect("TempWindow").width;
-  screenHeight = cv::getWindowImageRect("TempWindow").height;
-  cv::destroyWindow("TempWindow");
-#endif
-
-  cv::Size screenSize(screenWidth, screenHeight / 4);
-  ScreenCalibration calibration;
-  slog::debug << "Performing 4-point calibration for screen size " << screenSize
-              << slog::endl;
-
-  // Define calibration points (corners)
-  calibration.topLeft = cv::Point2f(0.1f * screenWidth, 0.1f * screenHeight);
-  calibration.topRight = cv::Point2f(0.9f * screenWidth, 0.1f * screenHeight);
-  calibration.bottomRight =
-      cv::Point2f(0.9f * screenWidth, 0.9f * screenHeight);
-  calibration.bottomLeft = cv::Point2f(0.1f * screenWidth, 0.9f * screenHeight);
-
-  const std::vector<cv::Point2f> points = {
-      calibration.topLeft, calibration.topRight, calibration.bottomRight,
-      calibration.bottomLeft};
-
-  cv::namedWindow("Calibration", cv::WINDOW_NORMAL);
-  cv::setWindowProperty("Calibration", cv::WND_PROP_FULLSCREEN,
-                        cv::WINDOW_FULLSCREEN);
-
-  for (const auto &point : points) {
-    cv::Mat calibrationImage = cv::Mat::zeros(screenSize, CV_8UC3);
-    cv::circle(calibrationImage, point, 20, cv::Scalar(0, 255, 0), -1);
-    cv::imshow("Calibration", calibrationImage);
-    cv::waitKey(0);
-  }
-
-  // Wait for a key press before closing
-  cv::destroyWindow("Calibration");
-
-  slog::debug << calibration << slog::endl;
-  setCalibrationPoints(calibration);
-}
-
 ScreenCalibration
 VisionGuard::getDefaultCalibrationPoints(const cv::Size &imageSize) {
   slog::debug << "Performing default calibration for screen size " << imageSize

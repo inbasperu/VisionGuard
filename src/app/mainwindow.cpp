@@ -462,11 +462,80 @@ void MainWindow::on_breakIntervalSpinBox_valueChanged(int arg1) {
 }
 
 void MainWindow::on_Calibrate_clicked() {
-  visionGuard->fourPointCalibration();
-
+  this->performFourPointCalibration();
   QMessageBox::information(
       this, "Calibration Complete",
       "The custom calibration technique has been applied successfully. ");
+}
+
+void MainWindow::performFourPointCalibration() {
+  QScreen *screen = QGuiApplication::primaryScreen();
+  QRect screenGeometry = screen->geometry();
+  int screenWidth = screenGeometry.width();
+  int screenHeight = screenGeometry.height();
+
+  class CalibrationDialog : public QDialog {
+  public:
+    CalibrationDialog(QWidget *parent = nullptr) : QDialog(parent) {
+      setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+      setModal(true);
+      setStyleSheet("background-color: black;");
+    }
+
+  protected:
+    void keyPressEvent(QKeyEvent *event) override {
+      if (event->key() == Qt::Key_Space) {
+        accept();
+      }
+    }
+  };
+
+  CalibrationDialog calibrationWindow(this);
+  calibrationWindow.setGeometry(screenGeometry);
+
+  QLabel instructionLabel(&calibrationWindow);
+  instructionLabel.setAlignment(Qt::AlignCenter);
+  instructionLabel.setStyleSheet("color: white; font-size: 24px;");
+  instructionLabel.setGeometry(0, 0, screenWidth, screenHeight);
+
+  int margin = 50;    // Increased margin to move points inward
+  int pointSize = 20; // Increased point size for better visibility
+  std::vector<QPoint> calibrationPoints = {
+      QPoint(margin, margin + 50),                         // Top-left
+      QPoint(screenWidth - margin, margin + 50),           // Top-right
+      QPoint(screenWidth - margin, screenHeight - margin), // Bottom-right
+      QPoint(margin, screenHeight - margin)                // Bottom-left
+  };
+
+  std::vector<QString> pointNames = {"Top Left", "Top Right", "Bottom Right",
+                                     "Bottom Left"};
+
+  for (size_t i = 0; i < calibrationPoints.size(); ++i) {
+    QLabel pointLabel(&calibrationWindow);
+    pointLabel.setGeometry(calibrationPoints[i].x() - pointSize / 2,
+                           calibrationPoints[i].y() - pointSize / 2, pointSize,
+                           pointSize);
+    pointLabel.setStyleSheet(
+        "background-color: #00FF00; border-radius: 10px;"); // Bright green
+                                                            // color
+    pointLabel.show();
+
+    instructionLabel.setText("Look at the " + pointNames[i] +
+                             " point and press the SPACE BAR");
+
+    calibrationWindow.show();
+    calibrationWindow.exec(); // This will wait for the dialog to be accepted
+                              // (space bar press)
+
+    pointLabel.hide();
+  }
+
+  // Update VisionGuard with the calibration points
+  visionGuard->defaultCalibration(cv::Size(screenWidth, screenHeight));
+
+  QMessageBox::information(
+      this, "Calibration Complete",
+      "The 4-point calibration has been completed successfully.");
 }
 
 void MainWindow::on_dailyStatButton_clicked() {

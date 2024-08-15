@@ -71,6 +71,7 @@ protected:
   void closeEvent(QCloseEvent *event) override;
 
 private:
+  void performFourPointCalibration();
   void displayChart(const std::map<std::string, double> &stats,
                     const QString &title);
   std::string getResourcePath(const std::string &resourceName);
@@ -151,6 +152,19 @@ private:
   const char TOGGLE_LANDMARKS = 'L';
   const char TOGGLE_NONE = 'N';
   const char TOGGLE_RESOURCE_GRAPH = 'H';
+};
+
+class CalibrationDialog : public QDialog {
+  Q_OBJECT
+public:
+  CalibrationDialog(QWidget *parent = nullptr) : QDialog(parent) {}
+
+protected:
+  void keyPressEvent(QKeyEvent *event) override {
+    if (event->key() == Qt::Key_Space) {
+      accept();
+    }
+  }
 };
 
 #endif // MAINWINDOW_H

@@ -75,7 +75,6 @@ public:
   bool checkGazeTimeExceeded() const;
   void createEmptyDataFile();
   void defaultCalibration(const cv::Size &imageSize);
-  void customCalibration();
   std::vector<std::string> getAvailableDevices();
   std::map<std::string, double> getDailyStats();
   double getAccumulatedGazeTime() const;
@@ -91,7 +90,6 @@ public:
   void
   setAccumulatedGazeTimeThreshold(const double accumulated_gaze_time_threshold);
   void setGazeLostThreshold(const double gazeLostThreshold);
-  void fourPointCalibration();
   void toggle(int key);
 
 private:
