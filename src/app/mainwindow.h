@@ -28,7 +28,7 @@ class MainWindow : public QMainWindow {
   Q_OBJECT
 
 public:
-  MainWindow(QWidget *parent = nullptr);
+  explicit MainWindow(QWidget *parent = nullptr);
   ~MainWindow();
 
 protected:
@@ -50,6 +50,8 @@ private slots:
   void on_weeklyStatButton_clicked();
   void on_FPSLimitSpinBox_valueChanged(int value);
   void on_FPSLimitHorizontalSlider_valueChanged(int value);
+  void restartApplication();
+  void initializeAfterPermission();
 
   // Sys tray methods and variables
 private:
@@ -80,6 +82,8 @@ private:
   void loadModels(const std::string &precision);
   void populateCameraMenu();
   void updateCameraMenu();
+  void initializeUI();
+  void initializeVisionGuard();
   std::vector<int> getAvailableCameras(int maxCameras);
   QAction *createCameraAction(int cameraIndex);
   void switchCamera(int cameraIndex);

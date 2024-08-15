@@ -1,10 +1,14 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <QCoreApplication>
 #include <QDir>
 #include <QKeyEvent>
 #include <QMessageBox>
+#include <QPermissions>
+#include <QProcess>
 #include <QStandardPaths>
 #include <QTime>
+#include <QTimer>
 #include <QtCharts/QBarCategoryAxis>
 #include <QtCharts/QBarSeries>
 #include <QtCharts/QBarSet>
@@ -33,22 +37,72 @@ extern std::filesystem::path EXECUTABLE_PATH;
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), currentDevice("AUTO"),
-      currentPrecision("FP16"),
-      currentCameraIndex(0) { // Initialize currentCameraIndex
+      currentPrecision("FP16"), currentCameraIndex(0) {
   ui->setupUi(this);
+  hide();
+  initializeUI();
 
-  // Request camera permissions
-  if (!requestCameraPermission()) {
-    QMessageBox::critical(
-        this, "Permission Denied",
-        "VisionGuard requires camera access to function properly. Please grant "
-        "camera access and restart the application.");
-    QCoreApplication::quit();
+  if (requestCameraPermission()) {
+    // If we need to wait for permission, don't initialize yet
     return;
   }
 
-  visionGuard = initializeVisionGuard(currentPrecision, currentDevice);
-  slog::debug << "VisionGuard backend initialized successfully" << slog::endl;
+  initializeAfterPermission();
+}
+
+void MainWindow::initializeUI() {
+  ui->breakDurationSpinBox->setValue(gazeDuration);
+  ui->breakDurationHorizontalSlider->setValue(gazeDuration);
+  ui->breakIntervalSpinBox->setValue(intervalDuration);
+  ui->breakIntervalHorizontalSlider->setValue(intervalDuration);
+  ui->FPSLimitSpinBox->setValue(FPS_LIMIT);
+  ui->FPSLimitHorizontalSlider->setValue(FPS_LIMIT);
+
+  connect(ui->breakDurationSpinBox, SIGNAL(valueChanged(int)), this,
+          SLOT(on_breakDurationSpinBox_valueChanged(int)));
+  connect(ui->breakDurationHorizontalSlider, SIGNAL(valueChanged(int)), this,
+          SLOT(on_breakDurationHorizontalSlider_valueChanged(int)));
+  connect(ui->breakIntervalSpinBox, SIGNAL(valueChanged(int)), this,
+          SLOT(on_breakIntervalSpinBox_valueChanged(int)));
+  connect(ui->breakIntervalHorizontalSlider, SIGNAL(valueChanged(int)), this,
+          SLOT(on_breakIntervalHorizontalSlider_valueChanged(int)));
+  connect(ui->FPSLimitSpinBox, SIGNAL(valueChanged(int)), this,
+          SLOT(on_FPSLimitSpinBox_valueChanged(int)));
+  connect(ui->FPSLimitHorizontalSlider, SIGNAL(valueChanged(int)), this,
+          SLOT(on_FPSLimitHorizontalSlider_valueChanged(int)));
+}
+
+bool MainWindow::requestCameraPermission() {
+  QCameraPermission cameraPermission;
+  switch (qApp->checkPermission(cameraPermission)) {
+  case Qt::PermissionStatus::Granted:
+    return false; // No need to wait, permission already granted
+  case Qt::PermissionStatus::Denied:
+    QMessageBox::warning(
+        this, "Permission Denied",
+        "Camera access is required. The application will now close.");
+    QCoreApplication::quit();
+    return true; // We're quitting, so return true to prevent further
+                 // initialization
+  case Qt::PermissionStatus::Undetermined:
+    qApp->requestPermission(
+        cameraPermission, [this](const QPermission &permission) {
+          if (permission.status() == Qt::PermissionStatus::Granted) {
+            QTimer::singleShot(0, this, &MainWindow::initializeAfterPermission);
+          } else {
+            QMessageBox::warning(
+                this, "Permission Denied",
+                "Camera access is required. The application will now close.");
+            QCoreApplication::quit();
+          }
+        });
+    return true; // We need to wait for the permission result
+  }
+  return false;
+}
+
+void MainWindow::initializeAfterPermission() {
+  initializeVisionGuard();
 
   // Open the initial capture device
   switchCamera(currentCameraIndex);
@@ -62,27 +116,6 @@ MainWindow::MainWindow(QWidget *parent)
   populateCameraMenu();
   populateModelMenu();
   populateToggleMenu();
-
-  connect(ui->breakDurationSpinBox, SIGNAL(valueChanged(int)), this,
-          SLOT(on_breakDurationSpinBox_valueChanged(int)));
-  connect(ui->breakDurationHorizontalSlider, SIGNAL(valueChanged(int)), this,
-          SLOT(on_breakDurationHorizontalSlider_valueChanged(int)));
-  connect(ui->breakIntervalSpinBox, SIGNAL(valueChanged(int)), this,
-          SLOT(on_breakIntervalSpinBox_valueChanged(int)));
-  connect(ui->breakIntervalHorizontalSlider, SIGNAL(valueChanged(int)), this,
-          SLOT(on_breakIntervalHorizontalSlider_valueChanged(int)));
-  // Connect the FPS limit controls
-  connect(ui->FPSLimitSpinBox, SIGNAL(valueChanged(int)), this,
-          SLOT(on_FPSLimitSpinBox_valueChanged(int)));
-  connect(ui->FPSLimitHorizontalSlider, SIGNAL(valueChanged(int)), this,
-          SLOT(on_FPSLimitHorizontalSlider_valueChanged(int)));
-
-  // Show privacy information
-  QMessageBox::information(
-      this, "Privacy Information",
-      "VisionGuard requires camera access to function properly."
-      "The inference is done on your device and no data "
-      "is sent externally. Your privacy is safe.");
 
   if (QSystemTrayIcon::isSystemTrayAvailable()) {
     iconPath =
@@ -98,8 +131,24 @@ MainWindow::MainWindow(QWidget *parent)
                          "System tray is not available on this system. "
                          "The application will run without tray icon support.");
   }
+
   // Initialize the last frame time
   lastFrameTime = std::chrono::high_resolution_clock::now();
+
+  // Show the main window
+  show();
+}
+
+void MainWindow::initializeVisionGuard() {
+  visionGuard = initializeVisionGuard(currentPrecision, currentDevice);
+  if (!visionGuard) {
+    QMessageBox::critical(
+        this, "Error",
+        "Failed to initialize VisionGuard. The application will now exit.");
+    QCoreApplication::quit();
+    return;
+  }
+  slog::debug << "VisionGuard backend initialized successfully" << slog::endl;
 }
 
 MainWindow::~MainWindow() {
@@ -168,41 +217,39 @@ void MainWindow::iconActivated(QSystemTrayIcon::ActivationReason reason) {
 
 void MainWindow::closeEvent(QCloseEvent *event) {
   if (quitting || qApp->isSavingSession() ||
-      qApp->queryKeyboardModifiers() & Qt::ControlModifier) {
-    // If we're quitting, it's a session save, or Command/Control is pressed,
-    // quit the application
+      (qApp->queryKeyboardModifiers() & Qt::ControlModifier)) {
     event->accept();
     qApp->quit();
   } else if (trayIcon && trayIcon->isVisible()) {
-    if (first_quit) {
-      first_quit = false;
-      QMessageBox::information(this, tr("VisionGuard"),
-                               tr("The program will keep running in the system "
-                                  "tray. To terminate the "
-                                  "program, "
-                                  "choose <b>Quit</b> in the context menu of "
-                                  "the system tray entry."));
-    }
     hide();
     event->ignore();
+    if (first_quit) {
+      first_quit = false;
+      trayIcon->showMessage(
+          "VisionGuard",
+          "The program will keep running in the system tray. To terminate the "
+          "program, "
+          "choose Quit in the context menu of the system tray entry.");
+    }
   } else {
     QMainWindow::closeEvent(event);
   }
 }
 
-bool MainWindow::requestCameraPermission() {
-  QCameraPermission cameraPermission;
-  switch (qApp->checkPermission(cameraPermission)) {
-  case Qt::PermissionStatus::Undetermined:
-    qApp->requestPermission(cameraPermission, this,
-                            &MainWindow::requestCameraPermission);
-    return false;
-  case Qt::PermissionStatus::Denied:
-    return false;
-  case Qt::PermissionStatus::Granted:
-    return true;
-  }
-  return false;
+void MainWindow::restartApplication() {
+  // Get the current application's file path and arguments
+  QString program = QCoreApplication::applicationFilePath();
+  QStringList arguments = QCoreApplication::arguments();
+  arguments.removeFirst(); // Remove the program name from arguments
+
+  // Close the current window
+  this->close();
+
+  // Start a new instance of the application
+  QProcess::startDetached(program, arguments);
+
+  // Quit the current instance
+  QCoreApplication::quit();
 }
 
 void MainWindow::checkGazeTime() {
@@ -344,14 +391,21 @@ std::string MainWindow::getModelPath(const std::string &modelName,
 std::unique_ptr<VisionGuard>
 MainWindow::initializeVisionGuard(const std::string &precision,
                                   const std::string &device) {
-  auto guard = std::make_unique<VisionGuard>(
-      getModelPath(GAZE_MODEL_NAME, precision),
-      getModelPath(FACE_MODEL_NAME, precision),
-      getModelPath(HEAD_POSE_MODEL_NAME, precision),
-      getModelPath(LANDMARKS_MODEL_NAME, precision),
-      getModelPath(EYE_STATE_MODEL_NAME, precision), device);
-  guard->defaultCalibration(this->imageSize);
-  return guard;
+  try {
+    auto guard = std::make_unique<VisionGuard>(
+        getModelPath(GAZE_MODEL_NAME, precision),
+        getModelPath(FACE_MODEL_NAME, precision),
+        getModelPath(HEAD_POSE_MODEL_NAME, precision),
+        getModelPath(LANDMARKS_MODEL_NAME, precision),
+        getModelPath(EYE_STATE_MODEL_NAME, precision), device);
+    guard->defaultCalibration(this->imageSize);
+    return guard;
+  } catch (const std::exception &e) {
+    QMessageBox::critical(
+        this, "Error",
+        QString("Failed to initialize VisionGuard: %1").arg(e.what()));
+    return nullptr;
+  }
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event) {

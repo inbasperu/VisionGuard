@@ -50,8 +50,11 @@ VisionGuard::VisionGuard(const std::string &gaze_model,
                   {TOGGLE_LANDMARKS, false},
                   {TOGGLE_NONE, false},
                   {TOGGLE_RESOURCE_GRAPH, false}};
-                  
+
   dataFilePath = getDataFilePath();
+
+  // Initialize calibration with default values
+  calibration = getDefaultCalibrationPoints(cv::Size(1920, 1080));
 }
 
 VisionGuard::~VisionGuard() {
@@ -471,9 +474,13 @@ void VisionGuard::setGazeLostThreshold(const double gazeLostThreshold) {
 }
 
 void VisionGuard::toggle(int key) {
-  toggleStates[key] = !toggleStates[key];
-  resultsMarker.toggle(key);
-  presenter.handleKey(key);
+  if (toggleStates.find(key) != toggleStates.end()) {
+    toggleStates[key] = !toggleStates[key];
+    resultsMarker.toggle(key);
+  } else {
+    // Handle invalid key, maybe log a warning
+    slog::warn << "Attempted to toggle invalid key: " << key << slog::endl;
+  }
 }
 
 bool VisionGuard::isToggled(char toggleType) const {
