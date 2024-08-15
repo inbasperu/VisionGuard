@@ -71,7 +71,7 @@ protected:
 private:
   void displayChart(const std::map<std::string, double> &stats,
                     const QString &title);
-  std::string getExecutablePath();
+  std::string getResourcePath(const std::string &resourceName);
   std::string getModelPath(const std::string &modelName,
                            const std::string &precision);
   std::unique_ptr<VisionGuard>
@@ -125,7 +125,7 @@ private:
   QString iconPath;
 
   // Model base paths
-  const std::string MODELS_DIR = "../omz_models";
+  const std::string MODELS_DIR = "omz_models";
   const std::string GAZE_MODEL_NAME = "gaze-estimation-adas-0002";
   const std::string FACE_MODEL_NAME = "face-detection-retail-0004";
   const std::string HEAD_POSE_MODEL_NAME = "head-pose-estimation-adas-0001";

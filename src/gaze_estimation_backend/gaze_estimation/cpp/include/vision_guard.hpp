@@ -14,6 +14,10 @@
 #include <utility>
 #include <vector>
 
+#include <QDir>
+#include <QStandardPaths>
+#include <QString>
+
 #include <nlohmann/json.hpp>
 
 #include <opencv2/core.hpp>
@@ -97,8 +101,9 @@ private:
                       const cv::Point3f &gazeVector,
                       const cv::Size &imageSize) const;
   nlohmann::json readDataFile();
-  void updateGazeTime(const gaze_estimation::FaceInferenceResults &faceInferenceResults,
-                      const cv::Size &imageSize);
+  void updateGazeTime(
+      const gaze_estimation::FaceInferenceResults &faceInferenceResults,
+      const cv::Size &imageSize);
   void updateHourlyData(nlohmann::json &data, const std::string &key,
                         double value);
 
@@ -111,7 +116,14 @@ private:
   std::chrono::steady_clock::time_point lastCheckTime;
 
   // Data handling
-  std::string dataFilePath = "screen_time_stats.json";
+  std::string dataFilePath;
+
+  std::string getDataFilePath() {
+    QString dataLocation =
+        QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QDir().mkpath(dataLocation);
+    return (dataLocation + "/screen_time_stats.json").toStdString();
+  }
 
   // Calibration
   ScreenCalibration calibration;

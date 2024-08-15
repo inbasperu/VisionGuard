@@ -50,6 +50,8 @@ VisionGuard::VisionGuard(const std::string &gaze_model,
                   {TOGGLE_LANDMARKS, false},
                   {TOGGLE_NONE, false},
                   {TOGGLE_RESOURCE_GRAPH, false}};
+                  
+  dataFilePath = getDataFilePath();
 }
 
 VisionGuard::~VisionGuard() {
@@ -70,9 +72,7 @@ VisionGuard::~VisionGuard() {
 bool VisionGuard::checkGazeTimeExceeded() const {
   return accumulatedGazeTime >= accumulated_gaze_time_threshold;
 }
-/**
- * @brief Cleans old gaze data from the data file.
- */
+
 void VisionGuard::cleanOldData() {
   auto now = std::chrono::system_clock::now();
   auto oneWeekAgo = now - std::chrono::hours(24 * 7);
@@ -107,14 +107,77 @@ void VisionGuard::cleanOldData() {
   slog::debug << "Successfully removed old data from: " << dataFilePath
               << slog::endl;
 }
-/**
- * @brief Creates an empty data file for storing gaze data.
- */
+
 void VisionGuard::createEmptyDataFile() {
   nlohmann::json emptyData = nlohmann::json::object();
   saveJsonData(emptyData, dataFilePath);
   slog::debug << "Created new data file with empty JSON object: "
               << dataFilePath << slog::endl;
+}
+
+void VisionGuard::logGazeData() {
+  double gazeDuration = getAccumulatedGazeTime();
+  nlohmann::json data = readDataFile();
+
+  updateHourlyData(data, "gaze_time", gazeDuration);
+
+  try {
+    saveJsonData(data, dataFilePath);
+  } catch (const std::exception &e) {
+    slog::err << "Error saving data file: " << e.what() << slog::endl;
+    throw;
+  }
+  slog::debug << "Hourly logs successfully updated: " << dataFilePath
+              << slog::endl;
+}
+
+nlohmann::json VisionGuard::readDataFile() {
+  nlohmann::json data;
+
+  try {
+    std::ifstream inFile(dataFilePath);
+    if (inFile.is_open()) {
+      if (inFile.peek() == std::ifstream::traits_type::eof()) {
+        inFile.close();
+        createEmptyDataFile();
+        data = nlohmann::json::object();
+      } else {
+        inFile >> data;
+        inFile.close();
+        slog::debug << "Data file read successfully: " << dataFilePath
+                    << slog::endl;
+      }
+    } else {
+      slog::err << "Unable to open file for reading: " << dataFilePath
+                << slog::endl;
+      createEmptyDataFile();
+      data = nlohmann::json::object();
+    }
+  } catch (const std::exception &e) {
+    slog::err << "Error reading data file: " << e.what() << slog::endl;
+    throw;
+  }
+
+  return data;
+}
+
+void VisionGuard::saveJsonData(const nlohmann::json &data,
+                               const std::string &filePath) {
+  try {
+    std::ofstream outFile(filePath);
+    if (outFile.is_open()) {
+      outFile << data.dump(4); // Write JSON object to file with indentation
+      outFile.close();
+      slog::debug << "Data file saved successfully: " << filePath << slog::endl;
+    } else {
+      slog::err << "Unable to open file for writing: " << filePath
+                << slog::endl;
+      throw std::runtime_error("File open error while saving data file");
+    }
+  } catch (const std::exception &e) {
+    slog::err << "Error saving data file: " << e.what() << slog::endl;
+    throw;
+  }
 }
 
 void VisionGuard::setCalibrationPoints(
@@ -258,10 +321,6 @@ double VisionGuard::getGazeLostDuration() const {
       .count();
 }
 
-/**
- * @brief Gets the hourly timestamp for logging gaze data.
- * @return The hourly timestamp as a string.
- */
 std::string VisionGuard::getHourlyTimestamp() const {
   auto now = std::chrono::system_clock::now();
   auto time = std::chrono::system_clock::to_time_t(now);
@@ -272,10 +331,6 @@ std::string VisionGuard::getHourlyTimestamp() const {
   return std::string(buffer);
 }
 
-/**
- * @brief Gets the weekly statistics of gaze time.
- * @return A map of weekly gaze time statistics.
- */
 std::map<std::string, double> VisionGuard::getWeeklyStats() {
   nlohmann::json data = readDataFile();
   std::map<std::string, double> weeklyStats;
@@ -305,22 +360,6 @@ bool VisionGuard::isDeviceAvailable(const std::string &device) {
   std::vector<std::string> availableDevices = getAvailableDevices();
   return std::find(availableDevices.begin(), availableDevices.end(), device) !=
          availableDevices.end();
-}
-
-void VisionGuard::logGazeData() {
-  double gazeDuration = getAccumulatedGazeTime();
-  nlohmann::json data = readDataFile();
-
-  updateHourlyData(data, "gaze_time", gazeDuration);
-
-  try {
-    saveJsonData(data, dataFilePath);
-  } catch (const std::exception &e) {
-    slog::err << "Error saving data file: " << e.what() << slog::endl;
-    throw;
-  }
-  slog::debug << "Hourly logs successfully updated: " << dataFilePath
-              << slog::endl;
 }
 
 bool isLookingAtScreen(
@@ -417,58 +456,9 @@ void VisionGuard::processFrame(cv::Mat &frame) {
   metrics.update(start_time, frame, {10, 22}, cv::FONT_HERSHEY_COMPLEX, 0.65);
 }
 
-nlohmann::json VisionGuard::readDataFile() {
-  nlohmann::json data;
-
-  try {
-    std::ifstream inFile(dataFilePath);
-    if (inFile.is_open()) {
-      if (inFile.peek() == std::ifstream::traits_type::eof()) {
-        inFile.close();
-        createEmptyDataFile();
-        data = nlohmann::json::object();
-      } else {
-        inFile >> data;
-        inFile.close();
-        slog::debug << "Data file read successfully: " << dataFilePath
-                    << slog::endl;
-      }
-    } else {
-      slog::err << "Unable to open file for reading: " << dataFilePath
-                << slog::endl;
-      createEmptyDataFile();
-      data = nlohmann::json::object();
-    }
-  } catch (const std::exception &e) {
-    slog::err << "Error reading data file: " << e.what() << slog::endl;
-    throw;
-  }
-
-  return data;
-}
-
 void VisionGuard::resetGazeTime() {
   logGazeData();
   accumulatedGazeTime = 0;
-}
-
-void VisionGuard::saveJsonData(const nlohmann::json &data,
-                               const std::string &filePath) {
-  try {
-    std::ofstream outFile(filePath);
-    if (outFile.is_open()) {
-      outFile << data.dump(4); // Write JSON object to file with indentation
-      outFile.close();
-      slog::debug << "Data file saved successfully: " << filePath << slog::endl;
-    } else {
-      slog::err << "Unable to open file for writing: " << filePath
-                << slog::endl;
-      throw std::runtime_error("File open error while saving data file");
-    }
-  } catch (const std::exception &e) {
-    slog::err << "Error saving data file: " << e.what() << slog::endl;
-    throw;
-  }
 }
 
 void VisionGuard::setAccumulatedGazeTimeThreshold(
@@ -530,9 +520,9 @@ bool VisionGuard::isGazeInScreen(const ScreenCalibration &calibration,
     }
   }
 
-  // Log whether the gaze point is inside the screen
-  slog::debug << "Gaze is " << (isInside ? "inside" : "outside")
-              << " the screen" << slog::endl;
+  // // Log whether the gaze point is inside the screen
+  // slog::debug << "Gaze is " << (isInside ? "inside" : "outside")
+  //             << " the screen" << slog::endl;
 
   return isInside;
 }

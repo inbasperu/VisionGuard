@@ -9,20 +9,6 @@
 extern int delay;
 extern cv::Size imageSize;
 
-// Model base paths
-extern const std::string MODELS_DIR;
-extern const std::string GAZE_MODEL_NAME;
-extern const std::string FACE_MODEL_NAME;
-extern const std::string HEAD_POSE_MODEL_NAME;
-extern const std::string LANDMARKS_MODEL_NAME;
-extern const std::string EYE_STATE_MODEL_NAME;
-extern const std::string MODEL_EXTENSION;
-
-// Precision levels
-extern const std::string FP32_PRECISION;
-extern const std::string FP16_PRECISION;
-extern const std::string INT8_PRECISION;
-
 // Toggle keys
 extern const char TOGGLE_ALL;
 extern const char TOGGLE_EYE_STATE;

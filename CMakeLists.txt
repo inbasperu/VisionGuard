@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
 
-# Set the project name
 project(VisionGuard VERSION 1.0.0 LANGUAGES CXX)
 
 # C++ standard settings
@@ -8,52 +7,33 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# Ensure CMAKE_BUILD_TYPE is set for single-config generators
-get_property(GENERATOR_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
-if(NOT GENERATOR_IS_MULTI_CONFIG AND NOT DEFINED CMAKE_BUILD_TYPE)
-    message(STATUS "CMAKE_BUILD_TYPE not defined, 'Release' will be used")
+# Build type configuration
+if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build" FORCE)
 endif()
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 
-# Set architecture-specific output directories
-if(NOT BIN_FOLDER)
-    string(TOLOWER ${CMAKE_SYSTEM_PROCESSOR} ARCH)
-    if(ARCH STREQUAL "x86_64" OR ARCH STREQUAL "amd64")
-        set(ARCH intel64)
-    elseif(ARCH STREQUAL "i386")
-        set(ARCH ia32)
-    endif()
-    set(BIN_FOLDER ${ARCH})
-endif()
+# Output directories
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
-foreach(artifact IN ITEMS ARCHIVE COMPILE_PDB LIBRARY PDB RUNTIME)
-    set("CMAKE_${artifact}_OUTPUT_DIRECTORY" "${CMAKE_CURRENT_BINARY_DIR}/${BIN_FOLDER}/$<CONFIG>")
-endforeach()
-
-# Windows-specific settings
+# Platform-specific settings
 if(WIN32)
-    if(NOT "${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
-        message(FATAL_ERROR "Only 64-bit supported on Windows")
+    if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
+        message(FATAL_ERROR "Only 64-bit is supported on Windows")
     endif()
     add_definitions(-DNOMINMAX)
+    set(GUI_TYPE WIN32)
+elseif(APPLE)
+    set(GUI_TYPE MACOSX_BUNDLE)
 endif()
 
 # Compiler-specific settings
 if(MSVC)
     add_compile_options(/wd4251 /wd4275 /wd4267 /W3 /EHsc)
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "^GNU|(Apple)?Clang$")
-    add_compile_options(-Wall)
-endif()
-
-# ARM-specific settings
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm64.*|aarch64.*|AARCH64.*)")
-    set(AARCH64 ON)
-elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm.*|ARM.*)")
-    set(ARM ON)
-endif()
-
-if(ARM AND NOT CMAKE_CROSSCOMPILING)
-    add_compile_options(-march=armv7-a+fp)
+    add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
 # Find required packages
@@ -78,8 +58,8 @@ if(WIN32)
     set(WIN32_RESOURCES ${RESOURCES_DIR}/windows_resource.rc)
 endif()
 
-qt_add_executable(VisionGuardApp
-    MACOSX_BUNDLE
+# Define the executable
+qt_add_executable(VisionGuardApp ${GUI_TYPE}
     src/app/main.cpp
     src/app/mainwindow.cpp
     src/app/mainwindow.ui
@@ -87,64 +67,80 @@ qt_add_executable(VisionGuardApp
     ${WIN32_RESOURCES}
 )
 
-# Platform-specific settings
-if(APPLE)
-    set_target_properties(VisionGuardApp PROPERTIES
-        MACOSX_BUNDLE TRUE
-        MACOSX_BUNDLE_GUI_IDENTIFIER com.yourcompany.VisionGuardApp
-        MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
-        MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
-        MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist
-        MACOSX_BUNDLE_ICON_FILE vision-guard-removebg.icns
-        RESOURCE ${RESOURCES_DIR}/vision-guard-removebg.icns
-    )
-    set_source_files_properties(${APP_ICON_MACOSX} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
-elseif(WIN32)
-    set_target_properties(VisionGuardApp PROPERTIES
-        WIN32_EXECUTABLE TRUE
-    )
-endif()
-
+# Include directories
 target_include_directories(VisionGuardApp PRIVATE 
     ${OpenCV_INCLUDE_DIRS} 
     "${CMAKE_CURRENT_SOURCE_DIR}/src/gaze_estimation_backend/gaze_estimation/cpp/include"
 )
 
+# Link libraries
 target_link_libraries(VisionGuardApp PRIVATE 
-    Qt6::Core 
-    Qt6::Widgets 
-    Qt6::Multimedia 
-    Qt6::MultimediaWidgets 
-    Qt6::Gui 
-    Qt6::Charts 
+    Qt6::Core Qt6::Widgets Qt6::Multimedia Qt6::MultimediaWidgets Qt6::Gui Qt6::Charts 
     ${OpenCV_LIBS} 
     openvino::runtime 
     gaze_estimation 
-    ${OpenCV_LIBRARIES} 
-    openvino::runtime 
     monitors 
     utils 
     gflags
 )
 
-# Copy the omz_models directory to the output directory after build
-add_custom_command(TARGET VisionGuardApp POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    "${OMZ_MODELS_DIR}"
-    "$<TARGET_FILE_DIR:VisionGuardApp>/../omz_models"
-)
-
-# Copy the icon to the resources directory
-add_custom_command(TARGET VisionGuardApp POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
-    ${CMAKE_CURRENT_SOURCE_DIR}/resources/vision-guard-removebg.png
-    $<TARGET_FILE_DIR:VisionGuardApp>/../resources/vision-guard-removebg.png
-)
-
+# Platform-specific configurations
 if(APPLE)
+    set_target_properties(VisionGuardApp PROPERTIES
+        MACOSX_BUNDLE_GUI_IDENTIFIER com.yourcompany.VisionGuardApp
+        MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+        MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
+        MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist
+        MACOSX_BUNDLE_ICON_FILE vision-guard-removebg.icns
+    )
+    
+    # Copy resources to the correct location in the app bundle
     add_custom_command(TARGET VisionGuardApp POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_BUNDLE_CONTENT_DIR:VisionGuardApp>/Resources"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${OMZ_MODELS_DIR}"
+        "$<TARGET_BUNDLE_CONTENT_DIR:VisionGuardApp>/Resources/omz_models"
         COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_CURRENT_SOURCE_DIR}/resources/vision-guard-removebg.icns
-        $<TARGET_FILE_DIR:VisionGuardApp>/../Resources/vision-guard-removebg.icns
+        "${RESOURCES_DIR}/vision-guard-removebg.icns"
+        "$<TARGET_BUNDLE_CONTENT_DIR:VisionGuardApp>/Resources/"
+        COMMAND ${CMAKE_COMMAND} -E copy
+        "${RESOURCES_DIR}/vision-guard-removebg.png"
+        "$<TARGET_BUNDLE_CONTENT_DIR:VisionGuardApp>/Resources/"
+    )
+elseif(WIN32)
+    # Copy resources for Windows
+    add_custom_command(TARGET VisionGuardApp POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:VisionGuardApp>/Resources"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${OMZ_MODELS_DIR}"
+        "$<TARGET_FILE_DIR:VisionGuardApp>/Resources/omz_models"
+        COMMAND ${CMAKE_COMMAND} -E copy
+        "${RESOURCES_DIR}/vision-guard-removebg.png"
+        "$<TARGET_FILE_DIR:VisionGuardApp>/Resources/"
+    )
+else()
+    # Copy resources for Linux
+    add_custom_command(TARGET VisionGuardApp POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:VisionGuardApp>/Resources"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${OMZ_MODELS_DIR}"
+        "$<TARGET_FILE_DIR:VisionGuardApp>/Resources/omz_models"
+        COMMAND ${CMAKE_COMMAND} -E copy
+        "${RESOURCES_DIR}/vision-guard-removebg.png"
+        "$<TARGET_FILE_DIR:VisionGuardApp>/Resources/"
     )
 endif()
+
+# Install rules
+install(TARGETS VisionGuardApp
+    BUNDLE DESTINATION .
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+# If using CPack for packaging
+set(CPACK_PACKAGE_NAME "VisionGuard")
+set(CPACK_PACKAGE_VENDOR "GSoC 2024 OpenVINO Toolkit")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "VisionGuard Application")
+set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "VisionGuard")
+include(CPack)

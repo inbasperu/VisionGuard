@@ -1,7 +1,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <QDir>
 #include <QKeyEvent>
 #include <QMessageBox>
+#include <QStandardPaths>
 #include <QTime>
 #include <QtCharts/QBarCategoryAxis>
 #include <QtCharts/QBarSeries>
@@ -26,6 +28,8 @@
 
 bool MainWindow::quitting = false;
 bool MainWindow::first_quit = true;
+
+extern std::filesystem::path EXECUTABLE_PATH;
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), currentDevice("AUTO"),
@@ -81,8 +85,8 @@ MainWindow::MainWindow(QWidget *parent)
       "is sent externally. Your privacy is safe.");
 
   if (QSystemTrayIcon::isSystemTrayAvailable()) {
-    iconPath = QString::fromStdString(
-        getExecutablePath() + "/../resources/vision-guard-removebg.png");
+    iconPath =
+        QString::fromStdString(getResourcePath("vision-guard-removebg.png"));
     createActions();
     createTrayIcon();
     setIcon();
@@ -298,48 +302,34 @@ void MainWindow::displayChart(const std::map<std::string, double> &stats,
   dialog.exec();
 }
 
-/**
- * @brief Fetches the executable path.
- * @return The path to the executable.
- */
-std::string MainWindow::getExecutablePath() {
-  char buffer[PATH_MAX];
+std::string MainWindow::getResourcePath(const std::string &resourceName) {
+  QString appPath = QApplication::applicationDirPath();
+  QDir resourceDir(appPath);
 
-#if defined(_WIN32) || defined(_WIN64)
-  GetModuleFileNameA(nullptr, buffer, PATH_MAX);
-  std::string::size_type pos = std::string(buffer).find_last_of("\\/");
-  return std::string(buffer).substr(0, pos);
-#elif defined(__APPLE__)
-  uint32_t size = PATH_MAX;
-  if (_NSGetExecutablePath(buffer, &size) != 0) {
-    throw std::runtime_error("Failed to get executable path");
+#if defined(Q_OS_MAC)
+  if (resourceDir.dirName() == "MacOS") {
+    resourceDir.cdUp();
+    resourceDir.cd("Resources");
   }
-  std::string path(buffer);
-  std::string::size_type pos = path.find_last_of('/');
-  return path.substr(0, pos);
+#elif defined(Q_OS_WIN)
+  // On Windows, resources are typically in the same directory as the executable
 #else
-  ssize_t count = readlink("/proc/self/exe", buffer, PATH_MAX);
-  if (count == -1) {
-    throw std::runtime_error("Failed to get executable path");
+  // For Linux and other platforms, you might want to check for a "resources"
+  // subdirectory
+  if (resourceDir.exists("resources")) {
+    resourceDir.cd("resources");
   }
-  buffer[count] = '\0';
-  std::string path(buffer);
-  std::string::size_type pos = path.find_last_of('/');
-  return path.substr(0, pos);
 #endif
+
+  return resourceDir.filePath(QString::fromStdString(resourceName))
+      .toStdString();
 }
 
-/**
- * @brief Retrieves the model path.
- * @param modelName The name of the model.
- * @param precision The precision level of the model.
- * @return The full path to the model.
- */
 std::string MainWindow::getModelPath(const std::string &modelName,
                                      const std::string &precision) {
-  std::string modelPath = getExecutablePath() + "/" + MODELS_DIR + "/" +
-                          modelName + "/" + precision + "/" + modelName +
-                          MODEL_EXTENSION;
+  std::string modelPath =
+      getResourcePath(MODELS_DIR + "/" + modelName + "/" + precision + "/" +
+                      modelName + MODEL_EXTENSION);
 
   if (!std::filesystem::exists(modelPath)) {
     slog::err << "Model file not found: " << modelPath << slog::endl;
@@ -351,12 +341,6 @@ std::string MainWindow::getModelPath(const std::string &modelName,
   return modelPath;
 }
 
-/**
- * @brief Initializes the VisionGuard object.
- * @param precision The precision level for the models.
- * @param device The device to run the models on.
- * @return A unique pointer to the VisionGuard object.
- */
 std::unique_ptr<VisionGuard>
 MainWindow::initializeVisionGuard(const std::string &precision,
                                   const std::string &device) {
