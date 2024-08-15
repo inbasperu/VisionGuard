@@ -34,7 +34,7 @@ VisionGuard::VisionGuard(const std::string &gaze_model,
       eyeStateEstimator(core, eye_state_model, device),
       gazeEstimator(core, gaze_model, device),
       resultsMarker(false, false, false, true, true),
-      presenter("", 650, cv::Size(320, 60)) {
+      presenter("", 300, cv::Size(200, 40)) {
   // Load OpenVINO runtime
   slog::info << ov::get_openvino_version() << slog::endl;
   estimators = {&headPoseEstimator, &landmarksEstimator, &eyeStateEstimator,
@@ -476,7 +476,10 @@ void VisionGuard::setGazeLostThreshold(const double gazeLostThreshold) {
 void VisionGuard::toggle(int key) {
   if (toggleStates.find(key) != toggleStates.end()) {
     toggleStates[key] = !toggleStates[key];
-    resultsMarker.toggle(key);
+    if (key == TOGGLE_RESOURCE_GRAPH)
+      presenter.handleKey(key);
+    else
+      resultsMarker.toggle(key);
   } else {
     // Handle invalid key, maybe log a warning
     slog::warn << "Attempted to toggle invalid key: " << key << slog::endl;
