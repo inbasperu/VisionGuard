@@ -31,9 +31,6 @@ public:
   explicit MainWindow(QWidget *parent = nullptr);
   ~MainWindow();
 
-protected:
-  void keyPressEvent(QKeyEvent *event) override;
-
 private slots:
   void quitApplication();
   void checkGazeTime();
@@ -48,12 +45,11 @@ private slots:
   void on_weeklyStatButton_clicked();
   void on_FPSLimitSpinBox_valueChanged(int value);
   void on_FPSLimitHorizontalSlider_valueChanged(int value);
-  void restartApplication();
-  void initializeAfterPermission();
   void on_resetCalibration_clicked();
   void on_setMargin_clicked();
 
-  private:
+private:
+  void initializeAfterPermission();
   void createTrayIcon();
   void createActions();
   void setIcon();
@@ -99,7 +95,7 @@ private:
   std::vector<cv::Point2f> captureGazePoints(int durationMs);
   std::vector<cv::Point2f> calculateCalibrationPoints(
       const std::vector<std::vector<cv::Point2f>> &allGazePoints,
-      int screenWidth, int screenHeight, int errorMargin);
+      int errorMargin);
 
   Ui::MainWindow *ui;
   QTimer *timer;
@@ -159,19 +155,6 @@ private:
   const char TOGGLE_LANDMARKS = 'L';
   const char TOGGLE_NONE = 'N';
   const char TOGGLE_RESOURCE_GRAPH = 'H';
-};
-
-class CalibrationDialog : public QDialog {
-  Q_OBJECT
-public:
-  CalibrationDialog(QWidget *parent = nullptr) : QDialog(parent) {}
-
-protected:
-  void keyPressEvent(QKeyEvent *event) override {
-    if (event->key() == Qt::Key_Space) {
-      accept();
-    }
-  }
 };
 
 #endif // MAINWINDOW_H

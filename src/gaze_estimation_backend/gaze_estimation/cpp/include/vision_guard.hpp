@@ -102,7 +102,7 @@ private:
   ScreenCalibration getDefaultCalibrationPoints(const cv::Size &imageSize);
   bool isGazeInScreen(const ScreenCalibration &calibration,
                       const cv::Point3f &gazeVector,
-                      const cv::Size &imageSize) const;
+                      const cv::Size &imageSize);
   nlohmann::json readDataFile();
   void updateGazeTime(
       const gaze_estimation::FaceInferenceResults &faceInferenceResults,
@@ -130,6 +130,11 @@ private:
 
   // Calibration
   ScreenCalibration calibration;
+  cv::Point2f convertGazeVectorToPointRel(
+      const cv::Point3f &gazeVector, const cv::Size &screenSize,
+      float cameraHeight = 0.05f, // 5cm above screen by default
+      float screenWidth = 0.34f,  // 34cm wide by default (15.6" laptop)
+      float screenHeight = 0.19f);
 
   // OpenVINO components
   ov::Core core;

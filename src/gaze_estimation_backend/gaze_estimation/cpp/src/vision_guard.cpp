@@ -17,8 +17,6 @@
 #include <CoreGraphics/CoreGraphics.h>
 #endif
 
-static int cnt = 0;
-
 VisionGuard::VisionGuard(const std::string &gaze_model,
                          const std::string &face_model,
                          const std::string &head_pose_model,
@@ -67,11 +65,6 @@ VisionGuard::~VisionGuard() {
   cleanOldData();
 }
 
-/**
- * @brief Checks if the accumulated gaze time has exceeded the threshold.
- * @return True if the accumulated gaze time has exceeded the threshold, false
- * otherwise.
- */
 bool VisionGuard::checkGazeTimeExceeded() const {
   return accumulatedGazeTime >= accumulated_gaze_time_threshold;
 }
@@ -232,10 +225,6 @@ double VisionGuard::getAccumulatedGazeTime() const {
   return accumulatedGazeTime;
 }
 
-/**
- * @brief Gets the available devices for running the models.
- * @return A vector of available devices.
- */
 std::vector<std::string> VisionGuard::getAvailableDevices() {
   auto devices = core.get_available_devices();
   if (devices.size())
@@ -243,10 +232,6 @@ std::vector<std::string> VisionGuard::getAvailableDevices() {
   return devices;
 }
 
-/**
- * @brief Gets the daily statistics of gaze time.
- * @return A map of daily gaze time statistics.
- */
 std::map<std::string, double> VisionGuard::getDailyStats() {
   nlohmann::json data = readDataFile();
   std::map<std::string, double> dailyStats;
@@ -275,10 +260,6 @@ std::map<std::string, double> VisionGuard::getDailyStats() {
   return dailyStats;
 }
 
-/**
- * @brief Gets the duration of time when the gaze was lost.
- * @return The gaze lost duration in seconds.
- */
 double VisionGuard::getGazeLostDuration() const {
   return std::chrono::duration<double>(std::chrono::steady_clock::now() -
                                        gazeLostTime)
@@ -324,66 +305,6 @@ bool VisionGuard::isDeviceAvailable(const std::string &device) {
   std::vector<std::string> availableDevices = getAvailableDevices();
   return std::find(availableDevices.begin(), availableDevices.end(), device) !=
          availableDevices.end();
-}
-
-bool isLookingAtScreen(
-    const gaze_estimation::FaceInferenceResults &inferenceResults,
-    const ScreenCalibration &screenCalibration, const cv::Size &imageSize) {
-  slog::debug << "[COUNT]: " << cnt << slog::endl;
-
-  // Convert head pose angles from degrees to radians
-  float yaw = inferenceResults.headPoseAngles.x * CV_PI / 180.0f;
-  float pitch = inferenceResults.headPoseAngles.y * CV_PI / 180.0f;
-  float roll = inferenceResults.headPoseAngles.z * CV_PI / 180.0f;
-
-  // Calculate rotation matrix from head pose angles
-  cv::Matx33f rx(1, 0, 0, 0, cos(pitch), -sin(pitch), 0, sin(pitch),
-                 cos(pitch));
-  cv::Matx33f ry(cos(yaw), 0, sin(yaw), 0, 1, 0, -sin(yaw), 0, cos(yaw));
-  cv::Matx33f rz(cos(roll), -sin(roll), 0, sin(roll), cos(roll), 0, 0, 0, 1);
-  cv::Matx33f rotationMatrix = rz * ry * rx;
-
-  // Use the gaze vector directly from inferenceResults
-  cv::Vec3f gazeVectorCamera(inferenceResults.gazeVector);
-
-  // Calculate eye position (midpoint between left and right eyes)
-  cv::Point2f eyePosition =
-      (inferenceResults.leftEyeMidpoint + inferenceResults.rightEyeMidpoint) *
-      0.5f;
-
-  // Assume the eye is at some distance in front of the camera (e.g., 500 units)
-  float assumedEyeDistance = 500.0f;
-  cv::Point3f eyePosition3D(eyePosition.x - imageSize.width / 2.0f,
-                            eyePosition.y - imageSize.height / 2.0f,
-                            assumedEyeDistance);
-
-  // Calculate screen plane normal (assuming it's parallel to the image plane)
-  cv::Point3f screenNormal(0, 0, -1); // Pointing towards the camera
-
-  // Assume the screen is at z = 0
-  float screenDistance = assumedEyeDistance;
-  float d = screenDistance;
-
-  // Calculate the intersection point of gaze vector with screen plane
-  float t = (d - eyePosition3D.z) / gazeVectorCamera[2];
-
-  // Check if the gaze vector is pointing towards the screen
-  if (t < 0) {
-    return false;
-  }
-
-  cv::Point3f intersection = eyePosition3D + cv::Point3f(t * gazeVectorCamera);
-
-  // Transform intersection point back to image coordinates
-  cv::Point2f intersectionPoint(intersection.x + imageSize.width / 2.0f,
-                                intersection.y + imageSize.height / 2.0f);
-
-  // Check if the intersection point is within the screen bounds
-  std::vector<cv::Point2f> screenCorners = {
-      screenCalibration.topLeft, screenCalibration.topRight,
-      screenCalibration.bottomRight, screenCalibration.bottomLeft};
-
-  return cv::pointPolygonTest(screenCorners, intersectionPoint, false) >= 0;
 }
 
 void VisionGuard::processFrame(cv::Mat &frame) {
@@ -455,12 +376,9 @@ bool VisionGuard::isToggled(char toggleType) const {
   return false;
 }
 
-cv::Point2f convertGazeVectorToPointRel(
+cv::Point2f VisionGuard::convertGazeVectorToPointRel(
     const cv::Point3f &gazeVector, const cv::Size &screenSize,
-    float cameraHeight = 0.05f, // 5cm above screen by default
-    float screenWidth = 0.34f,  // 34cm wide by default (15.6" laptop)
-    float screenHeight = 0.19f) // 19cm tall by default (15.6" laptop)
-{
+    float cameraHeight, float screenWidth, float screenHeight) {
   // Normalize the gaze vector
   cv::Point3f normalizedGaze = gazeVector / cv::norm(gazeVector);
 
@@ -481,7 +399,8 @@ cv::Point2f convertGazeVectorToPointRel(
 
   // // Clamp the coordinates to the screen boundaries
   // pixelX = std::max(0.0f,
-  //                   std::min(pixelX, static_cast<float>(screenSize.width - 1)));
+  //                   std::min(pixelX, static_cast<float>(screenSize.width -
+  //                   1)));
   // pixelY = std::max(
   //     0.0f, std::min(pixelY, static_cast<float>(screenSize.height - 1)));
 
@@ -513,23 +432,9 @@ cv::Point2f VisionGuard::captureGazePoint(cv::Mat &frame) {
                                      frame.size());
 }
 
-cv::Point2f convertGazeVectorToPoint(const cv::Point3f &gazeVector,
-                                     const cv::Size &imageSize) {
-  cv::Point2f point{imageSize.width / 2 + gazeVector.x * imageSize.width / 2,
-                    imageSize.height / 2 - gazeVector.y * imageSize.height / 2};
-
-  // // Log the gaze vector and the converted point
-  // slog::debug << "Gaze Vector: (" << gazeVector.x << ", " << gazeVector.y
-  //             << ", " << gazeVector.z << ")" << slog::endl;
-  // slog::debug << "Converted Point: (" << point.x << ", " << point.y << ")"
-  //             << slog::endl;
-
-  return point;
-}
-
 bool VisionGuard::isGazeInScreen(const ScreenCalibration &calibration,
                                  const cv::Point3f &gazeVector,
-                                 const cv::Size &imageSize) const {
+                                 const cv::Size &imageSize){
   // Extract the four points from the ScreenCalibration struct
   std::vector<cv::Point2f> polygon = {calibration.topLeft, calibration.topRight,
                                       calibration.bottomRight,
@@ -549,7 +454,6 @@ bool VisionGuard::isGazeInScreen(const ScreenCalibration &calibration,
     }
   }
 
-  // // Log whether the gaze point is inside the screen
   slog::debug << "Gaze is " << (isInside ? "inside" : "outside")
               << " the screen" << slog::endl;
 

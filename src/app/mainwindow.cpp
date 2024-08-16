@@ -243,22 +243,6 @@ void MainWindow::closeEvent(QCloseEvent *event) {
   }
 }
 
-void MainWindow::restartApplication() {
-  // Get the current application's file path and arguments
-  QString program = QCoreApplication::applicationFilePath();
-  QStringList arguments = QCoreApplication::arguments();
-  arguments.removeFirst(); // Remove the program name from arguments
-
-  // Close the current window
-  this->close();
-
-  // Start a new instance of the application
-  QProcess::startDetached(program, arguments);
-
-  // Quit the current instance
-  QCoreApplication::quit();
-}
-
 void MainWindow::checkGazeTime() {
   if (visionGuard->checkGazeTimeExceeded()) {
     show();
@@ -415,14 +399,6 @@ MainWindow::initializeVisionGuard(const std::string &precision,
   }
 }
 
-void MainWindow::keyPressEvent(QKeyEvent *event) {
-  if (event->key() == Qt::Key_Escape) {
-    hide();
-  } else {
-    visionGuard->toggle(event->key());
-  }
-}
-
 void MainWindow::loadModels(const std::string &precision) {
   currentPrecision = precision;
   visionGuard.reset();
@@ -433,6 +409,7 @@ void MainWindow::on_actionExit_triggered() {
   quitting = true;
   close();
 }
+
 void MainWindow::on_FPSLimitSpinBox_valueChanged(int value) {
   FPS_LIMIT = value;
   frameIntervalMs = 1000 / FPS_LIMIT;
@@ -547,8 +524,8 @@ void MainWindow::performFourPointCalibration() {
   try {
     slog::debug << "Calculating calibration points with error margin: "
                 << errorMargin << slog::endl;
-    std::vector<cv::Point2f> calibrationPoints = calculateCalibrationPoints(
-        allGazePoints, screenWidth, screenHeight, errorMargin);
+    std::vector<cv::Point2f> calibrationPoints =
+        calculateCalibrationPoints(allGazePoints, errorMargin);
     visionGuard->setCalibrationPoints(
         calibrationPoints[0], calibrationPoints[1], calibrationPoints[2],
         calibrationPoints[3]);
@@ -625,8 +602,8 @@ std::vector<cv::Point2f> MainWindow::captureGazePoints(int durationMs) {
 }
 
 std::vector<cv::Point2f> MainWindow::calculateCalibrationPoints(
-    const std::vector<std::vector<cv::Point2f>> &allGazePoints, int screenWidth,
-    int screenHeight, int errorMargin) {
+    const std::vector<std::vector<cv::Point2f>> &allGazePoints,
+    int errorMargin) {
 
   std::vector<cv::Point2f> allPoints;
   for (const auto &points : allGazePoints) {
@@ -649,9 +626,6 @@ std::vector<cv::Point2f> MainWindow::calculateCalibrationPoints(
   slog::debug << "Extended bounding rect: (" << boundingRect.x << ", "
               << boundingRect.y << ", " << boundingRect.width << ", "
               << boundingRect.height << ")" << slog::endl;
-
-  // // Ensure the bounding rect doesn't exceed screen boundaries
-  // boundingRect &= cv::Rect(0, 0, screenWidth, screenHeight);
 
   slog::debug << "Final bounding rect: (" << boundingRect.x << ", "
               << boundingRect.y << ", " << boundingRect.width << ", "
@@ -765,11 +739,13 @@ void MainWindow::populateDeviceMenu() {
     ui->menuDevices->addAction(deviceAction);
   }
 }
+
 void MainWindow::updateDeviceMenu() {
   for (QAction *action : ui->menuDevices->actions()) {
     action->setChecked(action->text().toStdString() == currentDevice);
   }
 }
+
 void MainWindow::populateModelMenu() {
   ui->menuModels->clear();
   std::vector<std::string> precisions = {INT8_PRECISION, FP16_PRECISION,
