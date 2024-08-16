@@ -106,7 +106,7 @@ private:
   std::unique_ptr<VisionGuard> visionGuard;
   std::unique_ptr<ImagesCapture> cap;
 
-  double errorMargin = -50;
+  double errorMargin = -10;
   void setCalibrationErrorMargin(double margin);
   double getErrroMargin() { return errorMargin; };
 

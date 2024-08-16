@@ -596,6 +596,7 @@ void VisionGuard::updateGazeTime(
       slog::debug
           << "Gaze lost duration exceeded threshold. Resetting gaze time."
           << slog::endl;
+      gazeLostTime = now;
       resetGazeTime();
     }
   }
