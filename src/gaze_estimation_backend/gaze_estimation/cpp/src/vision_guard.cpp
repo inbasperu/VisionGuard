@@ -188,6 +188,20 @@ void VisionGuard::setCalibrationPoints(
   calibration = calibrationPoints;
 }
 
+void VisionGuard::setCalibrationPoints(const cv::Point2f &topLeft,
+                                       const cv::Point2f &topRight,
+                                       const cv::Point2f &bottomRight,
+                                       const cv::Point2f &bottomLeft) {
+  calibration = ScreenCalibration({topLeft, topRight, bottomRight, bottomLeft});
+  slog::debug << "New Calibration Points set to: "
+              << "Top Left (" << topLeft.x << ", " << topLeft.y << "), "
+              << "Top Right (" << topRight.x << ", " << topRight.y << "), "
+              << "Bottom Right (" << bottomRight.x << ", " << bottomRight.y
+              << "), "
+              << "Bottom Left (" << bottomLeft.x << ", " << bottomLeft.y << ")"
+              << slog::endl;
+}
+
 void VisionGuard::defaultCalibration(
     const cv::Size &imageSize = cv::Size(1920, 1080)) {
   this->setCalibrationPoints(this->getDefaultCalibrationPoints(imageSize));
@@ -441,6 +455,64 @@ bool VisionGuard::isToggled(char toggleType) const {
   return false;
 }
 
+cv::Point2f convertGazeVectorToPointRel(
+    const cv::Point3f &gazeVector, const cv::Size &screenSize,
+    float cameraHeight = 0.05f, // 5cm above screen by default
+    float screenWidth = 0.34f,  // 34cm wide by default (15.6" laptop)
+    float screenHeight = 0.19f) // 19cm tall by default (15.6" laptop)
+{
+  // Normalize the gaze vector
+  cv::Point3f normalizedGaze = gazeVector / cv::norm(gazeVector);
+
+  // Calculate the intersection point with the screen plane
+  // Assume the camera is at (0, cameraHeight, 0) and the screen center is at
+  // (0, 0, screenHeight/2)
+  float t = (screenHeight / 2) / normalizedGaze.z;
+  float x = normalizedGaze.x * t;
+  float y = normalizedGaze.y * t + cameraHeight;
+
+  // Convert to normalized coordinates (-1 to 1)
+  float normalizedX = x / (screenWidth / 2);
+  float normalizedY = (y - screenHeight / 2) / (screenHeight / 2);
+
+  // Convert to pixel coordinates
+  float pixelX = (normalizedX + 1) * screenSize.width / 2;
+  float pixelY = (1 - normalizedY) * screenSize.height / 2; // Flip Y-axis
+
+  // Clamp the coordinates to the screen boundaries
+  pixelX = std::max(0.0f,
+                    std::min(pixelX, static_cast<float>(screenSize.width - 1)));
+  pixelY = std::max(
+      0.0f, std::min(pixelY, static_cast<float>(screenSize.height - 1)));
+
+  slog::debug << "Gaze Vector: (" << gazeVector.x << ", " << gazeVector.y
+              << ", " << gazeVector.z << ")" << slog::endl;
+  slog::debug << "Converted Point: (" << pixelX << ", " << pixelY << ")"
+              << slog::endl;
+
+  return cv::Point2f(pixelX, pixelY);
+}
+
+cv::Point2f VisionGuard::captureGazePoint(cv::Mat &frame) {
+  if (frame.empty()) {
+    throw std::runtime_error("Input frame is empty");
+  }
+
+  auto inferenceResults = faceDetector.detect(frame);
+  if (inferenceResults.empty()) {
+    throw std::runtime_error("No face detected in the frame");
+  }
+
+  for (auto &inferenceResult : inferenceResults) {
+    for (auto estimator : estimators) {
+      estimator->estimate(frame, inferenceResult);
+    }
+  }
+
+  return convertGazeVectorToPointRel(inferenceResults.back().gazeVector,
+                                     frame.size());
+}
+
 cv::Point2f convertGazeVectorToPoint(const cv::Point3f &gazeVector,
                                      const cv::Size &imageSize) {
   cv::Point2f point{imageSize.width / 2 + gazeVector.x * imageSize.width / 2,
@@ -462,7 +534,7 @@ bool VisionGuard::isGazeInScreen(const ScreenCalibration &calibration,
   std::vector<cv::Point2f> polygon = {calibration.topLeft, calibration.topRight,
                                       calibration.bottomRight,
                                       calibration.bottomLeft};
-  auto point = convertGazeVectorToPoint(gazeVector, imageSize);
+  auto point = convertGazeVectorToPointRel(gazeVector, imageSize);
 
   int i, j, nvert = polygon.size();
   bool isInside = false;
@@ -478,8 +550,8 @@ bool VisionGuard::isGazeInScreen(const ScreenCalibration &calibration,
   }
 
   // // Log whether the gaze point is inside the screen
-  // slog::debug << "Gaze is " << (isInside ? "inside" : "outside")
-  //             << " the screen" << slog::endl;
+  slog::debug << "Gaze is " << (isInside ? "inside" : "outside")
+              << " the screen" << slog::endl;
 
   return isInside;
 }

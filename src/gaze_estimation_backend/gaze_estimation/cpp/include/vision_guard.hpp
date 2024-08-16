@@ -72,6 +72,10 @@ public:
   ~VisionGuard();
 
   void setCalibrationPoints(const ScreenCalibration &calibrationPoints);
+  void setCalibrationPoints(const cv::Point2f &topLeft,
+                            const cv::Point2f &topRight,
+                            const cv::Point2f &bottomRight,
+                            const cv::Point2f &bottomLeft);
   bool checkGazeTimeExceeded() const;
   void createEmptyDataFile();
   void defaultCalibration(const cv::Size &imageSize);
@@ -91,6 +95,7 @@ public:
   setAccumulatedGazeTimeThreshold(const double accumulated_gaze_time_threshold);
   void setGazeLostThreshold(const double gazeLostThreshold);
   void toggle(int key);
+  cv::Point2f captureGazePoint(cv::Mat &frame);
 
 private:
   void cleanOldData();

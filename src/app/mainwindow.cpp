@@ -2,11 +2,13 @@
 #include "ui_mainwindow.h"
 #include <QCoreApplication>
 #include <QDir>
+#include <QElapsedTimer>
 #include <QKeyEvent>
 #include <QMessageBox>
 #include <QPermissions>
 #include <QProcess>
 #include <QStandardPaths>
+#include <QThread>
 #include <QTime>
 #include <QTimer>
 #include <QtCharts/QBarCategoryAxis>
@@ -493,44 +495,101 @@ void MainWindow::performFourPointCalibration() {
   instructionLabel.setStyleSheet("color: white; font-size: 24px;");
   instructionLabel.setGeometry(0, 0, screenWidth, screenHeight);
 
-  int margin = 50;    // Increased margin to move points inward
-  int pointSize = 20; // Increased point size for better visibility
+  int margin = 50;
+  int pointSize = 20;
   std::vector<QPoint> calibrationPoints = {
-      QPoint(margin, margin + 50),                         // Top-left
-      QPoint(screenWidth - margin, margin + 50),           // Top-right
-      QPoint(screenWidth - margin, screenHeight - margin), // Bottom-right
-      QPoint(margin, screenHeight - margin)                // Bottom-left
-  };
+      QPoint(margin, margin + 50), QPoint(screenWidth - margin, margin + 50),
+      QPoint(screenWidth - margin, screenHeight - margin),
+      QPoint(margin, screenHeight - margin)};
 
   std::vector<QString> pointNames = {"Top Left", "Top Right", "Bottom Right",
                                      "Bottom Left"};
+  std::vector<cv::Point2f> screenBoundary;
 
   for (size_t i = 0; i < calibrationPoints.size(); ++i) {
     QLabel pointLabel(&calibrationWindow);
     pointLabel.setGeometry(calibrationPoints[i].x() - pointSize / 2,
                            calibrationPoints[i].y() - pointSize / 2, pointSize,
                            pointSize);
-    pointLabel.setStyleSheet(
-        "background-color: #00FF00; border-radius: 10px;"); // Bright green
-                                                            // color
+    pointLabel.setStyleSheet("background-color: #00FF00; border-radius: 10px;");
     pointLabel.show();
 
-    instructionLabel.setText("Look at the " + pointNames[i] +
-                             " point and press the SPACE BAR");
-
+    instructionLabel.setText("Look at the " + pointNames[i] + " point");
     calibrationWindow.show();
-    calibrationWindow.exec(); // This will wait for the dialog to be accepted
-                              // (space bar press)
 
+    // Give the user a moment to focus on the point
+    QThread::msleep(1500);
+
+    cv::Point2f averageGazePoint;
+    try {
+      slog::debug << "Capturing " << pointNames[i].toStdString() << slog::endl;
+      averageGazePoint = captureAverageGazePoint();
+    } catch (const std::exception &e) {
+      QMessageBox::critical(
+          this, "Calibration Error",
+          QString("Error during gaze capture: %1").arg(e.what()));
+      return;
+    }
+
+    screenBoundary.push_back(averageGazePoint);
     pointLabel.hide();
   }
 
-  // Update VisionGuard with the calibration points
-  visionGuard->defaultCalibration(cv::Size(screenWidth, screenHeight));
+  calibrationWindow.close();
+
+  try {
+    visionGuard->setCalibrationPoints(screenBoundary[0], screenBoundary[1],
+                                      screenBoundary[2], screenBoundary[3]);
+  } catch (const std::exception &e) {
+    QMessageBox::critical(
+        this, "Calibration Error",
+        QString("Error setting calibration points: %1").arg(e.what()));
+    return;
+  }
 
   QMessageBox::information(
       this, "Calibration Complete",
       "The 4-point calibration has been completed successfully.");
+}
+
+cv::Point2f MainWindow::captureAverageGazePoint() {
+  int durationMs = 2500;
+  std::vector<cv::Point2f> gazePoints;
+  QElapsedTimer timer;
+  timer.start();
+
+  while (timer.elapsed() < durationMs) {
+    cv::Mat frame = cap->read();
+    if (frame.empty()) {
+      throw std::runtime_error("Failed to capture frame from camera");
+    }
+
+    try {
+      cv::Point2f gazePoint = visionGuard->captureGazePoint(frame);
+      gazePoints.push_back(gazePoint);
+    } catch (const std::exception &e) {
+      throw std::runtime_error(std::string("Error capturing gaze point: ") +
+                               e.what());
+    }
+
+    QCoreApplication::processEvents();
+  }
+
+  if (gazePoints.empty()) {
+    throw std::runtime_error("No gaze points captured");
+  }
+
+  // Calculate average gaze point
+  cv::Point2f averagePoint(0, 0);
+  for (const auto &point : gazePoints) {
+    averagePoint += point;
+  }
+  averagePoint *= 1.0f / gazePoints.size();
+
+  slog::debug << "Average point value: " << averagePoint << " (from "
+              << gazePoints.size() << " samples)" << slog::endl;
+
+  return averagePoint;
 }
 
 void MainWindow::on_dailyStatButton_clicked() {

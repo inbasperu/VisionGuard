@@ -97,6 +97,7 @@ private:
   void updateToggleMenu();
   void switchDevice(const std::string &device);
   void updateFrame();
+  cv::Point2f captureAverageGazePoint();
 
   Ui::MainWindow *ui;
   QTimer *timer;
