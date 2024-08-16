@@ -471,8 +471,8 @@ void MainWindow::on_breakIntervalSpinBox_valueChanged(int arg1) {
 
 void MainWindow::on_Calibrate_clicked() { this->performFourPointCalibration(); }
 
-void MainWindow::setCalibrationErrorMargin(int margin) {
-  errorMargin = margin;
+void MainWindow::setCalibrationErrorMargin(double margin) {
+  errorMargin = -margin;
   slog::info << "Calibration error margin set to: " << errorMargin
              << slog::endl;
 }
@@ -902,4 +902,31 @@ void MainWindow::updateFrame() {
   gazeLostTime = gazeLostTime.addSecs(
       static_cast<int>(visionGuard->getGazeLostDuration()));
   ui->GazeLostTime->setText(gazeLostTime.toString("mm:ss"));
+}
+
+void MainWindow::on_resetCalibration_clicked() {
+  visionGuard->defaultCalibration(this->imageSize);
+  QMessageBox::information(
+      this, "Calibration Reset",
+      "The calibration has been reset to the default settings.");
+}
+
+void MainWindow::on_setMargin_clicked() {
+  double newValue = ui->doubleSpinBox->value();
+  setCalibrationErrorMargin(newValue);
+
+  QMessageBox::StandardButton reply;
+  reply = QMessageBox::question(
+      this, "Calibration Error Margin Updated",
+      "The calibration error margin has been updated. Would you like to "
+      "recalibrate your screen now to apply the new settings?",
+      QMessageBox::Yes | QMessageBox::No);
+
+  if (reply == QMessageBox::Yes) {
+    performFourPointCalibration();
+  } else {
+    QMessageBox::information(this, "Calibration Skipped",
+                             "Screen calibration has been skipped. Please "
+                             "recalibrate.");
+  }
 }

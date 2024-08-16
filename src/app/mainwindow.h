@@ -36,8 +36,6 @@ protected:
 
 private slots:
   void quitApplication();
-
-private slots:
   void checkGazeTime();
   void on_Calibrate_clicked();
   void on_actionExit_triggered();
@@ -52,9 +50,10 @@ private slots:
   void on_FPSLimitHorizontalSlider_valueChanged(int value);
   void restartApplication();
   void initializeAfterPermission();
+  void on_resetCalibration_clicked();
+  void on_setMargin_clicked();
 
-  // Sys tray methods and variables
-private:
+  private:
   void createTrayIcon();
   void createActions();
   void setIcon();
@@ -107,8 +106,9 @@ private:
   std::unique_ptr<VisionGuard> visionGuard;
   std::unique_ptr<ImagesCapture> cap;
 
-  int errorMargin = -50;
-  void setCalibrationErrorMargin(int margin);
+  double errorMargin = -50;
+  void setCalibrationErrorMargin(double margin);
+  double getErrroMargin() { return errorMargin; };
 
   static bool quitting;
   static bool first_quit;
