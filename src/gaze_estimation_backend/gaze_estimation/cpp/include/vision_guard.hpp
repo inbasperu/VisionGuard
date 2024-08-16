@@ -44,7 +44,6 @@
 #include "head_pose_estimator.hpp"
 #include "landmarks_estimator.hpp"
 #include "results_marker.hpp"
-#include "utils.hpp"
 
 struct ScreenCalibration {
   cv::Point2f topLeft;
@@ -101,8 +100,7 @@ private:
   void cleanOldData();
   ScreenCalibration getDefaultCalibrationPoints(const cv::Size &imageSize);
   bool isGazeInScreen(const ScreenCalibration &calibration,
-                      const cv::Point3f &gazeVector,
-                      const cv::Size &imageSize);
+                      const cv::Point3f &gazeVector, const cv::Size &imageSize);
   nlohmann::json readDataFile();
   void updateGazeTime(
       const gaze_estimation::FaceInferenceResults &faceInferenceResults,

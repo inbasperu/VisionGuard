@@ -35,6 +35,10 @@ public:
   void setGazeToggle(bool showGaze);
   void setEyeStateToggle(bool showEyeState);
 
+  // Helper
+  void gazeVectorToGazeAngles(const cv::Point3f &gazeVector,
+                              cv::Point2f &gazeAngles);
+
 private:
   bool showFaceBoundingBox;
   bool showHeadPoseAxes;
