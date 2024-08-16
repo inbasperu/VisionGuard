@@ -100,12 +100,15 @@ private:
   std::vector<cv::Point2f> captureGazePoints(int durationMs);
   std::vector<cv::Point2f> calculateCalibrationPoints(
       const std::vector<std::vector<cv::Point2f>> &allGazePoints,
-      int screenWidth, int screenHeight);
+      int screenWidth, int screenHeight, int errorMargin);
 
   Ui::MainWindow *ui;
   QTimer *timer;
   std::unique_ptr<VisionGuard> visionGuard;
   std::unique_ptr<ImagesCapture> cap;
+
+  int errorMargin = -50;
+  void setCalibrationErrorMargin(int margin);
 
   static bool quitting;
   static bool first_quit;

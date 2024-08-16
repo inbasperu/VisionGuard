@@ -471,6 +471,12 @@ void MainWindow::on_breakIntervalSpinBox_valueChanged(int arg1) {
 
 void MainWindow::on_Calibrate_clicked() { this->performFourPointCalibration(); }
 
+void MainWindow::setCalibrationErrorMargin(int margin) {
+  errorMargin = margin;
+  slog::info << "Calibration error margin set to: " << errorMargin
+             << slog::endl;
+}
+
 void MainWindow::performFourPointCalibration() {
   QScreen *screen = QGuiApplication::primaryScreen();
   if (!screen) {
@@ -480,6 +486,9 @@ void MainWindow::performFourPointCalibration() {
   QRect screenGeometry = screen->geometry();
   int screenWidth = screenGeometry.width();
   int screenHeight = screenGeometry.height();
+
+  slog::debug << "Starting 4-point calibration. Screen size: " << screenWidth
+              << "x" << screenHeight << slog::endl;
 
   QDialog calibrationWindow(this);
   calibrationWindow.setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
@@ -517,9 +526,13 @@ void MainWindow::performFourPointCalibration() {
     QThread::msleep(500);
 
     try {
-      slog::debug << "Capturing " << pointNames[i].toStdString() << slog::endl;
+      slog::debug << "Capturing gaze points for " << pointNames[i].toStdString()
+                  << slog::endl;
       allGazePoints.push_back(captureGazePoints(1200)); // 1.2 seconds
     } catch (const std::exception &e) {
+      slog::err << "Error during gaze capture for "
+                << pointNames[i].toStdString() << ": " << e.what()
+                << slog::endl;
       QMessageBox::critical(
           this, "Calibration Error",
           QString("Error during gaze capture: %1").arg(e.what()));
@@ -532,12 +545,15 @@ void MainWindow::performFourPointCalibration() {
   calibrationWindow.close();
 
   try {
-    std::vector<cv::Point2f> calibrationPoints =
-        calculateCalibrationPoints(allGazePoints, screenWidth, screenHeight);
+    slog::debug << "Calculating calibration points with error margin: "
+                << errorMargin << slog::endl;
+    std::vector<cv::Point2f> calibrationPoints = calculateCalibrationPoints(
+        allGazePoints, screenWidth, screenHeight, errorMargin);
     visionGuard->setCalibrationPoints(
         calibrationPoints[0], calibrationPoints[1], calibrationPoints[2],
         calibrationPoints[3]);
   } catch (const std::exception &e) {
+    slog::err << "Error setting calibration points: " << e.what() << slog::endl;
     QMessageBox::critical(
         this, "Calibration Error",
         QString("Error setting calibration points: %1").arg(e.what()));
@@ -547,6 +563,7 @@ void MainWindow::performFourPointCalibration() {
   QMessageBox::information(
       this, "Calibration Complete",
       "The 4-point calibration has been completed successfully.");
+  slog::info << "Calibration completed successfully" << slog::endl;
 }
 
 std::vector<cv::Point2f> MainWindow::captureGazePoints(int durationMs) {
@@ -554,52 +571,91 @@ std::vector<cv::Point2f> MainWindow::captureGazePoints(int durationMs) {
   QElapsedTimer timer;
   timer.start();
 
+  int frameCount = 0;
+  int successfulCaptures = 0;
+  int skippedPoints = 0;
+
+  slog::debug << "Starting gaze point capture for " << durationMs << " ms"
+              << slog::endl;
+
   while (timer.elapsed() < durationMs) {
     cv::Mat frame = cap->read();
+    frameCount++;
+
     if (frame.empty()) {
-      throw std::runtime_error("Failed to capture frame from camera");
+      slog::warn << "Failed to capture frame " << frameCount << slog::endl;
+      continue;
     }
 
     try {
       cv::Point2f gazePoint = visionGuard->captureGazePoint(frame);
+
+      // Skip points at (0.00, 0.00)
+      if (gazePoint.x == 0.0f && gazePoint.y == 0.0f) {
+        slog::warn << "Skipping invalid gaze point (0.00, 0.00) for frame "
+                   << frameCount << slog::endl;
+        skippedPoints++;
+        continue;
+      }
+
       gazePoints.push_back(gazePoint);
+      successfulCaptures++;
+
+      slog::debug << "Captured gaze point " << successfulCaptures << ": ("
+                  << std::fixed << std::setprecision(2) << gazePoint.x << ", "
+                  << gazePoint.y << ")" << slog::endl;
     } catch (const std::exception &e) {
-      throw std::runtime_error(std::string("Error capturing gaze point: ") +
-                               e.what());
+      slog::warn << "Error capturing gaze point for frame " << frameCount
+                 << ": " << e.what() << slog::endl;
     }
 
     QCoreApplication::processEvents();
   }
 
   if (gazePoints.empty()) {
-    throw std::runtime_error("No gaze points captured");
+    throw std::runtime_error("No valid gaze points captured");
   }
 
-  slog::debug << "Captured " << gazePoints.size() << " gaze points"
-              << slog::endl;
+  slog::info << "Captured " << gazePoints.size() << " valid gaze points out of "
+             << frameCount << " frames" << slog::endl;
+  slog::info << "Skipped " << skippedPoints << " invalid gaze points"
+             << slog::endl;
 
   return gazePoints;
 }
 
 std::vector<cv::Point2f> MainWindow::calculateCalibrationPoints(
     const std::vector<std::vector<cv::Point2f>> &allGazePoints, int screenWidth,
-    int screenHeight) {
+    int screenHeight, int errorMargin) {
 
   std::vector<cv::Point2f> allPoints;
   for (const auto &points : allGazePoints) {
     allPoints.insert(allPoints.end(), points.begin(), points.end());
   }
 
+  slog::debug << "Total gaze points for calibration: " << allPoints.size()
+              << slog::endl;
+
   std::vector<cv::Point2f> hullPoints;
   cv::convexHull(allPoints, hullPoints);
 
-  // Extend hull by 150 pixels in all directions
-  cv::Rect boundingRect = cv::boundingRect(hullPoints);
-  boundingRect -= cv::Point(150, 150);
-  boundingRect += cv::Size(300, 300);
+  slog::debug << "Convex hull points: " << hullPoints.size() << slog::endl;
 
-  // Ensure the bounding rect doesn't exceed screen boundaries
-  boundingRect &= cv::Rect(0, 0, screenWidth, screenHeight);
+  // Extend hull by errorMargin pixels in all directions
+  cv::Rect boundingRect = cv::boundingRect(hullPoints);
+  boundingRect -= cv::Point(errorMargin, errorMargin);
+  boundingRect += cv::Size(2 * errorMargin, 2 * errorMargin);
+
+  slog::debug << "Extended bounding rect: (" << boundingRect.x << ", "
+              << boundingRect.y << ", " << boundingRect.width << ", "
+              << boundingRect.height << ")" << slog::endl;
+
+  // // Ensure the bounding rect doesn't exceed screen boundaries
+  // boundingRect &= cv::Rect(0, 0, screenWidth, screenHeight);
+
+  slog::debug << "Final bounding rect: (" << boundingRect.x << ", "
+              << boundingRect.y << ", " << boundingRect.width << ", "
+              << boundingRect.height << ")" << slog::endl;
 
   std::vector<cv::Point2f> calibrationPoints = {
       cv::Point2f(boundingRect.x, boundingRect.y),
@@ -608,18 +664,19 @@ std::vector<cv::Point2f> MainWindow::calculateCalibrationPoints(
                   boundingRect.y + boundingRect.height),
       cv::Point2f(boundingRect.x, boundingRect.y + boundingRect.height)};
 
-  slog::debug << "New Calibration Points set to: "
-              << "Top Left (" << calibrationPoints[0].x << ", "
-              << calibrationPoints[0].y << "), "
-              << "Top Right (" << calibrationPoints[1].x << ", "
-              << calibrationPoints[1].y << "), "
-              << "Bottom Right (" << calibrationPoints[2].x << ", "
-              << calibrationPoints[2].y << "), "
-              << "Bottom Left (" << calibrationPoints[3].x << ", "
-              << calibrationPoints[3].y << ")" << slog::endl;
+  slog::info << "New Calibration Points set to: "
+             << "Top Left (" << calibrationPoints[0].x << ", "
+             << calibrationPoints[0].y << "), "
+             << "Top Right (" << calibrationPoints[1].x << ", "
+             << calibrationPoints[1].y << "), "
+             << "Bottom Right (" << calibrationPoints[2].x << ", "
+             << calibrationPoints[2].y << "), "
+             << "Bottom Left (" << calibrationPoints[3].x << ", "
+             << calibrationPoints[3].y << ")" << slog::endl;
 
   return calibrationPoints;
 }
+
 void MainWindow::on_dailyStatButton_clicked() {
   auto dailyStats = visionGuard->getDailyStats();
   displayChart(dailyStats, "Daily Gaze Time Stats");

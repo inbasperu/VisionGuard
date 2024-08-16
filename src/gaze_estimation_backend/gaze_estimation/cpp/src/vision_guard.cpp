@@ -479,11 +479,11 @@ cv::Point2f convertGazeVectorToPointRel(
   float pixelX = (normalizedX + 1) * screenSize.width / 2;
   float pixelY = (1 - normalizedY) * screenSize.height / 2; // Flip Y-axis
 
-  // Clamp the coordinates to the screen boundaries
-  pixelX = std::max(0.0f,
-                    std::min(pixelX, static_cast<float>(screenSize.width - 1)));
-  pixelY = std::max(
-      0.0f, std::min(pixelY, static_cast<float>(screenSize.height - 1)));
+  // // Clamp the coordinates to the screen boundaries
+  // pixelX = std::max(0.0f,
+  //                   std::min(pixelX, static_cast<float>(screenSize.width - 1)));
+  // pixelY = std::max(
+  //     0.0f, std::min(pixelY, static_cast<float>(screenSize.height - 1)));
 
   slog::debug << "Gaze Vector: (" << gazeVector.x << ", " << gazeVector.y
               << ", " << gazeVector.z << ")" << slog::endl;
