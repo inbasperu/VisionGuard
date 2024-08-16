@@ -44,10 +44,10 @@ find_package(Qt6 REQUIRED COMPONENTS Core Widgets Multimedia MultimediaWidgets G
 qt_standard_project_setup()
 
 # Add subdirectories
-add_subdirectory(src/gaze_estimation_backend/thirdparty/gflags)
-add_subdirectory(src/gaze_estimation_backend/common/cpp)
-add_subdirectory(src/gaze_estimation_backend/multi_channel_common/cpp)
-add_subdirectory(src/gaze_estimation_backend/gaze_estimation/cpp)
+add_subdirectory(src/gflags)
+add_subdirectory(src/common)
+add_subdirectory(src/multi_channel_common)
+add_subdirectory(src/gaze_estimation)
 
 # Set up resources
 set(RESOURCES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/resources")
@@ -60,9 +60,9 @@ endif()
 
 # Define the executable
 qt_add_executable(VisionGuardApp ${GUI_TYPE}
-    src/app/main.cpp
-    src/app/mainwindow.cpp
-    src/app/mainwindow.ui
+    src/main.cpp
+    src/mainwindow.cpp
+    src/mainwindow.ui
     ${RESOURCES}
     ${WIN32_RESOURCES}
 )
@@ -70,7 +70,7 @@ qt_add_executable(VisionGuardApp ${GUI_TYPE}
 # Include directories
 target_include_directories(VisionGuardApp PRIVATE 
     ${OpenCV_INCLUDE_DIRS} 
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/gaze_estimation_backend/gaze_estimation/cpp/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/gaze_estimation/cpp/include"
 )
 
 # Link libraries
