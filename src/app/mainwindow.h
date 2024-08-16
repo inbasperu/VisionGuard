@@ -97,7 +97,10 @@ private:
   void updateToggleMenu();
   void switchDevice(const std::string &device);
   void updateFrame();
-  cv::Point2f captureAverageGazePoint();
+  std::vector<cv::Point2f> captureGazePoints(int durationMs);
+  std::vector<cv::Point2f> calculateCalibrationPoints(
+      const std::vector<std::vector<cv::Point2f>> &allGazePoints,
+      int screenWidth, int screenHeight);
 
   Ui::MainWindow *ui;
   QTimer *timer;

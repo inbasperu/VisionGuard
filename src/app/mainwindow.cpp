@@ -1,12 +1,16 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QCoreApplication>
+#include <QDialog>
 #include <QDir>
 #include <QElapsedTimer>
+#include <QGuiApplication>
 #include <QKeyEvent>
+#include <QLabel>
 #include <QMessageBox>
 #include <QPermissions>
 #include <QProcess>
+#include <QScreen>
 #include <QStandardPaths>
 #include <QThread>
 #include <QTime>
@@ -19,6 +23,8 @@
 #include <QtCharts/QValueAxis>
 #include <algorithm>
 #include <filesystem>
+#include <opencv2/opencv.hpp>
+#include <vector>
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
@@ -467,27 +473,18 @@ void MainWindow::on_Calibrate_clicked() { this->performFourPointCalibration(); }
 
 void MainWindow::performFourPointCalibration() {
   QScreen *screen = QGuiApplication::primaryScreen();
+  if (!screen) {
+    QMessageBox::critical(this, "Error", "Unable to get primary screen.");
+    return;
+  }
   QRect screenGeometry = screen->geometry();
   int screenWidth = screenGeometry.width();
   int screenHeight = screenGeometry.height();
 
-  class CalibrationDialog : public QDialog {
-  public:
-    CalibrationDialog(QWidget *parent = nullptr) : QDialog(parent) {
-      setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
-      setModal(true);
-      setStyleSheet("background-color: black;");
-    }
-
-  protected:
-    void keyPressEvent(QKeyEvent *event) override {
-      if (event->key() == Qt::Key_Space) {
-        accept();
-      }
-    }
-  };
-
-  CalibrationDialog calibrationWindow(this);
+  QDialog calibrationWindow(this);
+  calibrationWindow.setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+  calibrationWindow.setModal(true);
+  calibrationWindow.setStyleSheet("background-color: black;");
   calibrationWindow.setGeometry(screenGeometry);
 
   QLabel instructionLabel(&calibrationWindow);
@@ -504,7 +501,7 @@ void MainWindow::performFourPointCalibration() {
 
   std::vector<QString> pointNames = {"Top Left", "Top Right", "Bottom Right",
                                      "Bottom Left"};
-  std::vector<cv::Point2f> screenBoundary;
+  std::vector<std::vector<cv::Point2f>> allGazePoints;
 
   for (size_t i = 0; i < calibrationPoints.size(); ++i) {
     QLabel pointLabel(&calibrationWindow);
@@ -517,13 +514,11 @@ void MainWindow::performFourPointCalibration() {
     instructionLabel.setText("Look at the " + pointNames[i] + " point");
     calibrationWindow.show();
 
-    // Give the user a moment to focus on the point
-    QThread::msleep(1500);
+    QThread::msleep(500);
 
-    cv::Point2f averageGazePoint;
     try {
       slog::debug << "Capturing " << pointNames[i].toStdString() << slog::endl;
-      averageGazePoint = captureAverageGazePoint();
+      allGazePoints.push_back(captureGazePoints(1200)); // 1.2 seconds
     } catch (const std::exception &e) {
       QMessageBox::critical(
           this, "Calibration Error",
@@ -531,15 +526,17 @@ void MainWindow::performFourPointCalibration() {
       return;
     }
 
-    screenBoundary.push_back(averageGazePoint);
     pointLabel.hide();
   }
 
   calibrationWindow.close();
 
   try {
-    visionGuard->setCalibrationPoints(screenBoundary[0], screenBoundary[1],
-                                      screenBoundary[2], screenBoundary[3]);
+    std::vector<cv::Point2f> calibrationPoints =
+        calculateCalibrationPoints(allGazePoints, screenWidth, screenHeight);
+    visionGuard->setCalibrationPoints(
+        calibrationPoints[0], calibrationPoints[1], calibrationPoints[2],
+        calibrationPoints[3]);
   } catch (const std::exception &e) {
     QMessageBox::critical(
         this, "Calibration Error",
@@ -552,8 +549,7 @@ void MainWindow::performFourPointCalibration() {
       "The 4-point calibration has been completed successfully.");
 }
 
-cv::Point2f MainWindow::captureAverageGazePoint() {
-  int durationMs = 2500;
+std::vector<cv::Point2f> MainWindow::captureGazePoints(int durationMs) {
   std::vector<cv::Point2f> gazePoints;
   QElapsedTimer timer;
   timer.start();
@@ -579,19 +575,51 @@ cv::Point2f MainWindow::captureAverageGazePoint() {
     throw std::runtime_error("No gaze points captured");
   }
 
-  // Calculate average gaze point
-  cv::Point2f averagePoint(0, 0);
-  for (const auto &point : gazePoints) {
-    averagePoint += point;
-  }
-  averagePoint *= 1.0f / gazePoints.size();
+  slog::debug << "Captured " << gazePoints.size() << " gaze points"
+              << slog::endl;
 
-  slog::debug << "Average point value: " << averagePoint << " (from "
-              << gazePoints.size() << " samples)" << slog::endl;
-
-  return averagePoint;
+  return gazePoints;
 }
 
+std::vector<cv::Point2f> MainWindow::calculateCalibrationPoints(
+    const std::vector<std::vector<cv::Point2f>> &allGazePoints, int screenWidth,
+    int screenHeight) {
+
+  std::vector<cv::Point2f> allPoints;
+  for (const auto &points : allGazePoints) {
+    allPoints.insert(allPoints.end(), points.begin(), points.end());
+  }
+
+  std::vector<cv::Point2f> hullPoints;
+  cv::convexHull(allPoints, hullPoints);
+
+  // Extend hull by 150 pixels in all directions
+  cv::Rect boundingRect = cv::boundingRect(hullPoints);
+  boundingRect -= cv::Point(150, 150);
+  boundingRect += cv::Size(300, 300);
+
+  // Ensure the bounding rect doesn't exceed screen boundaries
+  boundingRect &= cv::Rect(0, 0, screenWidth, screenHeight);
+
+  std::vector<cv::Point2f> calibrationPoints = {
+      cv::Point2f(boundingRect.x, boundingRect.y),
+      cv::Point2f(boundingRect.x + boundingRect.width, boundingRect.y),
+      cv::Point2f(boundingRect.x + boundingRect.width,
+                  boundingRect.y + boundingRect.height),
+      cv::Point2f(boundingRect.x, boundingRect.y + boundingRect.height)};
+
+  slog::debug << "New Calibration Points set to: "
+              << "Top Left (" << calibrationPoints[0].x << ", "
+              << calibrationPoints[0].y << "), "
+              << "Top Right (" << calibrationPoints[1].x << ", "
+              << calibrationPoints[1].y << "), "
+              << "Bottom Right (" << calibrationPoints[2].x << ", "
+              << calibrationPoints[2].y << "), "
+              << "Bottom Left (" << calibrationPoints[3].x << ", "
+              << calibrationPoints[3].y << ")" << slog::endl;
+
+  return calibrationPoints;
+}
 void MainWindow::on_dailyStatButton_clicked() {
   auto dailyStats = visionGuard->getDailyStats();
   displayChart(dailyStats, "Daily Gaze Time Stats");
