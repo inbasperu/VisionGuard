@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+
+    <key>CFBundleName</key>
+    <string>VisionGuardApp</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.summerofcode.withgoogle.OpenVINO-Toolkit.VisionGuardApp</string>
+    <key>CFBundleExecutable</key>
+    <string>VisionGuardApp</string>
+
+    <key>CFBundleVersion</key>
+    <string>1.0.0</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+
+    <key>LSMinimumSystemVersion</key>
+    <string>10.13</string>
+
+    <key>NSHumanReadableCopyright</key>
+    <string>© 2024 Inbasekaran Perumal. All rights reserved.</string>
+
+    <key>CFBundleIconFile</key>
+    <string>vision-guard-removebg.icns</string>
+
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleAllowMixedLocalizations</key>
+    <true/>
+
+    <key>NSPrincipalClass</key>
+    <string>NSApplication</string>
+
+    <key>NSSupportsAutomaticGraphicsSwitching</key>
+    <true/>
+
+    <key>NSCameraUsageDescription</key>
+    <string>VisionGuard requires camera access for gaze detection. Inference is done locally to ensure privacy.</string>
+
+    <key>NSAppleEventsUsageDescription</key>
+    <string>VisionGuard may need to control other applications to provide a better user experience.</string>
+
+    <key>CFBundleDocumentTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeName</key>
+            <string>VisionGuard Document</string>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>LSHandlerRank</key>
+            <string>Owner</string>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>com.summerofcode.withgoogle.OpenVINO-Toolkit.VisionGuardApp.document</string>
+            </array>
+        </dict>
+    </array>
+
+    <key>UTExportedTypeDeclarations</key>
+    <array>
+        <dict>
+            <key>UTTypeIdentifier</key>
+            <string>com.summerofcode.withgoogle.OpenVINO-Toolkit.VisionGuardApp.document</string>
+            <key>UTTypeTagSpecification</key>
+            <dict>
+                <key>public.filename-extension</key>
+                <array>
+                    <string>vguard</string>
+                </array>
+                <key>public.mime-type</key>
+                <string>application/x-visionguard</string>
+            </dict>
+            <key>UTTypeConformsTo</key>
+            <array>
+                <string>public.data</string>
+            </array>
+            <key>UTTypeDescription</key>
+            <string>VisionGuard Document</string>
+        </dict>
+    </array>
+</dict>
+</plist>

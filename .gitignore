@@ -33,8 +33,10 @@
 
 #builds 
 build/*
+backend/build/*
 
 #Mac 
 .DS_store
 .vscode
 CMakeLists.txt.user
+VisionGuardBin.code-workspace
