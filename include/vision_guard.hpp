@@ -1,5 +1,4 @@
-#ifndef VISIONGUARD_H
-#define VISIONGUARD_H
+#pragma once
 
 #include <algorithm>
 #include <fstream>
@@ -154,5 +153,3 @@ private:
   // Timing
   std::chrono::steady_clock::time_point start_time;
 };
-
-#endif // VISIONGUARD_H

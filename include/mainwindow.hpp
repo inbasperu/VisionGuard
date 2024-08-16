@@ -1,5 +1,4 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#pragma once
 
 #include "vision_guard.hpp"
 #include <QCloseEvent>
@@ -156,5 +155,3 @@ private:
   const char TOGGLE_NONE = 'N';
   const char TOGGLE_RESOURCE_GRAPH = 'H';
 };
-
-#endif // MAINWINDOW_H

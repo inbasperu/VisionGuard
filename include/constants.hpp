@@ -1,5 +1,4 @@
-#ifndef CONSTANTS_HPP
-#define CONSTANTS_HPP
+#pragma once
 
 #include <opencv2/core.hpp>
 #include <string>
@@ -25,5 +24,3 @@ struct ToggleAction {
 };
 
 extern std::vector<ToggleAction> toggleActions;
-
-#endif // CONSTANTS_HPP
