@@ -1,71 +1,89 @@
 {
-    "application": {
-        "name": "VisionGuardApp",
-        "version": "1.0.0",
-        "organization": "GSoC 2024 OpenVINO Toolkit",
-        "identifier": "com.summerofcode.withgoogle.OpenVINO-Toolkit.VisionGuardApp"
+  "application": {
+    "name": "VisionGuardApp",
+    "version": "1.0.0",
+    "organization": "GSoC 2024 OpenVINO Toolkit",
+    "identifier": "com.summerofcode.withgoogle.OpenVINO-Toolkit.VisionGuardApp"
+  },
+  "resources": {
+    "models_directory": "Resources/omz_models",
+    "icon_file": "Resources/vision-guard-removebg.png"
+  },
+  "dependencies": {
+    "opencv": {
+      "components": [
+        "core",
+        "highgui",
+        "videoio",
+        "imgproc",
+        "imgcodecs"
+      ]
     },
-    "resources": {
-        "models_directory": "Resources/omz_models",
-        "icon_file": "Resources/vision-guard-removebg.png"
+    "openvino": {
+      "components": [
+        "Runtime"
+      ]
     },
-    "camera": {
-        "usage_description": "VisionGuard requires camera access for gaze detection. Inference is done locally to ensure privacy."
-    },
-    "permissions": {
-        "apple_events": {
-            "usage_description": "VisionGuard may need to control other applications to provide a better user experience."
-        }
-    },
-    "file_associations": {
-        "extensions": ["vguard"],
-        "mime_type": "application/x-visionguard",
-        "description": "VisionGuard Document"
-    },
-    "system_requirements": {
-        "minimum_os_version": {
-            "macos": "10.13",
-            "windows": "10",
-            "linux": "Ubuntu 20.04"
-        }
-    },
-    "dependencies": {
-        "opencv": {
-            "components": ["core", "highgui", "videoio", "imgproc", "imgcodecs"]
-        },
-        "openvino": {
-            "components": ["Runtime"]
-        },
-        "qt": {
-            "version": "6",
-            "components": ["Core", "Widgets", "Multimedia", "MultimediaWidgets", "Gui", "Charts", "Network"]
-        }
-    },
-    "build": {
-        "cmake_minimum_version": "3.16",
-        "cpp_standard": "17",
-        "default_build_type": "Release"
-    },
-    "legal": {
-        "copyright": "© 2024 Inbasekaran Perumal. All rights reserved.",
-        "licenses": [
-            {
-                "name": "Apache License 2.0",
-                "applies_to": "Core application code (non-Qt parts)",
-                "url": "http://www.apache.org/licenses/LICENSE-2.0"
-            },
-            {
-                "name": "GNU Lesser General Public License v3",
-                "applies_to": "Qt-related parts",
-                "url": "https://www.gnu.org/licenses/lgpl-3.0.en.html"
-            }
-        ]
-    },
-    "acknowledgements": {
-        "mentors": [
-            "Dmitriy Pastushenkov",
-            "Ria Cheruvu"
-        ],
-        "organization": "OpenVINO Toolkit"
+    "qt": {
+      "version": "6",
+      "components": [
+        "Core",
+        "Widgets",
+        "Multimedia",
+        "MultimediaWidgets",
+        "Gui",
+        "Charts",
+        "Network"
+      ]
     }
+  },
+  "build": {
+    "cmake_minimum_version": "3.16",
+    "cpp_standard": "17",
+    "default_build_type": "Release"
+  },
+  "legal": {
+    "copyright": "© 2024 Inbasekaran Perumal. All rights reserved.",
+    "licenses": [
+      {
+        "name": "Apache License 2.0",
+        "applies_to": "Core application code (non-Qt parts)",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0"
+      },
+      {
+        "name": "GNU Lesser General Public License v3",
+        "applies_to": "Qt-related parts",
+        "url": "https://www.gnu.org/licenses/lgpl-3.0.en.html"
+      }
+    ]
+  },
+  "acknowledgements": {
+    "mentors": [
+      "Dmitriy Pastushenkov",
+      "Ria Cheruvu"
+    ],
+    "organization": "OpenVINO Toolkit"
+  },
+  "modelPaths": {
+    "gaze": "omz_models/gaze-estimation-adas-0002",
+    "face": "omz_models/face-detection-retail-0004",
+    "headPose": "omz_models/head-pose-estimation-adas-0001",
+    "landmarks": "omz_models/facial-landmarks-35-adas-0002",
+    "eyeState": "omz_models/open-closed-eye-0001"
+  },
+  "toggleKeys": {
+    "all": "A",
+    "eyeState": "E",
+    "faceBoundingBox": "B",
+    "gaze": "G",
+    "headPoseAxes": "O",
+    "landmarks": "L",
+    "none": "N",
+    "resourceGraph": "H"
+  },
+  "defaultSettings": {
+    "fpsLimit": 25,
+    "gazeDuration": 20,
+    "intervalDuration": 10
+  }
 }
