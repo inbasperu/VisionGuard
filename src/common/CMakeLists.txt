@@ -4,5 +4,3 @@
 
 add_subdirectory(utils)
 add_subdirectory(monitors)
-add_subdirectory(models)
-add_subdirectory(pipelines)
