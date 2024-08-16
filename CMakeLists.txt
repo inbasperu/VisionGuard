@@ -53,6 +53,12 @@ file(GLOB_RECURSE SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
 )
 
+# Collect all header files
+file(GLOB_RECURSE HEADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp
+)
+
 # Set up resources
 set(RESOURCES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/resources")
 qt_add_resources(RESOURCES ${RESOURCES_DIR}/resources.qrc)
@@ -65,6 +71,7 @@ endif()
 # Define the executable
 qt_add_executable(VisionGuardApp ${GUI_TYPE}
     ${SOURCES}
+    ${HEADERS}
     src/mainwindow.ui
     ${RESOURCES}
     ${WIN32_RESOURCES}
