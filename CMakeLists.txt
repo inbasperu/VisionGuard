@@ -45,8 +45,8 @@ qt_standard_project_setup()
 
 # Add subdirectories
 add_subdirectory(src/third_party/gflags)
-add_subdirectory(src/utils)
-add_subdirectory(src/monitors)
+add_subdirectory(src/third_party/utils)
+add_subdirectory(src/third_party/monitors)
 add_subdirectory(src/gaze_estimation)
 
 # Set up resources
