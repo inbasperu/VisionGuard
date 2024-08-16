@@ -43,11 +43,15 @@ find_package(Qt6 REQUIRED COMPONENTS Core Widgets Multimedia MultimediaWidgets G
 
 qt_standard_project_setup()
 
-# Add subdirectories
+# Add subdirectories for third-party libraries
 add_subdirectory(third_party/gflags)
 add_subdirectory(third_party/utils)
 add_subdirectory(third_party/monitors)
-add_subdirectory(src/gaze_estimation)
+
+# Collect all source files
+file(GLOB_RECURSE SOURCES 
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+)
 
 # Set up resources
 set(RESOURCES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/resources")
@@ -60,8 +64,7 @@ endif()
 
 # Define the executable
 qt_add_executable(VisionGuardApp ${GUI_TYPE}
-    src/main.cpp
-    src/mainwindow.cpp
+    ${SOURCES}
     src/mainwindow.ui
     ${RESOURCES}
     ${WIN32_RESOURCES}
@@ -69,20 +72,27 @@ qt_add_executable(VisionGuardApp ${GUI_TYPE}
 
 # Include directories
 target_include_directories(VisionGuardApp PRIVATE 
-    ${OpenCV_INCLUDE_DIRS} 
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/gaze_estimation/cpp/include"
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party
+    ${OpenCV_INCLUDE_DIRS}
+    ${OpenVINO_INCLUDE_DIRS}
 )
 
 # Link libraries
 target_link_libraries(VisionGuardApp PRIVATE 
-    Qt6::Core Qt6::Widgets Qt6::Multimedia Qt6::MultimediaWidgets Qt6::Gui Qt6::Charts 
+    Qt6::Core Qt6::Widgets Qt6::Multimedia Qt6::MultimediaWidgets Qt6::Gui Qt6::Charts Qt6::Network
     ${OpenCV_LIBS} 
     openvino::runtime 
-    gaze_estimation 
     monitors 
     utils 
     gflags
 )
+
+# Link pthread on Unix
+if(UNIX)
+    find_package(Threads REQUIRED)
+    target_link_libraries(VisionGuardApp PRIVATE Threads::Threads)
+endif()
 
 # Platform-specific configurations
 if(APPLE)
