@@ -36,102 +36,105 @@ The resource monitor can be controlled using these keys:
 - **D**: Display CPU distribution.
 - **M**: Display memory usage.
 
-## Usage Instructions
+# VisionGuard: User Guide and Calibration Process
 
-1. **Launching VisionGuard:**
-   - After installation, launch VisionGuard from the Start menu or desktop shortcut.
-   - Ensure your webcam is connected before starting the application.
+## Table of Contents
+1. [Introduction](#introduction)
+2. [Installation and Launch](#installation-and-launch)
+3. [Main Interface](#main-interface)
+4. [Calibration Process](#calibration-process)
+5. [Customizing Settings](#customizing-settings)
+6. [Viewing Statistics](#viewing-statistics)
+7. [System Tray Features](#system-tray-features)
+8. [Best Practices](#best-practices)
+9. [Troubleshooting](#troubleshooting)
 
-2. **VisionGuard Calibration Process Documentation**
+## 1. Introduction
 
-The VisionGuard calibration process is designed to accurately map the user's gaze to screen coordinates. This process involves a four-point calibration technique combined with error margin adjustment for improved accuracy and usability.
+VisionGuard is an advanced screen time management tool that uses your webcam to monitor your gaze and encourage healthy viewing habits. This guide will help you set up, calibrate, and effectively use VisionGuard.
+
+## 2. Installation and Launch
+
+### Installation
+1. Download the VisionGuard installer from the official website.
+2. Run the installer and follow the on-screen instructions.
+3. Restart your computer after installation.
+
+### Launching VisionGuard
+- Launch VisionGuard from the Start menu or desktop shortcut.
+- Ensure your webcam is connected and functioning before starting the application.
+
+[Diagram: VisionGuard Launch Screen]
+Description: A screenshot showing the VisionGuard launch screen with a "Start" button and webcam status indicator.
+
+## 3. Main Interface
+
+[Diagram: VisionGuard Main Interface]
+Description: A labeled screenshot of the main VisionGuard interface showing:
+1. Current screen time display
+2. Break countdown timer
+3. Calibration button
+4. Settings button
+5. Statistics button
+6. Gaze tracking status indicator
+
+## 4. Calibration Process
+
+The calibration process ensures accurate gaze tracking by mapping your eye movements to screen coordinates.
 
 ### Calibration Overview
-
-The calibration process consists of the following main steps:
 
 1. Four-point gaze capture
 2. Convex hull calculation
 3. Error margin application
 4. Final calibration point determination
 
-### Detailed Process
+### Detailed Calibration Steps
 
-#### Four-Point Gaze Capture
+#### a. Four-Point Gaze Capture
 
-[Figure 1: Four-Point Calibration Screen]
-
-Description: A full-screen black background with four green dots in the corners. Text instructions in the center guide the user.
+[Diagram: Four-Point Calibration Screen]
+Description: A full-screen view with four numbered green dots in the corners and center text guiding the user.
 
 Process:
+1. Look at each green dot as it appears for 1.2 seconds.
+2. Multiple gaze points are captured for each corner.
 
-1. The user is presented with a full-screen black background.
-2. Four green dots appear sequentially in the corners of the screen.
-3. For each dot, the user is instructed to look at it for 1.2 seconds.
-4. Multiple gaze points are captured for each corner during this period.
-
-#### Convex Hull Calculation
+#### b. Convex Hull Calculation
 
 ![Convex Hull of Captured Gaze Points](convex_hull.png)
 
-Description: A scatter plot of all captured gaze points with a polygon (convex hull) enclosing the outermost points.
-
 Process:
+1. All captured gaze points are combined.
+2. A convex hull algorithm finds the smallest polygon enclosing all points.
 
-1. All captured gaze points from the four corners are combined.
-2. A convex hull algorithm is applied to find the smallest convex polygon that encloses all these points.
-
-#### Error Margin Application
+#### c. Error Margin Application
 
 ![Error Margin Extension](error_margin_extension.png)
 
-Description: The convex hull from Figure 2 with an extended boundary around it, representing the error margin.
-
 Process:
+1. The convex hull is extended by the specified error margin (default: 150 pixels).
+2. This accounts for potential gaze tracking inaccuracies.
 
-1. The convex hull is extended outward by the specified error margin (default 150 pixels).
-2. This extension creates a larger area to account for potential inaccuracies in gaze tracking.
-
-#### Final Calibration Point Determination
+#### d. Final Calibration Point Determination
 
 ![Final Calibration Points](final_calibration_points.png)
 
-Description: The screen with four points marked, representing the final calibration points after applying the error margin and screen boundary constraints.
-
 Process:
-
-1. The extended convex hull is intersected with the screen boundaries.
+1. The extended convex hull is intersected with screen boundaries.
 2. The four corners of this intersection become the final calibration points.
-3. These points define the area within which gaze tracking will be considered "on-screen".
 
-### User Interface Controls
+### Calibration UI Controls
 
-#### Error Margin Adjustment
-
-[Figure 5: Error Margin Control UI]
-
-Description: A spinbox labeled "Error Margin" and a "Set Margin" button.
-
-Functionality:
-
-- Users can input a custom error margin value in pixels.
-- The "Set Margin" button triggers recalibration with the new margin.
-
-#### Calibration Reset
-
-[Figure 6: Reset Calibration UI]
-
-Description: A "Reset Calibration" button.
-
-Functionality:
-
-- Resets the calibration to default settings.
-- Sets the error margin back to the default value (150 pixels).
-- Recomputes calibration points based on default screen corners.
+[Diagram: Calibration Controls]
+Description: A mockup of the calibration control panel showing:
+1. "Start Calibration" button
+2. Error Margin input field with "Set Margin" button
+3. "Reset Calibration" button
 
 ### Calibration Process Flow
 
-``` mermaid 
+```mermaid
 graph TD
     A[Start Calibration] --> B[Four-Point Gaze Capture]
     B --> C{Capture Successful?}
@@ -154,42 +157,75 @@ graph TD
     style I fill:#98FB98,stroke:#333,stroke-width:2px
 ```
 
+## 5. Customizing Settings
 
-Description: A flowchart illustrating the steps from initiating calibration to final calibration point determination.
+[Diagram: Settings Menu]
+Description: A mockup of the settings menu showing options for:
+1. Break intervals
+2. Theme preferences
+3. Device configurations
+4. Notification settings
 
-Steps:
+To customize VisionGuard:
+1. Click the "Settings" button on the main interface.
+2. Adjust your preferences in each category.
+3. Click "Save" to apply your changes.
 
-1. Start Calibration
-2. Four-Point Gaze Capture
-3. Combine Gaze Points
-4. Calculate Convex Hull
-5. Apply Error Margin
-6. Intersect with Screen Boundaries
-7. Determine Final Calibration Points
-8. End Calibration
+## 6. Viewing Statistics
 
-### Best Practices for Accurate Calibration
+[Diagram: Statistics Dashboard]
+Description: A mockup of the statistics dashboard showing:
+1. Daily and weekly screen time graphs
+2. Break adherence rate
+3. Peak usage times
 
-1. Ensure consistent lighting conditions.
-2. Maintain a stable head position during calibration.
+To view your statistics:
+1. Click the "Statistics" button on the main interface.
+2. Navigate through different time frames using the provided controls.
+3. Statistics are automatically cleared after one week for privacy.
+
+## 7. System Tray Features
+
+VisionGuard runs in the system tray for quick access to key features.
+
+[Diagram: System Tray Menu]
+Description: A screenshot of the system tray icon and its right-click menu showing options for:
+1. Pause/Resume tracking
+2. Take a break now
+3. Open main window
+4. View quick statistics
+5. Exit application
+
+## 8. Best Practices
+
+1. Ensure consistent lighting conditions during use.
+2. Maintain a stable head position, especially during calibration.
 3. Focus on each calibration point for the full duration.
-4. Adjust the error margin based on individual user needs and environmental factors.
-5. Recalibrate if there are significant changes in user position or lighting conditions.
+4. Adjust the error margin based on your needs and environment.
+5. Recalibrate if you change your sitting position or lighting conditions significantly.
 
-### Troubleshooting
+## 9. Troubleshooting
 
-Common issues and their solutions:
+[Diagram: Troubleshooting Flowchart]
+Description: A flowchart guiding users through common issues and their solutions.
 
-1. Inaccurate tracking: Try increasing the error margin or recalibrating.
-2. Calibration fails: Ensure proper lighting and camera positioning.
-3. Gaze always detected as off-screen: The error margin might be too small, try increasing it.
+Common issues and solutions:
 
+1. Application not starting:
+   - Check for conflicts with antivirus software
+   - Ensure you have the latest version of the [Microsoft Visual C++ Redistributable](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#latest-microsoft-visual-c-redistributable-version) appropriate for your system architecture from the official Microsoft website.
+   - Update your drivers for the inference engine
+   - Verify you have the latest version of VisionGuard installed
 
-3. **Customizing Settings:**
-   - Navigate to the settings menu to customize break intervals, theme preferences, and device configurations.
+2. Inaccurate tracking:
+   - Try increasing the error margin
+   - Recalibrate the system
+   - Ensure proper lighting and camera positioning
 
-4. **Viewing Statistics:**
-   - Access daily and weekly screen time statistics from the main interface. These are automatically cleared after one week.
+3. Gaze always detected as off-screen:
+   - The error margin might be too small, try increasing it
+   - Check if the calibration points are within your screen boundaries
 
-4. **System Tray Access:**
-   - VisionGuard runs in the system tray. Right-click the tray icon to access key features quickly without opening the full application.
+4. Calibration fails:
+   - Ensure proper lighting and camera positioning
+   - Check if your webcam is functioning correctly in other applications
