@@ -42,10 +42,153 @@ The resource monitor can be controlled using these keys:
    - After installation, launch VisionGuard from the Start menu or desktop shortcut.
    - Ensure your webcam is connected before starting the application.
 
-2. **Customizing Settings:**
+2. **VisionGuard Calibration Process Documentation**
+
+The VisionGuard calibration process is designed to accurately map the user's gaze to screen coordinates. This process involves a four-point calibration technique combined with error margin adjustment for improved accuracy and usability.
+
+### Calibration Overview
+
+The calibration process consists of the following main steps:
+
+1. Four-point gaze capture
+2. Convex hull calculation
+3. Error margin application
+4. Final calibration point determination
+
+### Detailed Process
+
+#### Four-Point Gaze Capture
+
+[Figure 1: Four-Point Calibration Screen]
+
+Description: A full-screen black background with four green dots in the corners. Text instructions in the center guide the user.
+
+Process:
+
+1. The user is presented with a full-screen black background.
+2. Four green dots appear sequentially in the corners of the screen.
+3. For each dot, the user is instructed to look at it for 1.2 seconds.
+4. Multiple gaze points are captured for each corner during this period.
+
+#### Convex Hull Calculation
+
+![Convex Hull of Captured Gaze Points](convex_hull.png)
+
+Description: A scatter plot of all captured gaze points with a polygon (convex hull) enclosing the outermost points.
+
+Process:
+
+1. All captured gaze points from the four corners are combined.
+2. A convex hull algorithm is applied to find the smallest convex polygon that encloses all these points.
+
+#### Error Margin Application
+
+![Error Margin Extension](error_margin_extension.png)
+
+Description: The convex hull from Figure 2 with an extended boundary around it, representing the error margin.
+
+Process:
+
+1. The convex hull is extended outward by the specified error margin (default 150 pixels).
+2. This extension creates a larger area to account for potential inaccuracies in gaze tracking.
+
+#### Final Calibration Point Determination
+
+![Final Calibration Points](final_calibration_points.png)
+
+Description: The screen with four points marked, representing the final calibration points after applying the error margin and screen boundary constraints.
+
+Process:
+
+1. The extended convex hull is intersected with the screen boundaries.
+2. The four corners of this intersection become the final calibration points.
+3. These points define the area within which gaze tracking will be considered "on-screen".
+
+### User Interface Controls
+
+#### Error Margin Adjustment
+
+[Figure 5: Error Margin Control UI]
+
+Description: A spinbox labeled "Error Margin" and a "Set Margin" button.
+
+Functionality:
+
+- Users can input a custom error margin value in pixels.
+- The "Set Margin" button triggers recalibration with the new margin.
+
+#### Calibration Reset
+
+[Figure 6: Reset Calibration UI]
+
+Description: A "Reset Calibration" button.
+
+Functionality:
+
+- Resets the calibration to default settings.
+- Sets the error margin back to the default value (150 pixels).
+- Recomputes calibration points based on default screen corners.
+
+### Calibration Process Flow
+
+``` mermaid 
+graph TD
+    A[Start Calibration] --> B[Four-Point Gaze Capture]
+    B --> C{Capture Successful?}
+    C -->|Yes| D[Combine Gaze Points]
+    C -->|No| B
+    D --> E[Calculate Convex Hull]
+    E --> F[Apply Error Margin]
+    F --> G[Intersect with Screen Boundaries]
+    G --> H[Determine Final Calibration Points]
+    H --> I[End Calibration]
+
+    style A fill:#98FB98,stroke:#333,stroke-width:2px
+    style B fill:#87CEFA,stroke:#333,stroke-width:2px
+    style C fill:#FFA07A,stroke:#333,stroke-width:2px
+    style D fill:#87CEFA,stroke:#333,stroke-width:2px
+    style E fill:#87CEFA,stroke:#333,stroke-width:2px
+    style F fill:#87CEFA,stroke:#333,stroke-width:2px
+    style G fill:#87CEFA,stroke:#333,stroke-width:2px
+    style H fill:#87CEFA,stroke:#333,stroke-width:2px
+    style I fill:#98FB98,stroke:#333,stroke-width:2px
+```
+
+
+Description: A flowchart illustrating the steps from initiating calibration to final calibration point determination.
+
+Steps:
+
+1. Start Calibration
+2. Four-Point Gaze Capture
+3. Combine Gaze Points
+4. Calculate Convex Hull
+5. Apply Error Margin
+6. Intersect with Screen Boundaries
+7. Determine Final Calibration Points
+8. End Calibration
+
+### Best Practices for Accurate Calibration
+
+1. Ensure consistent lighting conditions.
+2. Maintain a stable head position during calibration.
+3. Focus on each calibration point for the full duration.
+4. Adjust the error margin based on individual user needs and environmental factors.
+5. Recalibrate if there are significant changes in user position or lighting conditions.
+
+### Troubleshooting
+
+Common issues and their solutions:
+
+1. Inaccurate tracking: Try increasing the error margin or recalibrating.
+2. Calibration fails: Ensure proper lighting and camera positioning.
+3. Gaze always detected as off-screen: The error margin might be too small, try increasing it.
+
+
+3. **Customizing Settings:**
    - Navigate to the settings menu to customize break intervals, theme preferences, and device configurations.
 
-3. **Viewing Statistics:**
+4. **Viewing Statistics:**
    - Access daily and weekly screen time statistics from the main interface. These are automatically cleared after one week.
 
 4. **System Tray Access:**
