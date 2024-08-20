@@ -1,53 +1,108 @@
-# VisionGuard
+<p align="center">
+  <img src="resources/vision-guard-removebg.png" alt="VisionGuard Logo" width="100" height="100"/>
+</p>
 
-VisionGuard is a desktop application designed to help prevent eye strain from excessive screen time. Utilizing your PC's webcam, it monitors screen time and provides timely reminders to take breaks, promoting healthier computer usage habits and reducing eye fatigue. The application operates entirely locally, requiring no internet access, and ensures your data remains on your device, safeguarding your privacy. VisionGuard also supports inference on the AI PC's Neural Processing Unit (NPU), optimizing performance and efficiency.
+<h1 align="center">VisionGuard</h1>
 
-This project was developed as part of GSoC 2024 under the [OpenVINO Toolkit](https://github.com/openvinotoolkit), mentored by [Dmitriy Pastushenkov](https://github.com/DimaPastushenkov), [Ria Cheruvu](https://github.com/riacheruvu), and [ZhuoWu](https://github.com/zhuo-yoyowz). For more details, visit the [GSoC Project Page](https://summerofcode.withgoogle.com/programs/2024/projects/QUbIeRAM).
+<p align="center">
+  <strong>Protect Your Eyes, Enhance Your Productivity</strong>
+</p>
 
-## Features and Usage
+<p align="center">
+  <a href="#features">Features</a> •
+  <a href="#installation">Installation</a> •
+  <a href="#usage">Usage</a> •
+  <a href="#development">Development</a> •
+  <a href="docs/ARCHITECTURE.md">Architecture</a> •
+  <a href="docs/BENCHMARKING.md">Benchmarks</a> •
+  <a href="#contributing">Contributing</a> •
+  <a href="#license">License</a> •
+  <a href="docs/BLOG_DRAFT.md">Blog</a>
+</p>
 
-- **Real-time Eye Gaze Tracking:** Monitors screen time with accurate gaze tracking, processing everything locally to ensure privacy and data security.
-- **Customizable Break Notifications:** Alerts you to take breaks based on customizable intervals, following guidelines like the 20-20-20 rule.
-- **Daily and Weekly Statistics:** Provides detailed screen time statistics stored locally, with automatic clearing after one week.
-- **Device Switching:** Seamlessly switch between CPU, GPU, and NPU devices for optimal performance.
-- **Multiple Capture Devices:** Easily switch between up to five connected camera devices.
-- **Dark and Light Themes:** Customize the interface with dark or light themes.
-- **Resource Utilization Monitor:** Tracks system resource usage to ensure efficient performance.
-- **Optimized for Performance:** Allows switching between different quantized weights to balance performance and efficiency.
-- **Frame Processing Limitation:** Controls the maximum number of frames processed to optimize resource efficiency.
-- **System Tray Application:** Runs in the system tray, giving quick access to key features without cluttering your desktop.
-- **Robust Architecture:** Built with C++ for memory efficiency, leveraging Qt6, OpenCV, and OpenVINO for extensibility and high performance.
+<p align="center">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/a/a7/GSoC-logo-horizontal.svg" alt="Google Summer of Code Logo" height="60" style="margin-right: 20px;"/>
+  <img src="https://upload.wikimedia.org/wikipedia/commons/4/45/OpenVINO_logo.svg" alt="OpenVINO Logo" height="60"/>
+</p>
 
-For more details on these features and usage, visit the [Features Documentation](docs/FEATURES.md).
+## About VisionGuard
+
+VisionGuard is an innovative desktop application designed to combat eye strain resulting from prolonged screen time. Leveraging advanced computer vision technology, it utilizes your PC's webcam to monitor screen time and provide timely break reminders, promoting healthier computing habits and reducing eye fatigue.
+
+<p align="center">
+  <img src="docs/screen_gaze.png" alt="Gaze Tracking Illustration" width="400"/>
+</p>
+
+### Key Advantages
+
+- **Privacy-Focused:** Operates entirely locally, requiring no internet access.
+- **Data Security:** All data remains on your device, ensuring your privacy.
+- **Performance Optimized:** Supports inference on AI PC's Neural Processing Unit (NPU) for enhanced efficiency.
+
+This project was developed as part of Google Summer of Code 2024 under the [OpenVINO Toolkit](https://github.com/openvinotoolkit), mentored by [Dmitriy Pastushenkov](https://github.com/DimaPastushenkov), [Ria Cheruvu](https://github.com/riacheruvu), and [ZhuoWu](https://github.com/zhuo-yoyowz). For more details, visit the [GSoC Project Page](https://summerofcode.withgoogle.com/programs/2024/projects/QUbIeRAM).
+
+## Features
+
+- **Real-time Eye Gaze Tracking:** Accurate, privacy-preserving screen time monitoring.
+- **Customizable Break Notifications:** Smart alerts based on personalized intervals.
+- **Comprehensive Statistics:** Daily and weekly screen time insights.
+- **Flexible Device Support:** Seamless switching between CPU, GPU, and NPU.
+- **Multi-Camera Compatibility:** Support for up to five camera devices.
+- **Aesthetic Customization:** Dark and light theme options.
+- **Resource Optimization:** Built-in system resource monitor and frame processing limits.
+- **Convenient System Tray Integration:** Quick access without desktop clutter.
+
+For an in-depth look at these features, please refer to our [Features Documentation](docs/FEATURES.md).
 
 ## Installation
 
-To install VisionGuard, follow the steps in our [Installation Guide](docs/INSTALLATION.md).
+Get started with VisionGuard by following our step-by-step [Installation Guide](docs/INSTALLATION.md).
+
+## Usage
+
+Learn how to make the most of VisionGuard's features with our comprehensive [User Guide](docs/USAGE.md).
 
 ## Development
 
-Interested in contributing or building the application from source? Check out our [Development Guide](docs/DEVELOPMENT.md).
+Interested in contributing or building VisionGuard from source? Our [Development Guide](docs/DEVELOPMENT.md) provides all the information you need to get started.
 
-## Architecture
+### Architecture
 
-To understand the architecture behind VisionGuard, including backend processes and gaze estimation models, refer to the [Architecture Documentation](docs/ARCHITECTURE.md).
+For a deep dive into VisionGuard's technical architecture, including backend processes and gaze estimation models, consult our [Architecture Documentation](docs/ARCHITECTURE.md).
 
-## Benchmarking
+### Benchmarking
 
-We have conducted benchmarks on different devices to evaluate VisionGuard's performance. For detailed results and methodology, see our [Benchmarking Documentation](docs/BENCHMARKING.md).
-
-## Reporting Issues
-
-We value your feedback! Please report any issues or suggest improvements by opening an [issue](https://github.com/inbasperu/VisionGuard/issues) in our GitHub repository.
+We've conducted extensive performance benchmarks across various devices. View our findings in the [Benchmarking Documentation](docs/BENCHMARKING.md).
 
 ## Contributing
 
-We welcome community contributions. Please read our [Contributing Guidelines](docs/CONTRIBUTING.md) before submitting pull requests.
+We welcome contributions from the community! Before submitting your pull request, please review our [Contributing Guidelines](docs/CONTRIBUTING.md).
+
+## Reporting Issues
+
+Encountered a bug or have a suggestion? We value your feedback! Please open an [issue](https://github.com/inbasperu/VisionGuard/issues) in our GitHub repository.
 
 ## License
 
-VisionGuard is dual-licensed. The core application code, which does not directly use Qt, is licensed under the Apache License 2.0. Parts of the application that directly use Qt are licensed under the GNU Lesser General Public License (LGPL) version 3. For more details, see the [License File](LICENSE.md).
+VisionGuard is dual-licensed:
 
-## Contributors
+- Core application code (non-Qt): Apache License 2.0
+- Qt-dependent components: GNU Lesser General Public License (LGPL) version 3
 
-- **Contributor:** [Inbasekaran](https://github.com/inbasperu)
+For full details, refer to our [License File](LICENSE.md).
+
+## Acknowledgements
+
+- **Lead Developer:** [Inbasekaran](https://github.com/inbasperu)
+- **Mentors:** Dmitriy Pastushenkov, Ria Cheruvu, ZhuoWu
+- **OpenVINO Toolkit Community**
+
+## Blog
+
+Stay updated with our latest developments and insights on our [Blog](docs/BLOG_DRAFT.md).
+
+---
+
+<p align="center">
+  Made with ❤️ for healthier computing habits
+</p>
