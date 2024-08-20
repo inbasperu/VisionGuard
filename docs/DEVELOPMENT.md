@@ -2,6 +2,15 @@
 
 This guide provides detailed instructions for setting up, building, and running the VisionGuard application on your local system. It includes guidance for both Windows and Unix-based systems (macOS/Linux).
 
+## Table of Contents
+
+1. [Prerequisites](#prerequisites)
+2. [Project Structure](#project-structure)
+3. [Setup and Build Instructions](#setup-and-build-instructions)
+4. [Running the Application](#running-the-application)
+5. [Understanding Build Types](#understanding-build-types)
+6. [Additional Notes](#additional-notes)
+
 ## Prerequisites
 
 Before beginning the build process, ensure that the following dependencies are installed on your system:
@@ -17,6 +26,53 @@ Before beginning the build process, ensure that the following dependencies are i
 - **OpenVINO:** Follow the official [OpenVINO installation guide](https://docs.openvino.ai/latest/openvino_docs_install_guides_installing_openvino_windows.html) to set up OpenVINO on your system.
 - **OpenCV:** You can download and build OpenCV from the [official repository](https://github.com/opencv/opencv). Make sure to configure it for your specific platform.
 - **Qt6:** Download and install Qt6 from the [official Qt website](https://www.qt.io/download). Ensure that you install the correct version that matches your platform and compiler (e.g., MSVC 2019 for Windows).
+
+## Project Structure
+
+The VisionGuard project has the following directory structure:
+
+```
+.
+├── CMakeLists.txt
+├── Info.plist
+├── LICENSE-APACHE
+├── LICENSE-LGPL
+├── LICENSE.md
+├── NOTICE.md
+├── README.md
+├── VisionGuardInstaller.nsi
+├── build.ps1
+├── build.sh
+├── config.json
+├── docs
+├── include
+├── omz_models
+├── resources
+├── run.ps1
+├── run.sh
+├── screen_time_stats.json
+├── src
+├── third_party
+└── wiki
+```
+
+### Key Directories and Files
+
+- **`CMakeLists.txt`**: The main CMake configuration file for building the project.
+- **`docs/`**: Contains project documentation, including architecture, usage guides, and development plans.
+- **`include/`**: Header files for the VisionGuard application.
+- **`omz_models/`**: Pre-trained OpenVINO models used for face detection, gaze estimation, etc.
+- **`resources/`**: Contains application resources like icons and QT resource files.
+- **`src/`**: Source code files for the VisionGuard application.
+- **`third_party/`**: Third-party libraries and dependencies.
+- **`wiki/`**: Additional documentation and guides.
+
+### Important Files
+
+- **`build.ps1` and `build.sh`**: Build scripts for Windows and Unix systems, respectively.
+- **`run.ps1` and `run.sh`**: Scripts to run the application on Windows and Unix systems.
+- **`config.json`**: Configuration file for the application.
+- **`screen_time_stats.json`**: File to store screen time statistics.
 
 ## Setup and Build Instructions
 
@@ -116,16 +172,16 @@ Build the project with the following command, using all available CPU cores:
 cmake --build . --config Debug --parallel 0
 ```
 
-### Running the Application
+## Running the Application
 
 Once the build process is complete, you can run the VisionGuard application:
 
 - **Windows:** Navigate to the build directory and run `VisionGuardApp.exe`.
 - **macOS/Linux:** Navigate to the build directory and run the generated executable (e.g., `./VisionGuardApp`).
 
-### Understanding Build Types
+## Understanding Build Types
 
-- **Release Build:** 
+- **Release Build:**
   - Optimized for performance.
   - Use this build type when deploying or running the application in a production environment.
 
@@ -135,4 +191,8 @@ Once the build process is complete, you can run the VisionGuard application:
 
 ## Additional Notes
 
-If you change the environment variables or CMake options, it’s often necessary to clear the cache (by deleting the build directory and recreating it) to ensure that all changes are applied correctly.
+- If you change the environment variables or CMake options, it's often necessary to clear the cache (by deleting the build directory and recreating it) to ensure that all changes are applied correctly.
+- The `omz_models` directory contains pre-trained models used by VisionGuard. Ensure this directory is correctly specified during the build process.
+- The `resources` directory contains essential assets for the application's user interface. Make sure these resources are accessible to the built application.
+- The `third_party` directory contains external libraries and dependencies. Familiarize yourself with these components if you plan to modify or extend VisionGuard's functionality.
+- Regularly check the `docs` and `wiki` directories for updated documentation and guides that may assist in development and troubleshooting.
