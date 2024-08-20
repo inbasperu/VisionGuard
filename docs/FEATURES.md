@@ -102,7 +102,9 @@ Process:
 
 #### b. Convex Hull Calculation
 
-![Convex Hull of Captured Gaze Points](convex_hull.png)
+<!-- ![Convex Hull of Captured Gaze Points](convex_hull.png) -->
+<img src="./convex_hull_high_quality_sns.png" alt="Convex Hull of Captured Gaze Points" width="500"/>
+
 
 Process:
 1. All captured gaze points are combined.
@@ -110,7 +112,8 @@ Process:
 
 #### c. Error Margin Application
 
-![Error Margin Extension](error_margin_extension.png)
+<!-- ![Error Margin Extension](error_margin_extension.png) -->
+<img src="./error_margin_extension_high_quality_sns.png" alt="Error Margin Extension" width="500"/>
 
 Process:
 1. The convex hull is extended by the specified error margin (default: 150 pixels).
@@ -118,7 +121,8 @@ Process:
 
 #### d. Final Calibration Point Determination
 
-![Final Calibration Points](final_calibration_points.png)
+<!-- ![Final Calibration Points](final_calibration_points.png) -->
+<img src="./final_calibration_points_high_quality_sns.png" alt="Final Calibration Points" width="500"/>
 
 Process:
 1. The extended convex hull is intersected with screen boundaries.
