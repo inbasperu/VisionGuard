@@ -31,7 +31,6 @@ This document will present the benchmarking results for VisionGuard across diffe
 | Device | Model Precision | Inference Device | FPS | Latency (ms) | CPU Usage (%) | GPU Usage (%) | RAM Usage (MB) |
 |--------|-----------------|------------------|-----|--------------|----------------|----------------|-----------------|
 | MacBook Pro M3 | FP32 | CPU | N/A | N/A | N/A | N/A | N/A |
-| MacBook Pro M3 | FP16 | Neural Engine | N/A | N/A | N/A | N/A | N/A |
 | ASUS TUF Gaming A15 | FP32 | CPU | N/A | N/A | N/A | N/A | N/A |
 | ASUS TUF Gaming A15 | FP16 | GPU | N/A | N/A | N/A | N/A | N/A |
 | AI PC (Intel Core Ultra) | FP32 | CPU | N/A | N/A | N/A | N/A | N/A |

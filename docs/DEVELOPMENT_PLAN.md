@@ -3,6 +3,7 @@
 ## Completed Deliverables
 
 ### Backend Development
+
 - [x] Implemented Gaze Detection Model
 - [x] Estimated Eye Gaze Time
 - [x] Developed Break Notifications (20-20-20)
@@ -15,6 +16,7 @@
 - [x] Optimized overall performance
 
 ### GUI Development
+
 - [x] Developed Real-time User Gaze Vector Display
 - [x] Added Ongoing Screen Time Widget
 - [x] Implemented Notification Alert Message Box
@@ -38,10 +40,10 @@
 ### Documentation
 
 - [x] Document Setup and Development Process
-- [ ] Provide detailed Gaze Detection and Calibration Steps
-- [ ] Outline New Features and Optimizations
-- [ ] Create User Guides for Initial and Advanced Features
-- [ ] Compile and Present Benchmarking Results
+- [x] Provide detailed Gaze Detection and Calibration Steps
+- [x] Outline New Features and Optimizations
+- [x] Create User Guides for Initial and Advanced Features
+- [x] Compile and Present Benchmarking Results
 
 ## Future Work
 
