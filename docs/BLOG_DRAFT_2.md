@@ -111,7 +111,7 @@ The heart of VisionGuard is its gaze detection engine, which leverages several m
 - Eye State Estimation: [`open-closed-eye-0001`](https://docs.openvino.ai/2022.3/omz_models_model_open_closed_eye_0001.html)
 - Gaze Estimation: [`gaze-estimation-adas-0002`](https://docs.openvino.ai/2024/omz_models_model_gaze_estimation_adas_0002.html)
 
-These models work in tandem to create a robust gaze detection pipeline, as illustrated in follwoing figure 
+These models work in tandem to create a robust gaze detection pipeline, as illustrated in follwoing figure
 
 The following diagram illustrates the processing pipeline in VisionGuard, demonstrating how different models interact to produce accurate gaze estimation:
 
@@ -177,7 +177,6 @@ It involves the following steps:
 3. Error Margin Application
 4. Final Calibration Point Determination
 
-
 #### a. Four-Point Gaze Capture
 
 [Diagram: Four-Point Calibration Screen]
@@ -227,7 +226,6 @@ The VisionGuard system processes each video frame to determine the user's gaze d
 3. **Gaze Time Update**: Update screen time or gaze lost duration.
 4. **Visual Feedback**: Display detection results and metrics.
 5. **Performance Tracking**: Update resource utilization data.
-
 
 ### Gaze Screen Intersection
 
@@ -292,7 +290,6 @@ The Statistics Calculator generates comprehensive reports on usage patterns:
 
 The only data that is persisted and stored locally is the screen time statistics. The weekly statistics are maintained, and once the data becomes older than a week, the stale data is automatically cleared.
 
-
 ### Performance Optimization
 
 To ensure VisionGuard runs efficiently on various hardware configurations, I implemented:
@@ -307,12 +304,11 @@ These optimizations allow VisionGuard to maintain high performance even on resou
 
 Throughout the GSoC period, I encountered several challenges that pushed me to expand my skills and knowledge:
 
-* Corss platform C++ development, developing a cross platform C++ application is a pain in the ass, had encountered several errors when it came to building applications which were compactable with mac, windows and linux. Different compilers, I was not able to code compiled the OMZ demo using MSVC-2022 but thins were working with MSVB-2019
-* Understanding cmake to build projects
-* C++ low level design problems, los of OOPS involved
-* Fiding a methord to calibrate the screen to see if the user is gazing at the screen or not. 
-* Understanding C++ developmet standards, I had not reqested for correcct permissions at first, so the application would not open properly, plus I used to sotre the stats in the cwd but later I realized that it was wrong and used libraries go actuqire queosuces
-
+- Corss platform C++ development, developing a cross platform C++ application is a pain in the ass, had encountered several errors when it came to building applications which were compactable with mac, windows and linux. Different compilers, I was not able to code compiled the OMZ demo using MSVC-2022 but thins were working with MSVB-2019
+- Understanding cmake to build projects
+- C++ low level design problems, los of OOPS involved
+- Fiding a methord to calibrate the screen to see if the user is gazing at the screen or not.
+- Understanding C++ developmet standards, I had not reqested for correcct permissions at first, so the application would not open properly, plus I used to sotre the stats in the cwd but later I realized that it was wrong and used libraries go actuqire queosuces
 
 ## Future Work
 

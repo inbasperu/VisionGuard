@@ -43,14 +43,32 @@ This project was developed as part of Google Summer of Code 2024 under the [Open
 
 ## Features
 
-- **Real-time Eye Gaze Tracking:** Accurate, privacy-preserving screen time monitoring.
-- **Customizable Break Notifications:** Smart alerts based on personalized intervals.
-- **Comprehensive Statistics:** Daily and weekly screen time insights.
-- **Flexible Device Support:** Seamless switching between CPU, GPU, and NPU.
-- **Multi-Camera Compatibility:** Support for up to five camera devices.
-- **Aesthetic Customization:** Dark and light theme options.
-- **Resource Optimization:** Built-in system resource monitor and frame processing limits.
-- **Convenient System Tray Integration:** Quick access without desktop clutter.
+### **Performance and Efficiency**
+
+- **Real-time Gaze Tracking:** Local processing ensures accurate and private screen-time monitoring.
+- **Device Switching:** Easily toggle between CPU, GPU, and NPU for optimal performance.
+- **Edge Inference:** Leverage edge devices for faster and more efficient processing.
+- **Performance Optimization:** Switch between quantized weights and control frame processing limits.
+- **Resource Monitoring:** Track system resources for efficient performance.
+- **Built with C++:** Developed using C++, a low-level language close to the system, ensuring high performance with memory efficiency.
+- **Powered by Libraries:** Built using Qt6 for the UI, OpenCV for computer vision, and OpenVINO for model inference, guaranteeing efficient performance.
+
+### **Privacy and Data Security**
+
+- **Data Kept Locally:** All data is processed and stored locally, ensuring privacy.
+- **Screen Time Statistics:** View daily/weekly usage stats, automatically cleared after a week for privacy.
+
+### **Customization and Accessibility**
+
+- **Custom Break Notifications:** Alerts based on customizable intervals, including the 20-20-20 rule.
+- **Dark/Light Themes:** Customize the interface with light or dark themes.
+- **Multiple Cameras:** Support for up to five camera devices.
+- **System Tray Access:** VisionGuard runs in the tray for easy access.
+
+### **Installation and Extensibility**
+
+- **Easy Windows Setup:** Comes with an easy installation setup for Windows.
+- **Cross-Platform Libraries:** Utilizes cross-platform libraries like Qt6, OpenCV, and OpenVINO for extensibility and future updates.
 
 For an in-depth look at these features, please refer to our [Features Documentation](docs/FEATURES.md).
 
