@@ -26,7 +26,7 @@
 </p>
 
 ## About VisionGuard
-
+![VisionGuard Main Window GUI](docs/images/app_notification_alert.png)
 VisionGuard is an innovative desktop application designed to combat eye strain resulting from prolonged screen time. Leveraging advanced computer vision technology, it utilizes your PC's webcam to monitor screen time and provide timely break reminders, promoting healthier computing habits and reducing eye fatigue.
 
 <p align="center">

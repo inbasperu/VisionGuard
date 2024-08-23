@@ -21,6 +21,8 @@ VisionGuard is an advanced screen time management tool that uses your webcam to 
 
 ### Installation
 
+![VisionGuard setup](images/app-installer.png)
+
 1. Download the VisionGuard installer from the official website.
 2. Run the installer and follow the on-screen instructions.
 3. Restart your computer after installation.
@@ -36,8 +38,7 @@ Description: A screenshot showing the VisionGuard launch screen with a "Allow" b
 
 ## 3. Main Interface
 
-[Diagram: VisionGuard Main Interface]
-Description: A labeled screenshot of the main VisionGuard interface showing:
+![VisionGuard Main Interface](images/app-main-window.png)
 
 **Main Window Application Features**:
 
@@ -56,6 +57,8 @@ During runtime, VisionGuard allows you to control the displayed information usin
 
 ### Display Control Keys
 
+![VisionGuard toggles](images/app_toggles.png)
+
 - **G**: Toggle the display of the gaze vector.
 - **B**: Toggle the display of face detector bounding boxes.
 - **O**: Toggle the display of head pose information.
@@ -69,6 +72,7 @@ During runtime, VisionGuard allows you to control the displayed information usin
 ### Resource Monitor Keys
 
 The resource monitor can be controlled using these keys:
+![VisionGuard Resource Graph](images/app-resource-graph.png)
 
 - **C**: Display CPU average usage.
 - **D**: Display CPU distribution.
@@ -77,6 +81,8 @@ The resource monitor can be controlled using these keys:
 ## 5. Calibration Process
 
 The calibration process ensures accurate gaze tracking by mapping your eye movements to screen coordinates.
+
+![VisionGuard Calibration Window](images/app_calibration_window.png)
 
 ### Calibration Overview
 
@@ -90,9 +96,6 @@ The calibration process ensures accurate gaze tracking by mapping your eye movem
 For detailed calibration steps, please refer to the system architecture documentation.
 
 ### Calibration UI Controls
-
-[Diagram: Calibration Controls]
-Description: A mockup of the calibration control panel showing:
 
 1. "Start Calibration" button
 2. Error Margin input field with "Set Margin" button
@@ -111,12 +114,9 @@ The Gaze Estimation settings menu showing options for
 
 contains sliders and spin wheels
 
-
-
 ## 7. Viewing Statistics
 
-[Diagram: Statistics Dashboard]
-Description: A mockup of the statistics dashboard showing:
+![VisionGuard Weekly Usage](images/app_weekly_stats.png)
 
 1. Daily and weekly screen time graphs
 2. Break adherence rate
@@ -132,8 +132,7 @@ To view your statistics:
 
 VisionGuard runs in the system tray for quick access to key features.
 
-[Diagram: System Tray Menu]
-Description: A screenshot of the system tray icon and its right-click menu showing options for:
+![VisionGuard SysTray](images/app-sys-tray.png)
 
 1. Pause/Resume tracking
 2. Take a break now
@@ -150,9 +149,6 @@ Description: A screenshot of the system tray icon and its right-click menu showi
 5. Recalibrate if you change your sitting position or lighting conditions significantly.
 
 ## 10. Troubleshooting
-
-[Diagram: Troubleshooting Flowchart]
-Description: A flowchart guiding users through common issues and their solutions.
 
 Common issues and solutions:
 
