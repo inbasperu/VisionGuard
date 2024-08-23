@@ -246,33 +246,6 @@ style H fill:#C1E1FF,stroke:#333,stroke-width:2px
 
 The VisionGuard system processes each video frame to determine the user's gaze direction and update screen time metrics. Here's a high-level overview of the algorithm:
 
-1. **Face and Gaze Detection**:
-   - Detect faces in the frame
-   - For each detected face, estimate head pose, facial landmarks, eye state, and gaze direction
-
-2. **Gaze Screen Intersection**:
-   - Convert the 3D gaze vector to a 2D point on the screen
-   - Use a point-in-polygon algorithm to determine if the gaze point is within the calibrated screen area
-
-3. **Gaze Time Update**:
-   - If the gaze is on the screen and eyes are open:
-     - Accumulate screen time
-     - Reset gaze lost timer
-   - If the gaze is off the screen or eyes are closed:
-     - Update gaze lost duration
-     - If gaze lost duration exceeds the threshold, reset accumulated screen time
-
-4. **Visual Feedback**:
-   - Mark detected facial features on the frame (if enabled)
-   - Display current gaze time and gaze lost duration
-
-5. **Performance Metrics**:
-   - Update and display resource utilization graphs (if enabled)
-
-## Frame Processing and Gaze Time Update Algorithm
-
-The VisionGuard system processes each video frame to determine the user's gaze direction and update screen time metrics. Here's a high-level overview of the algorithm:
-
 1. **Face and Gaze Detection**: Detect faces and estimate gaze direction.
 2. **Gaze Screen Intersection**: Convert 3D gaze vector to 2D screen point.
 3. **Gaze Time Update**: Update screen time or gaze lost duration.

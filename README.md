@@ -51,7 +51,7 @@ This project was developed as part of Google Summer of Code 2024 under the [Open
 - **Performance Optimization:** Switch between quantized weights and control frame processing limits.
 - **Resource Monitoring:** Track system resources for efficient performance.
 - **Built with C++:** Developed using C++, a low-level language close to the system, ensuring high performance with memory efficiency.
-- **Powered by Libraries:** Built using Qt6 for the UI, OpenCV for computer vision, and OpenVINO for model inference, guaranteeing efficient performance.
+- **Powered by Libraries:** Built using Qt6 for the UI, OpenCV for computer vision, and OpenVINO for model inference, for an efficient performance.
 
 ### **Privacy and Data Security**
 
@@ -68,9 +68,7 @@ This project was developed as part of Google Summer of Code 2024 under the [Open
 ### **Installation and Extensibility**
 
 - **Easy Windows Setup:** Comes with an easy installation setup for Windows.
-- **Cross-Platform Libraries:** Utilizes cross-platform libraries like Qt6, OpenCV, and OpenVINO for extensibility and future updates.
-
-For an in-depth look at these features, please refer to our [Features Documentation](docs/FEATURES.md).
+- **Cross-Platform Libraries:** Utilizes cross-platform libraries like Qt6, OpenCV, and OpenVINO, dynamically linked for extensibility and future updates.
 
 ## Installation
 

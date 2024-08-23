@@ -40,3 +40,4 @@ backend/build/*
 .vscode
 CMakeLists.txt.user
 VisionGuardBin.code-workspace
+*/video/*

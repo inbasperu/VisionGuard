@@ -30,8 +30,9 @@ VisionGuard is an advanced screen time management tool that uses your webcam to 
 - Launch VisionGuard from the Start menu or desktop shortcut.
 - Ensure your webcam is connected and functioning before starting the application.
 
-[Diagram: VisionGuard Launch Screen]
-Description: A screenshot showing the VisionGuard launch screen with a "Start" button and webcam status indicator.
+![VisionGuard camera access](images/app_camera_access.png)
+
+Description: A screenshot showing the VisionGuard launch screen with a "Allow" button to access the web-camb.
 
 ## 3. Main Interface
 
@@ -99,19 +100,18 @@ Description: A mockup of the calibration control panel showing:
 
 ## 6. Customizing Settings
 
-[Diagram: Settings Menu]
-Description: A mockup of the settings menu showing options for:
+![Custom Settings for Gaze Estimation](images/app_custom_settings.png)
 
+The Gaze Estimation settings menu showing options for
+
+1. Break duration
 1. Break intervals
-2. Theme preferences
-3. Device configurations
-4. Notification settings
+2. FPS limit
+3. error margin for claibration
 
-To customize VisionGuard:
+contains sliders and spin wheels
 
-1. Click the "Settings" button on the main interface.
-2. Adjust your preferences in each category.
-3. Click "Save" to apply your changes.
+
 
 ## 7. Viewing Statistics
 

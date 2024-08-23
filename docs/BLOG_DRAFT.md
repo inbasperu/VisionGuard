@@ -22,6 +22,7 @@ During the GSoC period, I successfully implemented the following features:
 ## Technical Deep Dive
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'background': '#ffffff' }}}%%
 graph TD
     subgraph Client
         UI[User Interface]
