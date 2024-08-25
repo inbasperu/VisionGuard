@@ -39,7 +39,7 @@ VisionGuard is an innovative desktop application designed to combat eye strain r
 - **Data Security:** All data remains on your device, ensuring your privacy.
 - **Performance Optimized:** Supports inference on AI PC's Neural Processing Unit (NPU) for enhanced efficiency.
 
-This project was developed as part of Google Summer of Code 2024 under the [OpenVINO Toolkit](https://github.com/openvinotoolkit), mentored by [Dmitriy Pastushenkov](https://github.com/DimaPastushenkov), [Ria Cheruvu](https://github.com/riacheruvu), and [ZhuoWu](https://github.com/zhuo-yoyowz). For more details, visit the [GSoC Project Page](https://summerofcode.withgoogle.com/programs/2024/projects/QUbIeRAM).
+This project was developed as part of [Google Summer of Code 2024](https://summerofcode.withgoogle.com/programs/2024) under the [OpenVINO Toolkit](https://github.com/openvinotoolkit), mentored by [Dmitriy Pastushenkov](https://github.com/DimaPastushenkov), [Ria Cheruvu](https://github.com/riacheruvu), and [ZhuoWu](https://github.com/zhuo-yoyowz). For more details, visit the [GSoC Project Page](https://summerofcode.withgoogle.com/programs/2024/projects/QUbIeRAM).
 
 ## Features
 

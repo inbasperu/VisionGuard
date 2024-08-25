@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VisionGuard: Google Summer of Code 2024 Project</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1,
+        h2,
+        h3 {
+            color: #2c3e50;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>VisionGuard: Google Summer of Code 2024 Project</h1>
+
+    <h2>Project Overview</h2>
+    <p>VisionGuard is an innovative desktop application developed during Google Summer of Code (GSoC) 2024 in
+        collaboration with the <a href="https://github.com/openvinotoolkit">OpenVINO Toolkit</a> team. The project aims
+        to combat eye strain and promote healthier computing habits using advanced computer vision technology.</p>
+
+
+
+    <h2>Project Goals</h2>
+    <ol>
+        <li>Develop a privacy-focused screen time management tool using OpenVINO's gaze detection capabilities.</li>
+        <li>Create a user-friendly interface for real-time eye gaze tracking and break notifications.</li>
+        <li>Implement efficient inference on various hardware, including AI PC's Neural Processing Units (NPUs).</li>
+        <li>Provide comprehensive usage statistics while ensuring data privacy and security.</li>
+    </ol>
+
+
+    <iframe
+        src="https://docs.google.com/presentation/d/1hep7HIdMWntDBDMxAbn5csEWBKlcDmHSBTJDUiGLRKM/embed?start=false&loop=true&delayms=3000"
+        frameborder="0" width="960" height="569" allowfullscreen="true" mozallowfullscreen="true"
+        webkitallowfullscreen="true"></iframe>
+
+    <iframe
+        src="https://docs.google.com/spreadsheets/d/1CfnZK7eUM7_uEG4tkpvwrrlmc7pPPsqp847bD5i0BZQ/pubhtml?gid=1115838130&amp;single=true&amp;widget=true&amp;headers=false"
+        frameborder="0" width="960" height="569" allowfullscreen="true" mozallowfullscreen="true"
+        webkitallowfullscreen="true"></iframe>
+
+
+
+
+    <h2>Benchmarking Results</h2>
+
+    <h3>M3 Pro Performance</h3>
+    <div class="chart-container">
+        <canvas id="m3ProChart"></canvas>
+    </div>
+
+    <h3>Intel AI-PC Performance</h3>
+    <div class="chart-container">
+        <canvas id="intelAIPCChart"></canvas>
+    </div>
+
+    <h3>Asus TUF A-15 Performance</h3>
+    <div class="chart-container">
+        <canvas id="asusTUFChart"></canvas>
+    </div>
+
+    <h2>Key Insights</h2>
+    <ol>
+        <li>Quantization Impact: INT-8 FP-16 quantization generally provides the best balance between performance and
+            resource utilization across all devices.</li>
+        <li>Device Performance: GPU consistently outperforms CPU and NPU in terms of FPS and latency.</li>
+        <li>FPS Limits: Higher FPS limits generally lead to increased resource utilization.</li>
+        <li>Hardware Differences: Each tested configuration showed unique performance characteristics, with the M3 Pro
+            achieving the highest FPS but also the highest CPU utilization.</li>
+        <li>RAM Usage: RAM usage varies across different quantizations and devices, with FP-16 generally using more RAM
+            than INT-8 FP-16 and FP-32.</li>
+    </ol>
+
+    <script>
+        // M3 Pro Chart
+        const m3ProCtx = document.getElementById('m3ProChart').getContext('2d');
+        new Chart(m3ProCtx, {
+            type: 'bar',
+            data: {
+                labels: ['INT-8 FP-16', 'FP-16', 'FP-32'],
+                datasets: [{
+                    label: 'Max FPS',
+                    data: [30.4, 30.2, 30.1],
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }, {
+                    label: 'CPU Usage (%)',
+                    data: [370.2, 291.0, 254.0],
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }, {
+                    label: 'RAM Usage (MB)',
+                    data: [343.0, 434.6, 280.5],
+                    backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                    borderColor: 'rgba(255, 206, 86, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Intel AI-PC Chart
+        const intelAIPCCtx = document.getElementById('intelAIPCChart').getContext('2d');
+        new Chart(intelAIPCCtx, {
+            type: 'bar',
+            data: {
+                labels: ['NPU (FP-16)', 'NPU (FP-32)', 'NPU (INT-8 FP-16)', 'CPU (FP-16)', 'CPU (FP-32)', 'CPU (INT-8 FP-16)', 'IGPU (FP-16)', 'IGPU (FP-32)', 'IGPU (INT-8 FP-16)'],
+                datasets: [{
+                    label: 'Max FPS',
+                    data: [21.6, 21.4, 21.3, 21.2, 21.2, 21.4, 21.5, 21.3, 21.3],
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }, {
+                    label: 'Latency (ms)',
+                    data: [12.0, 13.6, 7.0, 12.3, 12.6, 6.1, 4.3, 4.6, 3.4],
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Asus TUF A-15 Chart
+        const asusTUFCtx = document.getElementById('asusTUFChart').getContext('2d');
+        new Chart(asusTUFCtx, {
+            type: 'bar',
+            data: {
+                labels: ['AUTO (FP-16)', 'AUTO (FP-32)', 'AUTO (INT-8 FP-16)', 'CPU (FP-16)', 'CPU (FP-32)', 'CPU (INT-8 FP-16)', 'IGPU (FP-16)', 'IGPU (FP-32)', 'IGPU (INT-8 FP-16)'],
+                datasets: [{
+                    label: 'Max FPS',
+                    data: [20.7, 20.9, 20.4, 20.9, 20.4, 20.9, 21.0, 20.9, 21.1],
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }, {
+                    label: 'Latency (ms)',
+                    data: [16.6, 16.5, 8.3, 7.4, 7.6, 5.4, 11.4, 12.2, 12.8],
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }, {
+                    label: 'CPU Usage (%)',
+                    data: [5.5, 2.6, 4.9, 6.8, 6.1, 6.7, 1.4, 1.4, 1.9],
+                    backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                    borderColor: 'rgba(255, 206, 86, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
