@@ -15,7 +15,7 @@ For more information, visit: [VisionGuard](https://github.com/inbasperu/VisionGu
 
 ## Key Achievements
 
-1. **Real-time Eye Gaze Tracking**: Uses five OpenVINO models (face detection, head pose estimation, facial landmarks, eye state estimation, gaze estimation), available in FP32, FP16, and INT8-FP16.
+1. **Real-time Eye Gaze Tracking**: Uses five [OpenVINO model zoo](https://github.com/openvinotoolkit/open_model_zoo) models([face detection](https://docs.openvino.ai/2024/omz_models_model_face_detection_retail_0005.html), [head pose estimation](https://docs.openvino.ai/2024/omz_models_model_head_pose_estimation_adas_0001.html), [facial landmarks](https://docs.openvino.ai/2024/omz_models_model_facial_landmarks_35_adas_0002.html), [eye state estimation](https://docs.openvino.ai/2022.3/omz_models_model_open_closed_eye_0001.html), [gaze estimation](https://docs.openvino.ai/2024/omz_models_model_gaze_estimation_adas_0002.html)), available in FP32, FP16, and INT8-FP16.
 2. **Customizable Break Reminders**: Implements the 20-20-20 rule for eye strain reduction.
 3. **Screen Time Analytics**: Tracks daily and weekly usage statistics.
 4. **Flexible Device Support**: Enables efficient real-time inference on CPU, GPU, and NPU.
@@ -40,7 +40,7 @@ VisionGuard is fully functional with its core features of gaze tracking, break r
 - **Core Logic**: Manages data flow and communication between client and backend.
 - **Gaze Detection Engine**: Processes video frames for gaze estimation using OpenVINO model zoo.
 - **Gaze Vector Calibration**: Adjusts and fine-tunes the gaze vector range through convex hull algorithms and error margin correction to ensure accurate gaze mapping on the screen.
-- **Eye Gaze Time Tracker**: Tracks screen gaze duration and break intervals.
+- **Eye Gaze Time Tracker**: Tracks screen gaze duration and break intervals using ray casting algorithm to determine the intersection of gaze vector with the screen.
 - **Break Notification System**: Triggers alerts based on the 20-20-20 rule.
 - **Metric and Performance Calculators**: Computes usage metrics, inference latency, frame rate, and system resource consumption.
 - **Statistics Calculator**: Aggregates user analytics for display.
@@ -60,7 +60,7 @@ For detailed technical information, see the [VisionGuard Architecture File](ARCH
 
 ## Code Upstream Status
 
-VisionGuard is listed under the [Computer Vision](https://github.com/openvinotoolkit/open_model_zoo) section of [Awesome OpenVINO](https://github.com/openvinotoolkit/awesome-openvino). Releases are available on the [GitHub releases page](https://github.com/inbasperu/VisionGuard/releases).
+VisionGuard is listed under the [Computer Vision](https://github.com/openvinotoolkit/awesome-openvino?tab=readme-ov-file#ai-computer-vision) section of [Awesome OpenVINO](https://github.com/openvinotoolkit/awesome-openvino). Releases are available on the [GitHub releases page](https://github.com/inbasperu/VisionGuard/releases).
 
 ## Challenges and Learnings
 
