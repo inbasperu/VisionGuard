@@ -348,7 +348,8 @@ void VisionGuard::resetGazeTime() {
 
 void VisionGuard::setAccumulatedGazeTimeThreshold(
     const double accumulated_gaze_time_threshold) {
-  this->accumulated_gaze_time_threshold = accumulated_gaze_time_threshold;
+  // accumulated_gaze_time_threshold is in min
+  this->accumulated_gaze_time_threshold = accumulated_gaze_time_threshold * 60;
 }
 
 void VisionGuard::setGazeLostThreshold(const double gazeLostThreshold) {
@@ -434,7 +435,7 @@ cv::Point2f VisionGuard::captureGazePoint(cv::Mat &frame) {
 
 bool VisionGuard::isGazeInScreen(const ScreenCalibration &calibration,
                                  const cv::Point3f &gazeVector,
-                                 const cv::Size &imageSize){
+                                 const cv::Size &imageSize) {
   // Extract the four points from the ScreenCalibration struct
   std::vector<cv::Point2f> polygon = {calibration.topLeft, calibration.topRight,
                                       calibration.bottomRight,

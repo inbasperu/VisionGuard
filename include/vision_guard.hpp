@@ -109,7 +109,7 @@ private:
 
   // Gaze time tracking
   double accumulatedGazeTime = 0; // In seconds
-  double accumulated_gaze_time_threshold = 20;
+  double accumulated_gaze_time_threshold = 20*60; // In min
   bool isGazingAtScreen = false;
   double gazeLostThreshold = 10;
   std::chrono::steady_clock::time_point gazeLostTime;
