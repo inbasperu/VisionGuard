@@ -12,7 +12,7 @@ mkdir -p /Users/inbasekaranperumal/Developer/OpenSource/GSoC/code/VisionGuard/bu
 cd /Users/inbasekaranperumal/Developer/OpenSource/GSoC/code/VisionGuard/build
 
 # Run CMake to configure and generate the build system with cache variables
-cmake -DCMAKE_BUILD_TYPE=Debug \
+cmake -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_PREFIX_PATH="/Users/inbasekaranperumal/Qt/6.7.1/macos" \
     -DOpenCV_DIR="/Users/inbasekaranperumal/Developer/OpenSource/build_opencv" \
     -DOpenVINO_DIR="/Users/inbasekaranperumal/Developer/Programs/OpenVINO-install-dir/runtime/cmake" \
@@ -20,4 +20,4 @@ cmake -DCMAKE_BUILD_TYPE=Debug \
     /Users/inbasekaranperumal/Developer/OpenSource/GSoC/code/VisionGuard
 
 # Build the project
-cmake --build . --config Debug --parallel $(sysctl -n hw.ncpu)
+cmake --build . --config Release --parallel $(sysctl -n hw.ncpu)
