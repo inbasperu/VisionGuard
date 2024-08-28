@@ -1,6 +1,22 @@
-# VisionGuard: A Journey Through Google Summer of Code 2024 with OpenVINO
+# VisionGuard: My Google Summer of Code 2024 Experience with OpenVINO
 
-As the sun sets on my 16-week journey with Google Summer of Code (GSoC) 2024, I'm thrilled to share the fruits of my labor: VisionGuard, an innovative desktop application designed to combat eye strain and promote healthier computing habits. This project, developed under the mentorship of the [OpenVINO Toolkit](https://github.com/openvinotoolkit) team, represents a significant step forward in leveraging advanced computer vision technology for personal well-being.
+As I wrap up my 16-week journey with Google Summer of Code (GSoC) 2024, I'm excited to present *VisionGuard*—a desktop application designed to help reduce eye strain and promote healthier screen usage. Developed in collaboration with the [OpenVINO Toolkit](https://github.com/openvinotoolkit) team, VisionGuard represents a personal and technical milestone for me, as it brings advanced computer vision to a very practical, everyday problem.
+
+## The Beginning: My Path to GSoC
+
+I’m Inbasekaran Perumal, a recent graduate from the National Institute of Technology, Surathkal, Karnataka (class of 2024), where I completed my undergraduate education specializing in Electronics & Communication Engineering. My interest in how hardware and software work together has always driven me, especially when it comes to integrating AI and machine learning into real-world applications. I’ve always been fascinated by technologies like computer vision and image processing, which made OpenVINO an ideal open-source project for me.
+
+My first proper techinical introduction to OpenVINO came during a talk led by Intel experts, hosted by one of my professors Prof.[Sumam David](https://sumam.nitk.ac.in). This hands-on experience in executing neural network inference on Intel FPGAs sparked my interest. From that moment, I knew I wanted to contribute to OpenVINO and gain a deeper understanding of how it works while applying my skills to meaningful projects.
+
+I had heard about Google Summer of Code during my freshmen year at university, particularly through seniors who actively participated in open-source programs like GSoC. Initially, the idea of contributing to a global open-source project seemed daunting. I questioned whether I had the skills or experience to be part of such a prestigious initiative. However, but with encouragement from my professors, Prof. [Mohit P. Tahiliani](https://cse.nitk.ac.in/faculty/mohit-p-tahiliani) and Prof.[Ramesh Kini](https://ece.nitk.ac.in/faculty/ramesh-kini-m) and the motivation from seniors who had successfully participated in GSoC, I decided to take the leap.
+
+Contributing to C++-based open-source projects can be intimidating at first, especially for beginners. I hope to write a detailed guide someday to help others get started in this area.
+
+## The Vision Behind VisionGuard
+
+The concept for *VisionGuard* is close to my heart. Like many of us, I experienced the negative effects of long hours spent in front of screens—strained eyes, disrupted sleep, and overall discomfort, particularly during the remote semesters of the COVID era. VisionGuard is designed to monitor your screen time and encourage healthier habits by using your computer’s webcam to track your gaze. 
+
+The tool operates locally to ensure privacy, with the added benefit of leveraging Neural Processing Units (NPUs) for efficient AI inference, balancing performance with data security.
 
 ## Project Overview
 
