@@ -17,7 +17,7 @@
   <a href="docs/BENCHMARKING.md">Benchmarks</a> •
   <a href="#contributing">Contributing</a> •
   <a href="#license">License</a> •
-  <a href="docs/BLOG_DRAFT.md">Blog</a>
+  <a href="https://medium.com/openvino-toolkit/visionguard-ai-eye-care-for-computer-users-d055a574d8e9">Blog</a>
 </p>
 
 <p align="center">
